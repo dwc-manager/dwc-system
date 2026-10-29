@@ -309,12 +309,14 @@
           </div>
 
           <form id="shift-report-form" onsubmit="handleSubmitShiftReport(event)" class="space-y-5">
-            <!-- 業務日・代表受取人・関連イベント -->
+            <!-- 業務日（シフト枠名プルダウン）・代表受取人・関連イベント -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">業務日 <span class="text-rose-500">*</span></label>
-                <input id="shift-date" type="date" required onchange="handleShiftDateChange()"
-                  class="w-full box-border max-w-[100%] rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+                <label class="block text-xs font-bold text-slate-700 mb-1">業務日（シフト枠名） <span class="text-rose-500">*</span></label>
+                <select id="shift-date" required onchange="handleShiftDateChange()"
+                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none">
+                  <option value="">-- シフト枠を選択してください --</option>
+                </select>
               </div>
 
               <div class="min-w-0">
@@ -729,13 +731,19 @@
             <div>
               <h2 class="text-base sm:text-lg font-bold text-slate-900">🎲 複数日程シフト一括抽選 &amp; カレンダー出力</h2>
               <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                1カ月分（複数日程）のシフトを一気に抽選できます。<strong>①ペナルティ保有者の優先選出</strong>、<strong>②直近2カ月参加回数による減点</strong>に加え、<strong>③同一バッチ内での重複当選偏り防止</strong>を自動計算し、<code>Planned_Shifts</code>（縦積み）と <code>Shift_Calendar</code>（横並びカレンダー形式）へ同時出力します。
+                1カ月分（複数日程）のシフトを一気に抽選できます。<strong>①ペナルティ保有者の優先選出</strong>、<strong>②直近2カ月参加回数による減点</strong>に加え、<strong>③同一バッチ内での重複当選偏り防止</strong>を自動計算し、<code>Planned_Shifts</code>（縦積み）と <code>Shift_Calendar</code>（A列:シフト枠名 / B列以降:当選者名）へ同時出力します。
               </p>
             </div>
-            <button type="button" onclick="addShiftLotteryBlock()"
-              class="self-start sm:self-auto shrink-0 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs sm:text-sm shadow-xs transition active:scale-[0.99]">
-              ＋ 日程を追加
-            </button>
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+              <a href="#" target="_blank" rel="noopener noreferrer"
+                class="admin-spreadsheet-link hidden inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs shadow-2xs transition">
+                📊 データベースを直接開く（スプレッドシート）
+              </a>
+              <button type="button" onclick="addShiftLotteryBlock()"
+                class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs sm:text-sm shadow-xs transition active:scale-[0.99]">
+                ＋ 日程を追加
+              </button>
+            </div>
           </div>
 
           <form id="lottery-form" onsubmit="handleRunShiftLottery(event)" class="space-y-4">
@@ -782,7 +790,7 @@
 
             <!-- Shift_Calendar 横並びマトリックスプレビュー -->
             <div class="space-y-1.5">
-              <div class="text-xs font-bold text-slate-700">📅 カレンダー形式プレビュー（1行目: 日付 / 2行目以降: 当選者名）</div>
+              <div class="text-xs font-bold text-slate-700">📅 Shift_Calendar 横並びプレビュー（A列: シフト枠名 / B列以降: 当選者の名前）</div>
               <div id="lottery-calendar-preview" class="overflow-x-auto border border-slate-200 rounded-xl">
                 <!-- JSで横並びマトリックステーブルを描画 -->
               </div>
@@ -800,6 +808,20 @@
       <!-- TAB 6: Admin専用 - コントロールパネル (権限・進級・LINE URL・キルスイッチ) -->
       <!-- ================================================================= -->
       <section id="tab-admin-control" class="tab-panel hidden space-y-5">
+
+        <!-- スプレッドシート直接アクセスバー (V5新設) -->
+        <div class="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div>
+            <h3 class="text-sm font-bold text-emerald-950">📊 スプレッドシート（データベース）の直接編集・閲覧</h3>
+            <p class="text-xs text-emerald-800 mt-0.5">
+              シフト枠の手動削除・修正や、<code>Shift_Calendar</code>・<code>Transactions</code> シートの直接確認はこちらから行えます。
+            </p>
+          </div>
+          <a href="#" target="_blank" rel="noopener noreferrer"
+            class="admin-spreadsheet-link hidden self-start sm:self-auto shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-xs transition">
+            📊 データベースを直接開く（スプレッドシート） ↗
+          </a>
+        </div>
 
         <!-- カード1: メンバー権限 (Role) の変更フォーム -->
         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
@@ -936,6 +958,8 @@
       user: null,
       usersList: [],
       eventsList: [],
+      shiftSlotNames: [],
+      spreadsheetUrl: '',
       transportRoutes: [
         { id: 'demachiyanagi', label: '出町柳から（860円）', amount: 860 },
         { id: 'kokusaikaikan', label: '国際会館から（520円）', amount: 520 },
@@ -1106,11 +1130,26 @@
       }
     }
 
-    async function initApp() {
-      const today = getTodayDateString();
-      const shiftDateInput = document.getElementById('shift-date');
-      if (shiftDateInput) shiftDateInput.value = today;
+    /**
+     * Admin用の「データベースを直接開く（スプレッドシート）」リンクボタン群を同期するヘルパー (V5追加)
+     * @param {string=} url
+     */
+    function syncAdminSpreadsheetLinks(url) {
+      const cleanUrl = String(url || '').trim();
+      APP_STATE.spreadsheetUrl = cleanUrl;
+      const links = document.querySelectorAll('.admin-spreadsheet-link');
+      links.forEach(a => {
+        if (cleanUrl && /^https?:\/\//i.test(cleanUrl)) {
+          a.href = cleanUrl;
+          a.classList.remove('hidden');
+        } else {
+          a.href = '#';
+          a.classList.add('hidden');
+        }
+      });
+    }
 
+    async function initApp() {
       syncAdminLineUrlLinks(APP_STATE.adminLineUrl);
       initIrregularClaimsRows();
 
@@ -1369,25 +1408,43 @@
         }
       });
 
+      // Admin専用のスプレッドシート直接リンク設定 (V5追加)
+      if (authContext.role === 'Admin') {
+        const ssUrl = authContext.spreadsheetUrl || (authContext.config && authContext.config.spreadsheetUrl) || '';
+        syncAdminSpreadsheetLinks(ssUrl);
+      } else {
+        syncAdminSpreadsheetLinks('');
+      }
+
       // 代表受取人の初期値に自分の氏名をセット
       const targetPersonInput = document.getElementById('shift-target-person');
       if (targetPersonInput && !targetPersonInput.value) {
         targetPersonInput.value = authContext.name || '';
       }
 
-      // メンバー一覧・イベント一覧・本日の予定シフトを並列取得
-      const shiftDate = document.getElementById('shift-date').value;
-      const [users, events, plannedMembers] = await Promise.all([
+      // メンバー一覧・イベント一覧・Planned_Shiftsの一意シフト枠名一覧を並列取得
+      const [users, events, shiftSlots] = await Promise.all([
         callGasRpc('getUsers'),
         callGasRpc('getEvents'),
-        callGasRpc('getPlannedShifts', { shiftDate: shiftDate })
+        callGasRpc('getShiftSlotNames')
       ]);
 
       APP_STATE.usersList = Array.isArray(users) ? users : [];
       APP_STATE.eventsList = Array.isArray(events) ? events : [];
-      APP_STATE.plannedMembersForDate = Array.isArray(plannedMembers) ? plannedMembers : [];
+      APP_STATE.shiftSlotNames = Array.isArray(shiftSlots) ? shiftSlots : [];
 
       populateEventSelectors();
+      populateShiftSlotSelector();
+
+      // 選択中のシフト枠名に対する予定メンバーを取得
+      const selectedShiftSlot = document.getElementById('shift-date').value;
+      if (selectedShiftSlot) {
+        const plannedMembers = await callGasRpc('getPlannedShifts', { shiftDate: selectedShiftSlot });
+        APP_STATE.plannedMembersForDate = Array.isArray(plannedMembers) ? plannedMembers : [];
+      } else {
+        APP_STATE.plannedMembersForDate = [];
+      }
+
       renderGradeAccordionParticipants();
       updatePlannedShiftBanner();
 
@@ -1397,6 +1454,41 @@
       }
 
       switchTab('shift');
+    }
+
+    /**
+     * Planned_Shifts のA列から取得した一意の「シフト枠名」を業務報告プルダウン (#shift-date) にセットする (V5追加)
+     * @param {string=} preferredSlotName
+     */
+    function populateShiftSlotSelector(preferredSlotName) {
+      const selectEl = document.getElementById('shift-date');
+      if (!selectEl) return;
+
+      const prevValue = preferredSlotName !== undefined ? preferredSlotName : selectEl.value;
+      const slots = Array.isArray(APP_STATE.shiftSlotNames) ? APP_STATE.shiftSlotNames : [];
+
+      selectEl.innerHTML = '';
+
+      if (slots.length === 0) {
+        const emptyOpt = document.createElement('option');
+        emptyOpt.value = '';
+        emptyOpt.textContent = '（予定シフト枠が未登録です - Admin抽選後に選択可能）';
+        selectEl.appendChild(emptyOpt);
+        return;
+      }
+
+      slots.forEach(slotName => {
+        const opt = document.createElement('option');
+        opt.value = slotName;
+        opt.textContent = slotName;
+        selectEl.appendChild(opt);
+      });
+
+      if (prevValue && slots.includes(prevValue)) {
+        selectEl.value = prevValue;
+      } else {
+        selectEl.value = slots[0];
+      }
     }
 
     /**
@@ -1625,11 +1717,16 @@
     }
 
     /**
-     * 業務日が変更された際に Planned_Shifts を再取得してチェック状態を同期
+     * 業務日（シフト枠名プルダウン）が変更された際に Planned_Shifts を再取得してチェック状態を同期
      */
     async function handleShiftDateChange() {
       const shiftDate = document.getElementById('shift-date').value;
-      if (!shiftDate) return;
+      if (!shiftDate) {
+        APP_STATE.plannedMembersForDate = [];
+        renderGradeAccordionParticipants();
+        updatePlannedShiftBanner();
+        return;
+      }
 
       try {
         const planned = await callGasRpc('getPlannedShifts', { shiftDate: shiftDate });
@@ -2643,7 +2740,7 @@
 
       container.innerHTML = '';
       LOTTERY_BLOCK_SEQ = 0;
-      addShiftLotteryBlock(getTodayDateString(), 4, '');
+      addShiftLotteryBlock('', 4, '');
     }
 
     /**
@@ -2658,26 +2755,7 @@
 
       LOTTERY_BLOCK_SEQ++;
       const blockId = LOTTERY_BLOCK_SEQ;
-
-      // 既存ブロックがあり initialDate が未指定なら、最後のブロックの翌日を初期値として提案
-      let defaultDate = initialDate;
-      if (!defaultDate) {
-        const existingDateInputs = container.querySelectorAll('.lottery-block-date');
-        if (existingDateInputs.length > 0) {
-          const lastVal = existingDateInputs[existingDateInputs.length - 1].value;
-          if (/^\d{4}-\d{2}-\d{2}$/.test(lastVal)) {
-            const parts = lastVal.split('-').map(Number);
-            const nextDay = new Date(parts[0], parts[1] - 1, parts[2] + 1);
-            const yyyy = nextDay.getFullYear();
-            const mm = String(nextDay.getMonth() + 1).padStart(2, '0');
-            const dd = String(nextDay.getDate()).padStart(2, '0');
-            defaultDate = `${yyyy}-${mm}-${dd}`;
-          }
-        }
-        if (!defaultDate) {
-          defaultDate = getTodayDateString();
-        }
-      }
+      const defaultDate = String(initialDate || '').trim();
 
       const blockEl = document.createElement('div');
       blockEl.id = `lottery-block-${blockId}`;
@@ -2690,7 +2768,7 @@
             <span class="lottery-block-badge inline-flex items-center px-2.5 py-1 rounded-lg bg-brand-600 text-white text-xs font-extrabold">
               日程 #${blockId}
             </span>
-            <span class="text-xs font-bold text-slate-600">対象シフト日・当選枠・応募者リスト</span>
+            <span class="text-xs font-bold text-slate-600">シフト枠名・募集定員（上限人数）・応募者リスト</span>
           </div>
           <button type="button" onclick="removeShiftLotteryBlock(${blockId})"
             class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-300 text-slate-500 hover:text-rose-600 text-xs font-bold transition">
@@ -2701,18 +2779,19 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div class="sm:col-span-2 min-w-0">
             <label class="block text-xs font-bold text-slate-700 mb-1">
-              対象シフト日 (` + '`shift_date`' + `) <span class="text-rose-500">*</span>
+              対象シフト日・シフト枠名 (` + '`shift_date`' + `) <span class="text-rose-500">*</span>
             </label>
-            <input type="date"
+            <input type="text"
               id="lottery-date-${blockId}"
               value="${escapeHtml(defaultDate)}"
+              placeholder="例: 11/6〜7(宿泊)"
               required
-              class="lottery-block-date w-full box-border max-w-[100%] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+              class="lottery-block-date w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
           </div>
 
           <div class="min-w-0">
             <label class="block text-xs font-bold text-slate-700 mb-1">
-              当選枠数 (` + '`winner_count`' + `) <span class="text-rose-500">*</span>
+              募集定員（上限人数） <span class="text-rose-500">*</span>
             </label>
             <input type="number"
               id="lottery-winner-count-${blockId}"
@@ -3037,10 +3116,11 @@
             `全 ${result.total_shifts} 日程の抽選が完了し、Planned_Shifts と Shift_Calendar（横並び表）へ出力しました！`,
             'success'
           );
-          const currentReportDate = document.getElementById('shift-date').value;
-          if (shiftsPayload.some(s => s.shift_date === currentReportDate)) {
-            await handleShiftDateChange();
-          }
+          // 業務完了報告タブの「業務日（シフト枠名）」プルダウン選択肢を最新に更新
+          const latestSlotNames = await callGasRpc('getShiftSlotNames');
+          APP_STATE.shiftSlotNames = Array.isArray(latestSlotNames) ? latestSlotNames : [];
+          populateShiftSlotSelector();
+          await handleShiftDateChange();
         } else {
           showToast(`全 ${result.total_shifts} 日程の抽選シミュレーションが完了しました！`, 'success');
         }
@@ -3065,42 +3145,50 @@
       const shifts = Array.isArray(result.shifts) ? result.shifts : [];
 
       const regText = result.registered_to_sheets
-        ? ' / ✅ Planned_Shifts（縦積み）& Shift_Calendar（横並びカレンダー表）へ出力済'
+        ? ' / ✅ Planned_Shifts（縦積み）& Shift_Calendar（A列:シフト枠名 / B列以降:当選者名）へ出力済'
         : ' / ※シート未保存（プレビューのみ）';
       meta.textContent = `抽選日程数: ${shifts.length} 日程 / 直近2カ月集計基準日: ${result.cutoff_date} 以降${regText}`;
 
-      // 1. Shift_Calendar 横並びマトリックスプレビューの構築
-      const maxWinners = shifts.reduce(
-        (max, s) => Math.max(max, Array.isArray(s.winners) ? s.winners.length : 0),
-        0
+      // 1. Shift_Calendar 横並びマトリックスプレビューの構築（A列: シフト枠名、B列以降: 当選者の名前が横へ伸びる形式）
+      const maxWinners = Math.max(
+        1,
+        shifts.reduce((max, s) => Math.max(max, Array.isArray(s.winners) ? s.winners.length : 0), 0)
       );
 
+      let winnerHeadersHtml = '';
+      for (let c = 1; c <= maxWinners; c++) {
+        winnerHeadersHtml += `<th class="py-2.5 px-3 border-r border-slate-700 last:border-r-0 whitespace-nowrap text-center">当選者 ${c}</th>`;
+      }
+
       let calendarTableHtml = `
-        <table class="w-full text-center border-collapse text-xs">
+        <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-slate-900 text-white font-bold">
-              ${shifts
-                .map(
-                  s => `<th class="py-2.5 px-3 border-r border-slate-700 last:border-r-0 whitespace-nowrap">${escapeHtml(s.shift_date)}</th>`
-                )
-                .join('')}
+              <th class="py-2.5 px-3 border-r border-slate-700 whitespace-nowrap">シフト枠名（日程）</th>
+              ${winnerHeadersHtml}
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 bg-white">
       `;
 
-      for (let r = 0; r < Math.max(1, maxWinners); r++) {
+      shifts.forEach(s => {
         calendarTableHtml += '<tr>';
-        shifts.forEach(s => {
-          const w = s.winners && s.winners[r];
+        calendarTableHtml += `
+          <td class="py-2.5 px-3 border-r border-slate-200 bg-slate-100/80 whitespace-nowrap font-extrabold text-slate-900">
+            ${escapeHtml(s.shift_date)}
+          </td>
+        `;
+        for (let c = 0; c < maxWinners; c++) {
+          const w = s.winners && s.winners[c];
           calendarTableHtml += `
-            <td class="py-2 px-3 border-r border-slate-100 last:border-r-0 whitespace-nowrap font-bold text-slate-800">
+            <td class="py-2.5 px-3 border-r border-slate-100 last:border-r-0 whitespace-nowrap text-center font-bold text-slate-800">
               ${w ? escapeHtml(w.name) : '<span class="text-slate-300">-</span>'}
             </td>
           `;
-        });
+        }
         calendarTableHtml += '</tr>';
-      }
+      });
+
       calendarTableHtml += '</tbody></table>';
       calendarPreview.innerHTML = calendarTableHtml;
 
