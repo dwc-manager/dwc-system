@@ -1,0 +1,2812 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DWC 会計・業務管理システム</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans CJK JP", "Yu Gothic", sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* iOS Safari での input[type="date"] / input[type="month"] の画面幅はみ出し防止 */
+    input[type="date"],
+    input[type="month"] {
+      -webkit-appearance: none;
+      appearance: none;
+      min-width: 0;
+      max-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+  <!-- ===================================================================== -->
+  <!-- グローバルローディングオーバーレイ -->
+  <!-- ===================================================================== -->
+  <div id="global-loader" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/50 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl p-6 shadow-xl flex flex-col items-center max-w-xs w-full mx-4">
+      <div class="w-11 h-11 border-4 border-brand-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+      <p id="loader-message" class="text-sm font-bold text-slate-700 text-center">システムを起動しています...</p>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- トースト通知 -->
+  <!-- ===================================================================== -->
+  <div id="toast-container" class="fixed top-4 right-4 left-4 sm:left-auto sm:w-96 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ===================================================================== -->
+  <!-- LINEワンタップ連携モーダル (業務報告完了時) -->
+  <!-- ===================================================================== -->
+  <div id="line-modal" class="hidden fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-3">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+          報告完了・未決済起票済
+        </span>
+        <button type="button" onclick="closeLineModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold leading-none">&times;</button>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 mb-1">照合番号が発行されました</h3>
+      <p class="text-xs text-slate-500 mb-4">
+        下のボタンで報告テキストをコピーし、会計担当の公式LINE等へそのまま貼り付けて送信してください。
+      </p>
+
+      <div class="bg-brand-50 border border-brand-200 rounded-xl p-3 mb-4 text-center">
+        <div class="text-xs text-brand-700 font-semibold">4桁の照合番号 (payment_id)</div>
+        <div id="modal-payment-id" class="text-3xl font-extrabold tracking-widest text-brand-800 mt-0.5">0000</div>
+        <div id="modal-total-amount" class="text-xs font-bold text-slate-600 mt-1">合計請求額: ¥0</div>
+      </div>
+
+      <label class="block text-xs font-semibold text-slate-600 mb-1">LINE送信メッセージ（自動生成）</label>
+      <textarea id="modal-line-text" readonly rows="8" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700 font-mono focus:outline-none mb-4"></textarea>
+
+      <div class="flex flex-col gap-2.5">
+        <button type="button" onclick="copyLineTemplate()" class="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-sm shadow transition active:scale-[0.99]">
+          1. メッセージをクリップボードにコピー
+        </button>
+        <a id="modal-line-link" href="https://line.me/ti/p/" target="_blank" rel="noopener noreferrer" class="w-full py-3 px-4 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white font-bold text-sm text-center shadow transition">
+          2. LINEを開いて会計へ送信する
+        </a>
+        <button type="button" onclick="closeLineModal()" class="w-full py-2 text-xs text-slate-500 hover:text-slate-700 font-medium mt-1">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- シンプルヘッダー (ロゴ・装飾バッジなし) -->
+  <!-- ===================================================================== -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div>
+        <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">DWC 会計・業務管理システム</h1>
+        <p id="header-user-info" class="text-xs text-slate-500 mt-0.5">未ログイン</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="header-role-badge" class="hidden px-2.5 py-1 rounded-full text-xs font-bold"></span>
+        <button id="btn-logout" type="button" onclick="handleLogout()" class="hidden px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+          ログアウト
+        </button>
+      </div>
+    </div>
+
+    <!-- ナビゲーションタブ (認証完了後に表示) -->
+    <nav id="main-nav" class="hidden max-w-4xl mx-auto px-4 border-t border-slate-100 bg-slate-50/70">
+      <div class="flex space-x-1 overflow-x-auto no-scrollbar py-1.5">
+        <button type="button" id="tab-btn-shift" onclick="switchTab('shift')" class="tab-btn whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
+          業務完了報告
+        </button>
+        <button type="button" id="tab-btn-leaderboard" onclick="switchTab('leaderboard')" class="tab-btn whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
+          🏆 メンバー貢献度（参加ランキング）
+        </button>
+        <!-- Admin専用タブ群 (Step 4 で中身を完全実装) -->
+        <button type="button" id="tab-btn-admin-dashboard" onclick="switchTab('admin-dashboard')" class="tab-btn hidden whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
+          Admin: 会計・予実
+        </button>
+        <button type="button" id="tab-btn-admin-direct" onclick="switchTab('admin-direct')" class="tab-btn hidden whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
+          Admin: 直接起票
+        </button>
+        <button type="button" id="tab-btn-admin-lottery" onclick="switchTab('admin-lottery')" class="tab-btn hidden whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
+          Admin: シフト抽選
+        </button>
+        <button type="button" id="tab-btn-admin-control" onclick="switchTab('admin-control')" class="tab-btn hidden whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
+          Admin: 管理パネル
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- メインコンテンツ領域 -->
+  <!-- ===================================================================== -->
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-5">
+
+    <!-- GAS API URL 未設定時の案内バナー -->
+    <div id="gas-url-warning" class="hidden mb-5 bg-amber-50 border border-amber-300 rounded-2xl p-4 text-xs text-amber-900">
+      <div class="font-bold text-sm mb-1">⚠️ GAS Web App URL が未設定です</div>
+      <p class="mb-2">
+        <code>index.html</code> 冒頭の <code>const GAS_WEB_APP_URL = 'YOUR_GAS_WEB_APP_URL';</code> をデプロイ済みのGASウェブアプリURL（<code>https://script.google.com/macros/s/.../exec</code>）に書き換えるか、下の欄に入力して保存してください。
+      </p>
+      <div class="flex flex-col sm:flex-row gap-2">
+        <input id="custom-gas-url-input" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 rounded-xl border border-amber-300 bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" />
+        <button type="button" onclick="saveCustomGasUrl()" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs">
+          URLを保存して再接続
+        </button>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- 1. ログイン画面 (Email & 4桁PINコード認証) -->
+    <!-- =================================================================== -->
+    <section id="login-view" class="hidden max-w-md mx-auto my-4">
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
+        <h2 class="text-lg font-bold text-slate-900 mb-1">ログイン（PINコード認証）</h2>
+        <p class="text-xs text-slate-500 mb-5 leading-relaxed">
+          メールアドレス宛に届く4桁のPINコードでログインします。一度ログインすると約9カ月間（端末内トークン保持）ログイン状態が維持されます。
+        </p>
+
+        <!-- Step 1: メールアドレス入力フォーム -->
+        <form id="pin-request-form" onsubmit="handleRequestPin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+              メールアドレス <span class="text-rose-500">*</span>
+            </label>
+            <input id="login-email" type="email" required placeholder="example@gmail.com"
+              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+          </div>
+
+          <button id="btn-request-pin" type="submit"
+            class="w-full py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow transition active:scale-[0.99]">
+            4桁のPINコードをメールで受け取る
+          </button>
+        </form>
+
+        <!-- Step 2: 4桁PINコード検証フォーム (送信後に切り替え表示) -->
+        <form id="pin-verify-form" onsubmit="handleVerifyPin(event)" class="hidden space-y-4">
+          <div class="bg-brand-50 border border-brand-200 rounded-xl p-3 text-xs text-brand-900">
+            <span id="pin-sent-email" class="font-bold underline"></span> 宛に4桁のPINコードを送信しました（有効期限10分）。
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+              4桁のPINコード <span class="text-rose-500">*</span>
+            </label>
+            <input id="login-pin" type="text" inputmode="numeric" pattern="\d{4}" maxlength="4" required placeholder="1234"
+              class="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-center text-2xl font-extrabold tracking-[0.5em] focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+          </div>
+
+          <button id="btn-verify-pin" type="submit"
+            class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow transition active:scale-[0.99]">
+            ログインする
+          </button>
+
+          <button type="button" onclick="backToEmailStep()"
+            class="w-full py-2 text-xs text-slate-500 hover:text-slate-700 font-semibold">
+            ← メールアドレス入力に戻る / PINを再送する
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 2. 初回ログイン時の名簿突合・プロフィール登録画面 (needsRegistration 時) -->
+    <!-- =================================================================== -->
+    <section id="registration-view" class="hidden max-w-md mx-auto my-4">
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
+        <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-brand-100 text-brand-800 mb-3">
+          初回プロフィール確認（名簿自動突合）
+        </div>
+        <h2 class="text-lg font-bold text-slate-900 mb-1">氏名と学年の登録</h2>
+        <p class="text-xs text-slate-500 mb-5 leading-relaxed">
+          事前登録されたメンバー名簿と氏名を自動突合します（全角・半角スペースの有無は自動で無視されます）。名簿にまだお名前がない新入生の方もそのままシステムをご利用いただけます。
+        </p>
+
+        <form id="registration-form" onsubmit="handleSelfRegistration(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">ログイン中のメールアドレス</label>
+            <input id="reg-email" type="text" readonly class="w-full rounded-xl bg-slate-100 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-600 font-mono" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">氏名（フルネーム） <span class="text-rose-500">*</span></label>
+            <input id="reg-name" type="text" required placeholder="例: 同志社 太郎"
+              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+            <p class="text-[11px] text-slate-400 mt-1">※姓名の間のスペース有無に関わらず名簿と自動突合されます。</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">学年 <span class="text-rose-500">*</span></label>
+            <select id="reg-grade" required
+              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none">
+              <option value="">選択してください</option>
+              <option value="1回生">1回生</option>
+              <option value="2回生">2回生</option>
+              <option value="3回生">3回生</option>
+              <option value="4回生">4回生</option>
+              <option value="院1回生">院1回生</option>
+              <option value="院2回生">院2回生</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+
+          <button id="btn-register-submit" type="submit"
+            class="w-full py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow transition active:scale-[0.99]">
+            登録して利用開始する
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 3. アプリ本体コンテナ -->
+    <!-- =================================================================== -->
+    <div id="app-container" class="hidden space-y-6">
+
+      <!-- Member (要確認) 向け 안내バナー -->
+      <div id="pending-member-banner" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 text-xs text-amber-800">
+        現在 <strong>Member (要確認)</strong> ステータスとして登録されています。通常の業務完了報告やランキング閲覧はそのままご利用いただけます（幹部が確認後に正式名簿へ承認されます）。
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- TAB 1: 業務完了報告 & ルート別交通費請求 (学年別アコーディオンUI) -->
+      <!-- ================================================================= -->
+      <section id="tab-shift" class="tab-panel space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+          <div class="mb-4">
+            <h2 class="text-base sm:text-lg font-bold text-slate-900">業務完了報告 &amp; ルート別交通費請求</h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              学年別アコーディオンから参加者を選択し、各自の利用ルートを選択してください。報告と同時に参加者のペナルティは 0 にリセットされます。
+            </p>
+          </div>
+
+          <form id="shift-report-form" onsubmit="handleSubmitShiftReport(event)" class="space-y-5">
+            <!-- 業務日・代表受取人・関連イベント -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">業務日 <span class="text-rose-500">*</span></label>
+                <input id="shift-date" type="date" required onchange="handleShiftDateChange()"
+                  class="w-full box-border max-w-[100%] rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+              </div>
+
+              <div class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">代表受取人（PayPay受取者） <span class="text-rose-500">*</span></label>
+                <input id="shift-target-person" type="text" required placeholder="代表者氏名"
+                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+              </div>
+
+              <div class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">関連イベント（任意）</label>
+                <select id="shift-event-id"
+                  class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
+                  <option value="">指定なし（通常業務）</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 予定シフト案内バー -->
+            <div id="planned-shifts-banner" class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600">
+              業務日を選択すると、予定シフト登録メンバーが自動でチェックされます。
+            </div>
+
+            <!-- 参加者選択 & 学年別アコーディオンリスト -->
+            <div>
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <label class="block text-xs font-bold text-slate-700">
+                  実際の参加者と交通費ルートの選択（学年別アコーディオン）
+                </label>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="toggleAllGradeAccordions(true)" class="text-[11px] font-semibold text-brand-600 hover:underline">すべて開く</button>
+                  <span class="text-slate-300">|</span>
+                  <button type="button" onclick="toggleAllGradeAccordions(false)" class="text-[11px] font-semibold text-slate-500 hover:underline">すべて閉じる</button>
+                </div>
+              </div>
+
+              <!-- 200名対応クイック検索フィルタ -->
+              <div class="mb-3">
+                <input id="participant-search" type="search" oninput="filterParticipantRows()"
+                  placeholder="🔍 氏名や学年でメンバーを検索（入力すると該当アコーディオンが自動で開きます）..."
+                  class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs focus:bg-white focus:border-brand-500 focus:outline-none" />
+              </div>
+
+              <!-- 学年別アコーディオン描画コンテナ -->
+              <div id="participants-accordion-container" class="space-y-2.5">
+                <!-- JSで grade ごとのアコーディオンを動的生成 -->
+              </div>
+            </div>
+
+            <!-- イレギュラー請求・名簿外対応UI (V4新機能) -->
+            <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-xs sm:text-sm font-bold text-amber-900">イレギュラー請求（名簿外参加者・特殊立て替え等）</h3>
+                  <p class="text-[11px] text-amber-700 mt-0.5">
+                    名簿にない体験参加者分の交通費や、業務中の緊急立て替え等がある場合はこちらに入力してください（名簿シートを汚染せず合算請求できます）。
+                  </p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-bold text-amber-900 mb-1">内訳・理由・名簿外参加者名（自由記述）</label>
+                  <input id="shift-irregular-note" type="text" oninput="recalculateShiftPreview()"
+                    placeholder="例: 体験参加 佐藤さん（出町柳往復860円） / 駐輪代200円"
+                    class="w-full rounded-xl border border-amber-300 bg-white px-3.5 py-2 text-xs sm:text-sm focus:border-amber-600 focus:outline-none" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-amber-900 mb-1">イレギュラー加算額 (円)</label>
+                  <input id="shift-irregular-amount" type="number" min="0" step="1" value="0" oninput="recalculateShiftPreview()"
+                    placeholder="0"
+                    class="w-full rounded-xl border border-amber-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-bold text-right focus:border-amber-600 focus:outline-none" />
+                </div>
+              </div>
+            </div>
+
+            <!-- リアルタイム集計プレビュー -->
+            <div class="bg-brand-50 border border-brand-200 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+              <div class="space-y-0.5">
+                <div class="text-xs text-brand-800 font-semibold">
+                  選択中の参加人数: <span id="preview-participant-count" class="text-base font-extrabold">0</span> 名
+                </div>
+                <div id="preview-irregular-badge" class="hidden text-[11px] text-amber-800 font-semibold">
+                  ＋ イレギュラー請求: ¥<span id="preview-irregular-amount">0</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-xs text-brand-700 font-semibold">合計請求予定額:</span>
+                <span id="preview-total-amount" class="text-xl font-extrabold text-brand-900 ml-1">¥0</span>
+              </div>
+            </div>
+
+            <!-- 備考 -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">備考・連絡事項（任意）</label>
+              <input id="shift-remarks" type="text" placeholder="補足事項があれば入力してください"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+            </div>
+
+            <button id="btn-submit-shift" type="submit"
+              class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition active:scale-[0.99]">
+              業務完了報告を送信して照合番号を発行する
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 2: 🏆 メンバー貢献度（参加ランキング） (一般メンバー時はペナルティ列完全非表示) -->
+      <!-- ================================================================= -->
+      <section id="tab-leaderboard" class="tab-panel hidden space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">🏆 メンバー貢献度（参加ランキング）</h2>
+              <p id="leaderboard-subtitle" class="text-xs text-slate-500 mt-0.5">
+                業務への累計参加回数ランキングです。
+              </p>
+            </div>
+            <button type="button" onclick="loadLeaderboard()" class="self-start sm:self-auto px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+              ↻ 最新に更新
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr id="leaderboard-thead-row" class="border-b border-slate-200 text-xs text-slate-500 uppercase">
+                  <!-- JSでロールに応じて列ヘッダーを動的構築（一般Memberにはペナルティ列のthすら描画しない） -->
+                </tr>
+              </thead>
+              <tbody id="leaderboard-tbody" class="divide-y divide-slate-100 text-sm">
+                <!-- JSで描画 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 3: Admin専用 - 会計・イベント予実・未提出レシート警告ダッシュボード -->
+      <!-- ================================================================= -->
+      <section id="tab-admin-dashboard" class="tab-panel hidden space-y-5">
+
+        <!-- 🚨 証憑未提出（後日提出分）の赤色警告アラート領域 -->
+        <div id="receipt-pending-alert-box" class="hidden bg-rose-50 border-2 border-rose-400 rounded-2xl p-5 shadow-xs space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-rose-600 text-white font-extrabold text-sm">!</span>
+              <div>
+                <h3 class="text-sm sm:text-base font-extrabold text-rose-900">
+                  🚨 証憑未提出の経費が <span id="receipt-pending-count" class="underline">0</span> 件あります
+                </h3>
+                <p class="text-xs text-rose-700">
+                  「証憑後日提出」として起票された支出です。レシート画像を選択してその場でアップロードし、警告を解消してください。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div id="receipt-pending-list" class="space-y-2.5">
+            <!-- JSで未提出トランザクション行と画像アップロードボタンを動的生成 -->
+          </div>
+        </div>
+
+        <!-- 口座別現在残高カード -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-xs">
+            <div class="text-xs text-slate-300 font-semibold">総資産残高（完了ベース）</div>
+            <div id="dash-total-assets" class="text-2xl font-extrabold mt-1">¥0</div>
+            <div id="dash-pending-expense" class="text-[11px] text-amber-300 mt-1">承認待ち支出: ¥0</div>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+            <div class="text-xs text-slate-500 font-semibold">サークル口座</div>
+            <div id="dash-bal-bank" class="text-xl font-extrabold text-slate-900 mt-1">¥0</div>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+            <div class="text-xs text-slate-500 font-semibold">PayPay</div>
+            <div id="dash-bal-paypay" class="text-xl font-extrabold text-slate-900 mt-1">¥0</div>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+            <div class="text-xs text-slate-500 font-semibold">現金</div>
+            <div id="dash-bal-cash" class="text-xl font-extrabold text-slate-900 mt-1">¥0</div>
+          </div>
+        </div>
+
+        <!-- イベント別予算・予実消化ステータス -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">📊 イベント別 予算・実績（予実管理）</h3>
+              <p class="text-xs text-slate-500">イベントごとの予算に対する実収入・実支出・承認待ち支出の消化状況です。</p>
+            </div>
+            <button type="button" onclick="toggleEventFormBox()" class="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold transition">
+              ＋ 新規イベント作成 / 編集
+            </button>
+          </div>
+
+          <!-- イベント新規作成・編集フォーム（折りたたみ） -->
+          <form id="event-upsert-form" onsubmit="handleUpsertEvent(event)" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+            <div class="text-xs font-bold text-slate-800">イベント予算の登録・更新</div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">イベントID（空欄で自動採番）</label>
+                <input id="ev-id" type="text" placeholder="例: EVT-2026-SUMMER"
+                  class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-mono" />
+              </div>
+              <div class="sm:col-span-2 min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">イベント名 <span class="text-rose-500">*</span></label>
+                <input id="ev-name" type="text" required placeholder="例: 2026年度 新歓イベント / 夏合宿"
+                  class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs" />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">開始日</label>
+                <input id="ev-start-date" type="date"
+                  class="w-full box-border max-w-[100%] rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs" />
+              </div>
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">終了日</label>
+                <input id="ev-end-date" type="date"
+                  class="w-full box-border max-w-[100%] rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs" />
+              </div>
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">予算収入 (円)</label>
+                <input id="ev-planned-income" type="number" min="0" step="100" value="0"
+                  class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-right font-bold" />
+              </div>
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">予算支出 (円)</label>
+                <input id="ev-planned-expense" type="number" min="0" step="100" value="0"
+                  class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-right font-bold" />
+              </div>
+            </div>
+            <div class="flex items-center justify-end gap-2">
+              <button type="button" onclick="toggleEventFormBox(false)" class="px-3 py-1.5 rounded-lg text-xs text-slate-500 hover:bg-slate-200">キャンセル</button>
+              <button id="btn-save-event" type="submit" class="px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">イベントを保存</button>
+            </div>
+          </form>
+
+          <!-- イベント予実カード一覧 -->
+          <div id="event-budget-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- JSで描画 -->
+          </div>
+        </div>
+
+        <!-- 承認待ち（Pending）一覧 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">⏳ 承認・送金待ち一覧 (Pending)</h3>
+              <p class="text-xs text-slate-500">LINEで届いた4桁の照合番号（payment_id）を確認し、送金後にワンタップで決済完了にしてください。</p>
+            </div>
+            <button type="button" onclick="loadAdminDashboard()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+              ↻ 更新
+            </button>
+          </div>
+
+          <div id="pending-list-container" class="space-y-3">
+            <!-- JSで描画 -->
+          </div>
+        </div>
+
+        <!-- 直近の取引履歴 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+          <h3 class="text-base font-bold text-slate-900 mb-3">直近の取引履歴（最新30件）</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-500">
+                  <th class="py-2 px-2">日付</th>
+                  <th class="py-2 px-2">種別</th>
+                  <th class="py-2 px-2">科目 / 摘要</th>
+                  <th class="py-2 px-2 text-right">金額</th>
+                  <th class="py-2 px-2">口座</th>
+                  <th class="py-2 px-2">状態</th>
+                  <th class="py-2 px-2">証憑</th>
+                </tr>
+              </thead>
+              <tbody id="recent-tx-tbody" class="divide-y divide-slate-100">
+                <!-- JSで描画 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 4: Admin専用 - 直接起票 (「証憑は後日提出する」チェックボックス搭載) -->
+      <!-- ================================================================= -->
+      <section id="tab-admin-direct" class="tab-panel hidden space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+          <div class="mb-4">
+            <h2 class="text-base sm:text-lg font-bold text-slate-900">直接記帳（収入・支出・資金移動）</h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              原則として<strong>支出（Expense）の起票時は証憑画像のアップロードが必須</strong>ですが、手元にレシートがない場合は「証憑は後日提出する」にチェックを入れて起票できます（ダッシュボードに赤色警告として表示されます）。
+            </p>
+          </div>
+
+          <form id="direct-tx-form" onsubmit="handleAddDirectTransaction(event)" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">発生日 <span class="text-rose-500">*</span></label>
+                <input id="direct-date" type="date" required
+                  class="w-full box-border max-w-[100%] rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+              </div>
+
+              <div class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">取引種別 <span class="text-rose-500">*</span></label>
+                <select id="direct-type" onchange="handleDirectTypeChange()"
+                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
+                  <option value="Expense">支出 (Expense)</option>
+                  <option value="Income">収入 (Income)</option>
+                  <option value="Transfer">資金移動 (Transfer)</option>
+                </select>
+              </div>
+
+              <div class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">勘定科目 <span class="text-rose-500">*</span></label>
+                <input id="direct-category" type="text" required placeholder="例: 備品代 / 合宿費 / 部費収入"
+                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="sm:col-span-2 min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">摘要・内容 <span class="text-rose-500">*</span></label>
+                <input id="direct-description" type="text" required placeholder="例: 新歓ビラ印刷代 / 銀行からPayPayチャージ"
+                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+              </div>
+
+              <div class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">金額 (円) <span class="text-rose-500">*</span></label>
+                <input id="direct-amount" type="number" min="1" step="1" required placeholder="例: 3500"
+                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-bold text-right focus:border-brand-600 focus:outline-none" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div id="direct-src-wrap" class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">出金元口座</label>
+                <select id="direct-source-account"
+                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
+                  <option value="サークル口座">サークル口座</option>
+                  <option value="PayPay" selected>PayPay</option>
+                  <option value="現金">現金</option>
+                </select>
+              </div>
+
+              <div id="direct-dst-wrap" class="hidden min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">入金先口座</label>
+                <select id="direct-dest-account"
+                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
+                  <option value="サークル口座" selected>サークル口座</option>
+                  <option value="PayPay">PayPay</option>
+                  <option value="現金">現金</option>
+                </select>
+              </div>
+
+              <div class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">対象者・支払先</label>
+                <input id="direct-target-person" type="text" placeholder="氏名または店舗・取引先名"
+                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+              </div>
+
+              <div class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">関連イベント（任意）</label>
+                <select id="direct-event-id"
+                  class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
+                  <option value="">指定なし</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 証憑画像アップロード & 「証憑は後日提出する」チェックボックス -->
+            <div id="direct-receipt-section" class="bg-rose-50/70 border border-rose-200 rounded-2xl p-4 space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <label class="block text-xs font-bold text-rose-900">
+                  レシート等証憑画像のアップロード <span id="direct-receipt-badge" class="text-rose-600">【支出時は原則必須】</span>
+                </label>
+
+                <!-- 証憑後日提出チェックボックス -->
+                <label id="direct-receipt-pending-label" class="inline-flex items-center gap-2 cursor-pointer select-none bg-white border border-rose-300 px-3 py-1.5 rounded-xl">
+                  <input id="direct-receipt-pending" type="checkbox" onchange="handleDirectReceiptPendingToggle()"
+                    class="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 border-slate-300" />
+                  <span class="text-xs font-bold text-rose-800">証憑は後日提出する（画像なしで先行起票）</span>
+                </label>
+              </div>
+
+              <input id="direct-receipt-file" type="file" accept="image/*,application/pdf" required
+                class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-rose-600 file:text-white hover:file:bg-rose-700 cursor-pointer" />
+
+              <p id="direct-receipt-hint" class="text-[11px] text-rose-700">
+                ※アップロードされた画像はGoogle Driveの証憑専用フォルダに自動保存され、スプレッドシートに閲覧リンクが記録されます。
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">備考（任意）</label>
+              <input id="direct-remarks" type="text" placeholder="補足メモ"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+            </div>
+
+            <button id="btn-submit-direct" type="submit"
+              class="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition active:scale-[0.99]">
+              取引を記帳する
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 5: Admin専用 - シフト自動抽選システム (drawShiftLottery) -->
+      <!-- ================================================================= -->
+      <section id="tab-admin-lottery" class="tab-panel hidden space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-slate-900">🎲 シフト自動抽選・優先度スコアリング</h2>
+            <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+              応募者の名前を入力すると、<strong>①ペナルティ保有者の優先選出（参加によるペナルティ0リセット機会の付与）</strong>および<strong>②直近2カ月（60日間）の参加回数が少ないメンバーの優先</strong>を自動計算して当選者を選出します。
+            </p>
+          </div>
+
+          <form id="lottery-form" onsubmit="handleRunShiftLottery(event)" class="space-y-4">
+            <div>
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <label class="block text-xs font-bold text-slate-700">
+                  シフト応募者の名前リスト（改行またはカンマ・読点区切り） <span class="text-rose-500">*</span>
+                </label>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="insertPenaltyHoldersToLottery()" class="text-[11px] font-semibold text-rose-600 hover:underline">
+                    ＋ ペナルティ保有者を挿入
+                  </button>
+                  <span class="text-slate-300">|</span>
+                  <button type="button" onclick="document.getElementById('lottery-candidates').value = ''" class="text-[11px] font-semibold text-slate-500 hover:underline">
+                    クリア
+                  </button>
+                </div>
+              </div>
+              <textarea id="lottery-candidates" rows="5" required
+                placeholder="例:&#10;同志社 太郎&#10;今出川 花子&#10;京田辺 次郎"
+                class="w-full rounded-xl border border-slate-300 p-3 text-xs sm:text-sm font-mono focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none"></textarea>
+              <p class="text-[11px] text-slate-400 mt-1">※姓名の間のスペース有無は自動で正規化され、Users名簿と突合されます。</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">当選枠数 (N名) <span class="text-rose-500">*</span></label>
+                <input id="lottery-winner-count" type="number" min="1" max="200" value="4" required
+                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-bold focus:border-brand-600 focus:outline-none" />
+              </div>
+
+              <div class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">対象シフト日（予定シフト登録用）</label>
+                <input id="lottery-shift-date" type="date"
+                  class="w-full box-border max-w-[100%] rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+              </div>
+
+              <div class="flex items-end">
+                <label class="flex items-center gap-2 cursor-pointer select-none bg-brand-50 border border-brand-200 rounded-xl px-3.5 py-2.5 w-full">
+                  <input id="lottery-register-planned" type="checkbox"
+                    class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
+                  <span class="text-xs font-bold text-brand-900">当選者を Planned_Shifts シートへ自動登録する</span>
+                </label>
+              </div>
+            </div>
+
+            <button id="btn-run-lottery" type="submit"
+              class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition active:scale-[0.99]">
+              優先度スコアを計算して抽選を実行する
+            </button>
+          </form>
+
+          <!-- 抽選結果表示エリア -->
+          <div id="lottery-result-box" class="hidden space-y-4 pt-3 border-t border-slate-200">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900">抽選結果 &amp; スコア内訳</h3>
+                <p id="lottery-result-meta" class="text-xs text-slate-500"></p>
+              </div>
+              <button type="button" onclick="copyLotteryWinnersText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold">
+                当選者リストをコピー
+              </button>
+            </div>
+
+            <!-- 当選者・補欠者テーブル -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 text-slate-500">
+                    <th class="py-2 px-2">結果</th>
+                    <th class="py-2 px-2">順位</th>
+                    <th class="py-2 px-2">氏名 (学年)</th>
+                    <th class="py-2 px-2 text-right">現在ペナルティ</th>
+                    <th class="py-2 px-2 text-right">直近2カ月参加</th>
+                    <th class="py-2 px-2 text-right">累計参加</th>
+                    <th class="py-2 px-2 text-right">合計スコア (内訳)</th>
+                  </tr>
+                </thead>
+                <tbody id="lottery-result-tbody" class="divide-y divide-slate-100">
+                  <!-- JSで描画 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 6: Admin専用 - コントロールパネル (権限・進級・キルスイッチ) -->
+      <!-- ================================================================= -->
+      <section id="tab-admin-control" class="tab-panel hidden space-y-5">
+
+        <!-- カード1: メンバー権限 (Role) の変更フォーム -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">1. メンバー権限（Role）管理・要確認メンバー承認</h3>
+              <p class="text-xs text-slate-500">
+                名簿外から自動吸収された「Member (要確認)」の正式承認や、次期幹部への「Admin」権限の付与・剥奪を行います。
+              </p>
+            </div>
+            <button type="button" onclick="loadAdminControlPanel()" class="self-start sm:self-auto px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+              ↻ 名簿を再読込
+            </button>
+          </div>
+
+          <form id="role-update-form" onsubmit="handleUpdateUserRole(event)" class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="sm:col-span-2 min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">対象メンバーを選択（または下の欄に氏名/メールを入力）</label>
+                <select id="ctrl-user-select" onchange="handleControlUserSelectChange()"
+                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:outline-none">
+                  <option value="">-- 名簿からメンバーを選択 --</option>
+                </select>
+              </div>
+
+              <div class="min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">変更後のロール (new_role) <span class="text-rose-500">*</span></label>
+                <select id="ctrl-new-role" required
+                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm font-bold focus:border-brand-600 focus:outline-none">
+                  <option value="Member">Member (一般メンバー・正式承認)</option>
+                  <option value="Admin">Admin (幹部・管理者)</option>
+                  <option value="Member (要確認)">Member (要確認)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">対象氏名（直接指定可）</label>
+                <input id="ctrl-user-name" type="text" placeholder="氏名"
+                  class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs" />
+              </div>
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">対象メールアドレス（直接指定可）</label>
+                <input id="ctrl-user-email" type="text" placeholder="example@gmail.com"
+                  class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-mono" />
+              </div>
+              <div class="flex items-end">
+                <button id="btn-update-role" type="submit"
+                  class="w-full py-2 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow transition">
+                  権限を更新する
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <!-- 要確認メンバー & Admin一覧クイックリスト -->
+          <div id="ctrl-special-members-box" class="space-y-2">
+            <!-- JSで Member (要確認) や Admin の一覧を表示しワンタップ変更ボタンも提供 -->
+          </div>
+        </div>
+
+        <!-- カード2: 新年度の「学年一括繰り上げ」実行ボタン -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">2. 新年度の「学年一括繰り上げ」処理</h3>
+              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                <code>Users</code> シート全員の学年（<code>grade</code>）を一括で進級更新します（1回生→2回生、2回生→3回生、3回生→4回生、4回生→卒業・OBOG、院1回生→院2回生）。年度替わりのタイミングで1回だけ実行してください。
+              </p>
+            </div>
+            <button id="btn-promote-grades" type="button" onclick="handlePromoteAllGrades()"
+              class="shrink-0 px-4 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs sm:text-sm shadow transition">
+              🎓 全員の学年を一括繰り上げする
+            </button>
+          </div>
+          <div id="promote-result-banner" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900"></div>
+        </div>
+
+        <!-- カード3: 緊急時の「全セッション強制切断（キルスイッチ）」ボタン -->
+        <div class="bg-rose-50/70 rounded-2xl border-2 border-rose-300 p-5 shadow-xs space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="text-base font-extrabold text-rose-900">3. 緊急時の「全セッション強制切断（キルスイッチ）」</h3>
+              <p class="text-xs text-rose-800 mt-0.5 leading-relaxed">
+                <code>Sessions</code> シートの全トークンデータを一括消去し、現在ログイン中の全メンバー（幹部含む全員）を強制ログアウト状態にします。端末紛失時や幹部交代時のセキュリティリセットに使用してください。
+              </p>
+            </div>
+            <button id="btn-kill-sessions" type="button" onclick="handleKillAllSessions()"
+              class="shrink-0 px-4 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs sm:text-sm shadow-md transition">
+              🚨 全セッションを強制切断する
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- フロントエンド SPA ロジック (Headless GAS fetch 通信 & V4 Step 3 一般機能) -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * デプロイ先の GAS Web App URL（GitHub Pages デプロイ時に書き換えてください）
+     */
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxgavsouHJnaucZNYpzdlYoXCYx7EDNHU46eQICkh1lJhvUqAu3EoVjEmVo-aSPzBocKg/exec';
+
+    const SESSION_TOKEN_KEY = 'dwc_session_token';
+    const CUSTOM_GAS_URL_KEY = 'dwc_gas_api_url';
+
+    // グローバルアプリケーション状態
+    const APP_STATE = {
+      user: null,
+      usersList: [],
+      eventsList: [],
+      transportRoutes: [
+        { id: 'demachiyanagi', label: '出町柳から（860円）', amount: 860 },
+        { id: 'kokusaikaikan', label: '国際会館から（520円）', amount: 520 },
+        { id: 'other', label: 'その他（自由入力）', amount: null }
+      ],
+      adminLineUrl: 'https://line.me/ti/p/',
+      plannedMembersForDate: [],
+      pendingLoginEmail: ''
+    };
+
+    /**
+     * 実際に通信するGASエンドポイントURLを取得するヘルパー
+     */
+    function getEffectiveGasUrl() {
+      if (GAS_WEB_APP_URL && GAS_WEB_APP_URL !== 'YOUR_GAS_WEB_APP_URL') {
+        return GAS_WEB_APP_URL.trim();
+      }
+      const savedUrl = localStorage.getItem(CUSTOM_GAS_URL_KEY);
+      return savedUrl ? savedUrl.trim() : GAS_WEB_APP_URL;
+    }
+
+    /**
+     * 画面上の入力欄からGAS Web App URLを保存して再接続する
+     */
+    function saveCustomGasUrl() {
+      const input = document.getElementById('custom-gas-url-input');
+      const val = (input.value || '').trim();
+      if (!val || !val.startsWith('https://script.google.com/')) {
+        showToast('有効な GAS Web App URL (https://script.google.com/...) を入力してください。', 'error');
+        return;
+      }
+      localStorage.setItem(CUSTOM_GAS_URL_KEY, val);
+      document.getElementById('gas-url-warning').classList.add('hidden');
+      initApp();
+    }
+
+    // =========================================================================
+    // 1. Headless GAS への fetch 通信ラッパー (localStorage トークン自動付与)
+    // =========================================================================
+
+    /**
+     * Headless GAS (doPost) へ JSON リクエストを送信する共通RPC関数
+     * ペイロードには必ず `localStorage.getItem('dwc_session_token')` を付与します。
+     *
+     * @param {string} action
+     * @param {Object=} payload
+     * @return {Promise<any>}
+     */
+    async function callGasRpc(action, payload = {}) {
+      const targetUrl = getEffectiveGasUrl();
+      if (!targetUrl || targetUrl === 'YOUR_GAS_WEB_APP_URL') {
+        document.getElementById('gas-url-warning').classList.remove('hidden');
+        throw new Error('GAS_WEB_APP_URL が未設定です。デプロイ済みのGAS URLを設定してください。');
+      }
+
+      const savedToken = localStorage.getItem(SESSION_TOKEN_KEY) || '';
+      const enrichedPayload = Object.assign({}, payload, {
+        token: payload && payload.token !== undefined ? payload.token : savedToken
+      });
+
+      const response = await fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+          // GAS Web App (script.google.com) のCORSプリフライト制約を回避しつつJSONボディを送る標準手法
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify({
+          action: action,
+          payload: enrichedPayload
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP通信エラーが発生しました (Status: ${response.status})`);
+      }
+
+      const res = await response.json();
+      if (res && res.success) {
+        return res.data;
+      }
+
+      const errMsg = (res && res.error) ? res.error : 'サーバーエラーが発生しました。';
+      if (errMsg.includes('SESSION_EXPIRED')) {
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        showLoginScreen();
+      }
+      throw new Error(errMsg);
+    }
+
+    // =========================================================================
+    // 2. UI ユーティリティ (ローダー・トースト・エスケープ)
+    // =========================================================================
+
+    function showLoader(msg = '処理中...') {
+      document.getElementById('loader-message').textContent = msg;
+      document.getElementById('global-loader').classList.remove('hidden');
+    }
+
+    function hideLoader() {
+      document.getElementById('global-loader').classList.add('hidden');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const colorClasses =
+        type === 'error'
+          ? 'bg-rose-600 text-white'
+          : type === 'success'
+          ? 'bg-emerald-600 text-white'
+          : 'bg-slate-800 text-white';
+
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-xs sm:text-sm font-semibold transition-all duration-300 ${colorClasses}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-1');
+        setTimeout(() => toast.remove(), 300);
+      }, 4200);
+    }
+
+    function escapeHtml(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function normalizeNameClient(str) {
+      return String(str || '').replace(/[\s\u3000]+/g, '');
+    }
+
+    function getTodayDateString() {
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // =========================================================================
+    // 3. 初期化・認証フロー (Email + PIN -> セッション確立 -> 名簿突合)
+    // =========================================================================
+
+    window.addEventListener('DOMContentLoaded', initApp);
+
+    async function initApp() {
+      const today = getTodayDateString();
+      const shiftDateInput = document.getElementById('shift-date');
+      if (shiftDateInput) shiftDateInput.value = today;
+
+      const targetUrl = getEffectiveGasUrl();
+      if (!targetUrl || targetUrl === 'YOUR_GAS_WEB_APP_URL') {
+        hideLoader();
+        document.getElementById('gas-url-warning').classList.remove('hidden');
+        showLoginScreen();
+        return;
+      }
+
+      const savedToken = localStorage.getItem(SESSION_TOKEN_KEY);
+      if (!savedToken) {
+        hideLoader();
+        showLoginScreen();
+        return;
+      }
+
+      showLoader('セッションを確認しています...');
+      try {
+        const authContext = await callGasRpc('getAuthContext', { token: savedToken });
+        await applyAuthContext(authContext);
+      } catch (err) {
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        showLoginScreen();
+        showToast(err.message || '再ログインしてください。', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+
+    function showLoginScreen() {
+      document.getElementById('header-user-info').textContent = '未ログイン';
+      document.getElementById('header-role-badge').classList.add('hidden');
+      document.getElementById('btn-logout').classList.add('hidden');
+      document.getElementById('main-nav').classList.add('hidden');
+      document.getElementById('app-container').classList.add('hidden');
+      document.getElementById('registration-view').classList.add('hidden');
+      document.getElementById('login-view').classList.remove('hidden');
+    }
+
+    function backToEmailStep() {
+      document.getElementById('pin-verify-form').classList.add('hidden');
+      document.getElementById('pin-request-form').classList.remove('hidden');
+    }
+
+    /**
+     * Step 1: メールアドレスへ4桁PINコードを送信
+     */
+    async function handleRequestPin(event) {
+      event.preventDefault();
+      const email = document.getElementById('login-email').value.trim().toLowerCase();
+      if (!email) {
+        showToast('メールアドレスを入力してください。', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-request-pin');
+      btn.disabled = true;
+      showLoader('4桁のPINコードをメール送信しています...');
+
+      try {
+        const res = await callGasRpc('requestPin', { email: email, token: '' });
+        APP_STATE.pendingLoginEmail = res.email || email;
+        document.getElementById('pin-sent-email').textContent = APP_STATE.pendingLoginEmail;
+        document.getElementById('login-pin').value = '';
+        document.getElementById('pin-request-form').classList.add('hidden');
+        document.getElementById('pin-verify-form').classList.remove('hidden');
+        showToast('PINコードをメールで送信しました。', 'success');
+      } catch (err) {
+        showToast(err.message || 'PINコード送信に失敗しました。', 'error');
+      } finally {
+        btn.disabled = false;
+        hideLoader();
+      }
+    }
+
+    /**
+     * Step 2: 4桁PINコードを検証し、9カ月有効な session_token を localStorage に保存
+     */
+    async function handleVerifyPin(event) {
+      event.preventDefault();
+      const email = APP_STATE.pendingLoginEmail || document.getElementById('login-email').value.trim().toLowerCase();
+      const pin = document.getElementById('login-pin').value.trim();
+
+      if (!/^\d{4}$/.test(pin)) {
+        showToast('PINコードは4桁の数字で入力してください。', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-verify-pin');
+      btn.disabled = true;
+      showLoader('PINコードを検証しています...');
+
+      try {
+        const authContext = await callGasRpc('verifyPin', {
+          email: email,
+          pin: pin,
+          token: ''
+        });
+        if (authContext && authContext.token) {
+          localStorage.setItem(SESSION_TOKEN_KEY, authContext.token);
+        }
+        showToast('認証に成功しました！', 'success');
+        await applyAuthContext(authContext);
+      } catch (err) {
+        showToast(err.message || 'PIN認証に失敗しました。', 'error');
+      } finally {
+        btn.disabled = false;
+        hideLoader();
+      }
+    }
+
+    /**
+     * 初回ログイン時の名簿突合（スペース無視）または「Member (要確認)」登録
+     */
+    async function handleSelfRegistration(event) {
+      event.preventDefault();
+      const name = document.getElementById('reg-name').value.trim();
+      const grade = document.getElementById('reg-grade').value.trim();
+
+      if (!name || !grade) {
+        showToast('氏名と学年を入力してください。', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-register-submit');
+      btn.disabled = true;
+      showLoader('名簿と突合してプロフィールを登録しています...');
+
+      try {
+        const updatedContext = await callGasRpc('registerNewUser', {
+          name: name,
+          grade: grade
+        });
+        if (updatedContext && updatedContext.token) {
+          localStorage.setItem(SESSION_TOKEN_KEY, updatedContext.token);
+        }
+        showToast('登録が完了しました！', 'success');
+        await applyAuthContext(updatedContext);
+      } catch (err) {
+        showToast(err.message || '登録に失敗しました。', 'error');
+      } finally {
+        btn.disabled = false;
+        hideLoader();
+      }
+    }
+
+    /**
+     * ログアウト処理
+     */
+    async function handleLogout() {
+      showLoader('ログアウトしています...');
+      try {
+        await callGasRpc('logoutSession', {});
+      } catch (_) {
+        // 無視
+      } finally {
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        APP_STATE.user = null;
+        backToEmailStep();
+        showLoginScreen();
+        hideLoader();
+        showToast('ログアウトしました。', 'info');
+      }
+    }
+
+    /**
+     * 認証コンテキストをUIに適用し、必要な初期データをロードする
+     */
+    async function applyAuthContext(authContext) {
+      if (!authContext || !authContext.tokenValid) {
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        showLoginScreen();
+        return;
+      }
+
+      APP_STATE.user = authContext;
+
+      if (authContext.config) {
+        if (Array.isArray(authContext.config.transportRoutes) && authContext.config.transportRoutes.length > 0) {
+          APP_STATE.transportRoutes = authContext.config.transportRoutes;
+        }
+        if (authContext.config.adminLineUrl) {
+          APP_STATE.adminLineUrl = authContext.config.adminLineUrl;
+        }
+      }
+
+      document.getElementById('login-view').classList.add('hidden');
+      document.getElementById('btn-logout').classList.remove('hidden');
+
+      // まだ Users シートにメールアドレスが紐付いていない場合は初回登録（名簿突合）画面を表示
+      if (authContext.needsRegistration || !authContext.authenticated) {
+        document.getElementById('header-user-info').textContent = `${authContext.email} (初回名簿確認待ち)`;
+        document.getElementById('header-role-badge').classList.add('hidden');
+        document.getElementById('main-nav').classList.add('hidden');
+        document.getElementById('app-container').classList.add('hidden');
+
+        document.getElementById('reg-email').value = authContext.email || '';
+        document.getElementById('registration-view').classList.remove('hidden');
+        return;
+      }
+
+      // 認証＆名簿紐付け完了時
+      document.getElementById('registration-view').classList.add('hidden');
+      document.getElementById('main-nav').classList.remove('hidden');
+      document.getElementById('app-container').classList.remove('hidden');
+
+      const gradeLabel = authContext.grade ? ` (${authContext.grade})` : '';
+      document.getElementById('header-user-info').textContent = `${authContext.name}${gradeLabel} / ${authContext.email}`;
+
+      const badge = document.getElementById('header-role-badge');
+      badge.classList.remove('hidden');
+      if (authContext.role === 'Admin') {
+        badge.textContent = 'Admin (幹部)';
+        badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
+      } else if (authContext.role === 'Member (要確認)') {
+        badge.textContent = 'Member (要確認)';
+        badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800';
+      } else {
+        badge.textContent = 'Member';
+        badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-brand-100 text-brand-800';
+      }
+
+      // Member (要確認) バナー表示制御
+      const pendingBanner = document.getElementById('pending-member-banner');
+      if (authContext.role === 'Member (要確認)') {
+        pendingBanner.classList.remove('hidden');
+      } else {
+        pendingBanner.classList.add('hidden');
+      }
+
+      // Admin専用タブの表示切り替え
+      const adminTabIds = [
+        'tab-btn-admin-dashboard',
+        'tab-btn-admin-direct',
+        'tab-btn-admin-lottery',
+        'tab-btn-admin-control'
+      ];
+      adminTabIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (authContext.role === 'Admin') {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+
+      // 代表受取人の初期値に自分の氏名をセット
+      const targetPersonInput = document.getElementById('shift-target-person');
+      if (targetPersonInput && !targetPersonInput.value) {
+        targetPersonInput.value = authContext.name || '';
+      }
+
+      // メンバー一覧・イベント一覧・本日の予定シフトを並列取得
+      const shiftDate = document.getElementById('shift-date').value;
+      const [users, events, plannedMembers] = await Promise.all([
+        callGasRpc('getUsers'),
+        callGasRpc('getEvents'),
+        callGasRpc('getPlannedShifts', { shiftDate: shiftDate })
+      ]);
+
+      APP_STATE.usersList = Array.isArray(users) ? users : [];
+      APP_STATE.eventsList = Array.isArray(events) ? events : [];
+      APP_STATE.plannedMembersForDate = Array.isArray(plannedMembers) ? plannedMembers : [];
+
+      populateEventSelectors();
+      renderGradeAccordionParticipants();
+      updatePlannedShiftBanner();
+
+      // Step 4 で定義される Admin 初期化フックがあれば呼び出す
+      if (typeof window.onAdminAuthReady === 'function' && authContext.role === 'Admin') {
+        window.onAdminAuthReady();
+      }
+
+      switchTab('shift');
+    }
+
+    /**
+     * イベント選択プルダウンの描画
+     */
+    function populateEventSelectors() {
+      const shiftEventSelect = document.getElementById('shift-event-id');
+      if (shiftEventSelect) {
+        const currentVal = shiftEventSelect.value;
+        shiftEventSelect.innerHTML = '<option value="">指定なし（通常業務）</option>';
+        APP_STATE.eventsList.forEach(ev => {
+          const opt = document.createElement('option');
+          opt.value = ev.event_id;
+          opt.textContent = `${ev.event_name} (${ev.event_id})`;
+          shiftEventSelect.appendChild(opt);
+        });
+        shiftEventSelect.value = currentVal;
+      }
+
+      if (typeof window.populateAdminEventSelectors === 'function') {
+        window.populateAdminEventSelectors();
+      }
+    }
+
+    // =========================================================================
+    // 4. タブ切り替え制御
+    // =========================================================================
+
+    function switchTab(tabName) {
+      const panels = {
+        'shift': document.getElementById('tab-shift'),
+        'leaderboard': document.getElementById('tab-leaderboard'),
+        'admin-dashboard': document.getElementById('tab-admin-dashboard'),
+        'admin-direct': document.getElementById('tab-admin-direct'),
+        'admin-lottery': document.getElementById('tab-admin-lottery'),
+        'admin-control': document.getElementById('tab-admin-control')
+      };
+
+      const buttons = {
+        'shift': document.getElementById('tab-btn-shift'),
+        'leaderboard': document.getElementById('tab-btn-leaderboard'),
+        'admin-dashboard': document.getElementById('tab-btn-admin-dashboard'),
+        'admin-direct': document.getElementById('tab-btn-admin-direct'),
+        'admin-lottery': document.getElementById('tab-btn-admin-lottery'),
+        'admin-control': document.getElementById('tab-btn-admin-control')
+      };
+
+      Object.keys(panels).forEach(key => {
+        if (!panels[key] || !buttons[key]) return;
+        if (key === tabName) {
+          panels[key].classList.remove('hidden');
+          buttons[key].className = 'tab-btn whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition bg-brand-600 text-white shadow-xs';
+        } else {
+          panels[key].classList.add('hidden');
+          buttons[key].className = 'tab-btn whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-200/70';
+          if (key.startsWith('admin-') && (!APP_STATE.user || APP_STATE.user.role !== 'Admin')) {
+            buttons[key].classList.add('hidden');
+          }
+        }
+      });
+
+      if (tabName === 'leaderboard') {
+        loadLeaderboard();
+      } else if (tabName === 'admin-dashboard' && typeof window.loadAdminDashboard === 'function') {
+        window.loadAdminDashboard();
+      } else if (tabName === 'admin-control' && typeof window.loadAdminControlPanel === 'function') {
+        window.loadAdminControlPanel();
+      }
+    }
+
+    // =========================================================================
+    // 5. 業務完了報告 & 学年別アコーディオンUI (200名対応)
+    // =========================================================================
+
+    /**
+     * 学年の表示順序スコアを返すヘルパー
+     */
+    function getGradeSortOrder(grade) {
+      const g = String(grade || '').trim();
+      if (g.includes('1回生') && !g.includes('院')) return 1;
+      if (g.includes('2回生') && !g.includes('院')) return 2;
+      if (g.includes('3回生') && !g.includes('院')) return 3;
+      if (g.includes('4回生') && !g.includes('院')) return 4;
+      if (g.includes('院1')) return 5;
+      if (g.includes('院2')) return 6;
+      if (g.includes('卒業') || g.includes('OB') || g.includes('OG')) return 8;
+      return 7;
+    }
+
+    /**
+     * 200人の名簿を学年 (grade) ごとにグループ化し、折りたたみアコーディオンとして描画する
+     */
+    function renderGradeAccordionParticipants() {
+      const container = document.getElementById('participants-accordion-container');
+      container.innerHTML = '';
+
+      if (APP_STATE.usersList.length === 0) {
+        container.innerHTML = '<div class="p-4 text-xs text-slate-400 text-center bg-slate-50 rounded-xl border border-slate-200">登録メンバーがいません。</div>';
+        recalculateShiftPreview();
+        return;
+      }
+
+      // 予定シフトメンバーのスペース除去名セット
+      const plannedNormSet = new Set(
+        APP_STATE.plannedMembersForDate.map(n => normalizeNameClient(n))
+      );
+
+      // 学年ごとにグループ化
+      const gradeGroupsMap = new Map();
+      APP_STATE.usersList.forEach((u, globalIdx) => {
+        const gradeKey = String(u.grade || '未設定').trim() || '未設定';
+        if (!gradeGroupsMap.has(gradeKey)) {
+          gradeGroupsMap.set(gradeKey, []);
+        }
+        gradeGroupsMap.get(gradeKey).push({ user: u, globalIdx: globalIdx });
+      });
+
+      const sortedGrades = Array.from(gradeGroupsMap.keys()).sort((a, b) => {
+        const orderDiff = getGradeSortOrder(a) - getGradeSortOrder(b);
+        return orderDiff !== 0 ? orderDiff : a.localeCompare(b, 'ja');
+      });
+
+      const routeOptionsHtml = APP_STATE.transportRoutes
+        .map(r => `<option value="${escapeHtml(r.id)}">${escapeHtml(r.label)}</option>`)
+        .join('');
+
+      sortedGrades.forEach((gradeKey, groupIdx) => {
+        const membersInGrade = gradeGroupsMap.get(gradeKey);
+        const hasPlannedInGroup = membersInGrade.some(item =>
+          plannedNormSet.has(normalizeNameClient(item.user.name))
+        );
+
+        // <details> によるネイティブかつ高速なアコーディオン（予定シフト対象者がいる学年は初期展開）
+        const detailsEl = document.createElement('details');
+        detailsEl.className = 'grade-accordion group bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs';
+        detailsEl.dataset.gradeGroup = gradeKey;
+        if (hasPlannedInGroup || sortedGrades.length === 1) {
+          detailsEl.open = true;
+        }
+
+        const summaryEl = document.createElement('summary');
+        summaryEl.className = 'flex items-center justify-between px-4 py-3 cursor-pointer select-none bg-slate-50 hover:bg-slate-100/80 transition list-none';
+        summaryEl.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="inline-block text-xs text-slate-400 transition-transform group-open:rotate-90">▶</span>
+            <span class="text-sm font-bold text-slate-800">${escapeHtml(gradeKey)}</span>
+            <span class="text-xs text-slate-500">（全 ${membersInGrade.length} 名）</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="grade-selected-badge-${groupIdx}" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-600">
+              選択: 0 名
+            </span>
+          </div>
+        `;
+        detailsEl.appendChild(summaryEl);
+
+        const bodyEl = document.createElement('div');
+        bodyEl.className = 'divide-y divide-slate-100 px-3 py-1 bg-white';
+
+        membersInGrade.forEach(({ user, globalIdx }) => {
+          const isPlanned = plannedNormSet.has(normalizeNameClient(user.name));
+          const row = document.createElement('div');
+          row.className = 'participant-row py-2.5 px-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2';
+          row.dataset.memberName = user.name;
+          row.dataset.memberGrade = gradeKey;
+          row.dataset.groupIdx = String(groupIdx);
+
+          const plannedBadge = isPlanned
+            ? '<span class="ml-1.5 px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800">予定シフト</span>'
+            : '';
+
+          const pendingRoleBadge = user.role === 'Member (要確認)'
+            ? '<span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded bg-orange-50 text-orange-700 border border-orange-200">要確認</span>'
+            : '';
+
+          row.innerHTML = `
+            <label class="flex items-center gap-2.5 cursor-pointer select-none flex-1 min-w-0">
+              <input type="checkbox"
+                id="chk-member-${globalIdx}"
+                data-name="${escapeHtml(user.name)}"
+                data-idx="${globalIdx}"
+                data-group-idx="${groupIdx}"
+                ${isPlanned ? 'checked' : ''}
+                onchange="handleParticipantToggle(${globalIdx})"
+                class="participant-checkbox w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
+              <span class="text-sm font-semibold text-slate-800 truncate">${escapeHtml(user.name)}</span>
+              ${plannedBadge}
+              ${pendingRoleBadge}
+            </label>
+
+            <div id="route-controls-${globalIdx}" class="${isPlanned ? 'flex' : 'hidden'} flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto pl-6 sm:pl-0">
+              <select id="route-select-${globalIdx}"
+                onchange="handleRouteSelectChange(${globalIdx})"
+                class="w-full sm:w-auto rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 focus:border-brand-600 focus:bg-white focus:outline-none">
+                ${routeOptionsHtml}
+              </select>
+              <input type="number"
+                id="custom-amount-${globalIdx}"
+                min="0"
+                step="10"
+                placeholder="金額(円)"
+                oninput="recalculateShiftPreview()"
+                class="hidden w-28 rounded-lg border border-brand-400 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200" />
+            </div>
+          `;
+
+          bodyEl.appendChild(row);
+        });
+
+        detailsEl.appendChild(bodyEl);
+        container.appendChild(detailsEl);
+      });
+
+      recalculateShiftPreview();
+    }
+
+    /**
+     * 全学年アコーディオンの一括展開・折りたたみ
+     */
+    function toggleAllGradeAccordions(openState) {
+      document.querySelectorAll('.grade-accordion').forEach(detailsEl => {
+        detailsEl.open = Boolean(openState);
+      });
+    }
+
+    /**
+     * 業務日が変更された際に Planned_Shifts を再取得してチェック状態を同期
+     */
+    async function handleShiftDateChange() {
+      const shiftDate = document.getElementById('shift-date').value;
+      if (!shiftDate) return;
+
+      try {
+        const planned = await callGasRpc('getPlannedShifts', { shiftDate: shiftDate });
+        APP_STATE.plannedMembersForDate = Array.isArray(planned) ? planned : [];
+        renderGradeAccordionParticipants();
+        updatePlannedShiftBanner();
+      } catch (err) {
+        showToast('予定シフトの取得に失敗しました: ' + err.message, 'error');
+      }
+    }
+
+    function updatePlannedShiftBanner() {
+      const banner = document.getElementById('planned-shifts-banner');
+      const planned = APP_STATE.plannedMembersForDate;
+      if (planned.length === 0) {
+        banner.className = 'bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-500';
+        banner.textContent = 'この日の予定シフト登録はありません。実際に参加したメンバーを学年アコーディオンから選択してください。';
+      } else {
+        banner.className = 'bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900';
+        banner.innerHTML = `<span class="font-bold">予定シフト登録メンバー (${planned.length}名):</span> ${planned.map(escapeHtml).join('、')} <span class="text-[11px] block mt-0.5 text-amber-700">※チェックを外して送信すると該当メンバーに無断欠勤ペナルティ(+1)が自動記録され、出席したメンバーのペナルティは0にリセットされます。</span>`;
+      }
+    }
+
+    /**
+     * 参加者チェックボックスのON/OFF切り替え
+     */
+    function handleParticipantToggle(idx) {
+      const chk = document.getElementById(`chk-member-${idx}`);
+      const controls = document.getElementById(`route-controls-${idx}`);
+      if (chk && controls) {
+        if (chk.checked) {
+          controls.classList.remove('hidden');
+          controls.classList.add('flex');
+        } else {
+          controls.classList.add('hidden');
+          controls.classList.remove('flex');
+        }
+      }
+      recalculateShiftPreview();
+    }
+
+    /**
+     * ルートプルダウンの変更（「その他」選択時のみ自由入力欄を表示）
+     */
+    function handleRouteSelectChange(idx) {
+      const selectEl = document.getElementById(`route-select-${idx}`);
+      const customInput = document.getElementById(`custom-amount-${idx}`);
+      if (!selectEl || !customInput) return;
+
+      const selectedRoute = APP_STATE.transportRoutes.find(r => r.id === selectEl.value);
+      const isCustom = !selectedRoute || selectedRoute.id === 'other' || selectedRoute.amount === null;
+
+      if (isCustom) {
+        customInput.classList.remove('hidden');
+        customInput.required = true;
+      } else {
+        customInput.classList.add('hidden');
+        customInput.required = false;
+        customInput.value = '';
+      }
+      recalculateShiftPreview();
+    }
+
+    /**
+     * 検索フィルタ入力時に該当メンバーを絞り込み＆該当アコーディオンを自動展開
+     */
+    function filterParticipantRows() {
+      const keyword = normalizeNameClient(
+        document.getElementById('participant-search').value.toLowerCase()
+      );
+      const accordions = document.querySelectorAll('.grade-accordion');
+
+      accordions.forEach(detailsEl => {
+        const rows = detailsEl.querySelectorAll('.participant-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+          const nameNorm = normalizeNameClient((row.dataset.memberName || '').toLowerCase());
+          const gradeNorm = normalizeNameClient((row.dataset.memberGrade || '').toLowerCase());
+          if (!keyword || nameNorm.includes(keyword) || gradeNorm.includes(keyword)) {
+            row.classList.remove('hidden');
+            visibleCount++;
+          } else {
+            row.classList.add('hidden');
+          }
+        });
+
+        if (keyword) {
+          detailsEl.open = visibleCount > 0;
+        }
+      });
+    }
+
+    /**
+     * 選択された参加者＋イレギュラー請求からリアルタイム合計金額と各学年バッジを更新
+     */
+    function recalculateShiftPreview() {
+      const checkboxes = document.querySelectorAll('.participant-checkbox');
+      const groupSelectedCounts = {};
+      let totalCount = 0;
+      let regularAmount = 0;
+
+      checkboxes.forEach(chk => {
+        const gIdx = chk.dataset.groupIdx;
+        if (groupSelectedCounts[gIdx] === undefined) {
+          groupSelectedCounts[gIdx] = 0;
+        }
+        if (!chk.checked) return;
+
+        groupSelectedCounts[gIdx]++;
+        totalCount++;
+
+        const idx = chk.dataset.idx;
+        const routeSelect = document.getElementById(`route-select-${idx}`);
+        const customInput = document.getElementById(`custom-amount-${idx}`);
+        const routeId = routeSelect ? routeSelect.value : 'demachiyanagi';
+        const routeObj = APP_STATE.transportRoutes.find(r => r.id === routeId);
+
+        if (!routeObj || routeObj.id === 'other' || routeObj.amount === null) {
+          const val = Number(customInput ? customInput.value : 0);
+          if (!isNaN(val) && val > 0) {
+            regularAmount += Math.round(val);
+          }
+        } else {
+          regularAmount += Number(routeObj.amount) || 0;
+        }
+      });
+
+      // 各学年アコーディオンの選択人数バッジを更新
+      Object.keys(groupSelectedCounts).forEach(gIdx => {
+        const badge = document.getElementById(`grade-selected-badge-${gIdx}`);
+        if (!badge) return;
+        const count = groupSelectedCounts[gIdx];
+        badge.textContent = `選択: ${count} 名`;
+        if (count > 0) {
+          badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-600 text-white';
+        } else {
+          badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-600';
+        }
+      });
+
+      // イレギュラー請求額の加算
+      const irregularVal = Math.max(
+        0,
+        Math.round(Number(document.getElementById('shift-irregular-amount').value) || 0)
+      );
+      const irregularBadge = document.getElementById('preview-irregular-badge');
+      const irregularSpan = document.getElementById('preview-irregular-amount');
+      if (irregularVal > 0) {
+        irregularBadge.classList.remove('hidden');
+        irregularSpan.textContent = irregularVal.toLocaleString();
+      } else {
+        irregularBadge.classList.add('hidden');
+      }
+
+      const grandTotal = regularAmount + irregularVal;
+      document.getElementById('preview-participant-count').textContent = String(totalCount);
+      document.getElementById('preview-total-amount').textContent = `¥${grandTotal.toLocaleString()}`;
+    }
+
+    /**
+     * 業務完了報告フォーム送信処理
+     */
+    async function handleSubmitShiftReport(event) {
+      event.preventDefault();
+
+      const shiftDate = document.getElementById('shift-date').value;
+      const targetPerson = document.getElementById('shift-target-person').value.trim();
+      const eventId = document.getElementById('shift-event-id').value.trim();
+      const irregularNote = document.getElementById('shift-irregular-note').value.trim();
+      const irregularAmount = Math.round(Number(document.getElementById('shift-irregular-amount').value) || 0);
+      const remarks = document.getElementById('shift-remarks').value.trim();
+
+      const checkedBoxes = Array.from(document.querySelectorAll('.participant-checkbox:checked'));
+      if (checkedBoxes.length === 0 && irregularAmount <= 0) {
+        showToast('実際の参加者を1名以上選択するか、イレギュラー請求を入力してください。', 'error');
+        return;
+      }
+
+      if (irregularAmount > 0 && !irregularNote) {
+        showToast('イレギュラー加算額を入力する場合は、内訳・理由も入力してください。', 'error');
+        return;
+      }
+
+      const participantsPayload = [];
+      for (const chk of checkedBoxes) {
+        const idx = chk.dataset.idx;
+        const memberName = chk.dataset.name;
+        const routeSelect = document.getElementById(`route-select-${idx}`);
+        const customInput = document.getElementById(`custom-amount-${idx}`);
+        const routeId = routeSelect ? routeSelect.value : 'demachiyanagi';
+        const routeObj = APP_STATE.transportRoutes.find(r => r.id === routeId);
+
+        let customAmount = 0;
+        if (!routeObj || routeObj.id === 'other' || routeObj.amount === null) {
+          if (!customInput || customInput.value === '' || Number(customInput.value) < 0) {
+            showToast(`「${memberName}」の自由入力交通費（0円以上）を入力してください。`, 'error');
+            return;
+          }
+          customAmount = Math.round(Number(customInput.value));
+        }
+
+        participantsPayload.push({
+          name: memberName,
+          route_id: routeId,
+          custom_amount: customAmount
+        });
+      }
+
+      const btn = document.getElementById('btn-submit-shift');
+      btn.disabled = true;
+      showLoader('業務完了報告を送信し、照合番号を発行しています...');
+
+      try {
+        const result = await callGasRpc('submitShiftReport', {
+          shift_date: shiftDate,
+          target_person: targetPerson,
+          participants: participantsPayload,
+          irregular_note: irregularNote,
+          irregular_amount: irregularAmount,
+          event_id: eventId,
+          remarks: remarks
+        });
+
+        showToast(`報告が完了しました！照合番号: ${result.payment_id}`, 'success');
+        document.getElementById('shift-remarks').value = '';
+        document.getElementById('shift-irregular-note').value = '';
+        document.getElementById('shift-irregular-amount').value = '0';
+        openLineModal(result);
+      } catch (err) {
+        showToast(err.message || '業務報告の送信に失敗しました。', 'error');
+      } finally {
+        btn.disabled = false;
+        hideLoader();
+      }
+    }
+
+    function openLineModal(result) {
+      document.getElementById('modal-payment-id').textContent = result.payment_id || '----';
+      document.getElementById('modal-total-amount').textContent = `合計請求額: ¥${Number(result.amount || 0).toLocaleString()}`;
+      document.getElementById('modal-line-text').value = result.line_template || '';
+      document.getElementById('modal-line-link').href = result.admin_line_url || APP_STATE.adminLineUrl || 'https://line.me/ti/p/';
+      document.getElementById('line-modal').classList.remove('hidden');
+    }
+
+    function closeLineModal() {
+      document.getElementById('line-modal').classList.add('hidden');
+    }
+
+    async function copyLineTemplate() {
+      const textarea = document.getElementById('modal-line-text');
+      const text = textarea.value;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('LINE送信用メッセージをコピーしました！', 'success');
+      } catch (_) {
+        textarea.select();
+        document.execCommand('copy');
+        showToast('LINE送信用メッセージをコピーしました！', 'success');
+      }
+    }
+
+    // =========================================================================
+    // 6. 🏆 リーダーボード (一般メンバー時はペナルティ列の <th> / <td> を一切描画しない)
+    // =========================================================================
+
+    async function loadLeaderboard() {
+      const theadRow = document.getElementById('leaderboard-thead-row');
+      const tbody = document.getElementById('leaderboard-tbody');
+      tbody.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-xs text-slate-400">読み込み中...</td></tr>';
+
+      try {
+        const data = await callGasRpc('getLeaderboard');
+        const isAdminView = Boolean(data && data.is_admin_view && APP_STATE.user && APP_STATE.user.role === 'Admin');
+        const members = (data && Array.isArray(data.members)) ? data.members : [];
+
+        // ヘッダー列の構築: 一般メンバーには「ペナルティ回数」の <th> を一切DOMに出力しない
+        if (isAdminView) {
+          document.getElementById('leaderboard-subtitle').textContent =
+            '業務参加回数ランキングです（幹部Admin表示: 無断欠勤ペナルティ回数も表示中）。';
+          theadRow.innerHTML = `
+            <th class="py-2.5 px-3">順位</th>
+            <th class="py-2.5 px-3">氏名</th>
+            <th class="py-2.5 px-3 text-right">参加回数 (貢献度)</th>
+            <th class="py-2.5 px-3 text-right text-rose-600">無断欠勤 (ペナルティ)</th>
+          `;
+        } else {
+          document.getElementById('leaderboard-subtitle').textContent =
+            '業務への累計参加回数ランキングです。たくさん参加してサークルを盛り上げましょう！';
+          theadRow.innerHTML = `
+            <th class="py-2.5 px-3">順位</th>
+            <th class="py-2.5 px-3">氏名</th>
+            <th class="py-2.5 px-3 text-right">参加回数 (貢献度)</th>
+          `;
+        }
+
+        if (members.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="${isAdminView ? 4 : 3}" class="py-6 text-center text-xs text-slate-400">データがありません。</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = '';
+        members.forEach((m, i) => {
+          const rank = i + 1;
+          let rankBadge = `<span class="font-bold text-slate-500">${rank}</span>`;
+          if (rank === 1) rankBadge = '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-700 font-extrabold text-xs">1</span>';
+          else if (rank === 2) rankBadge = '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-extrabold text-xs">2</span>';
+          else if (rank === 3) rankBadge = '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 text-orange-800 font-extrabold text-xs">3</span>';
+
+          const gradeChip = m.grade
+            ? `<span class="ml-1.5 text-xs text-slate-400 font-normal">(${escapeHtml(m.grade)})</span>`
+            : '';
+
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50/80 transition';
+
+          // 一般メンバー時はペナルティ列の <td> も一切DOMに出力しない
+          let rowHtml = `
+            <td class="py-3 px-3 whitespace-nowrap">${rankBadge}</td>
+            <td class="py-3 px-3 font-semibold text-slate-800">${escapeHtml(m.name)}${gradeChip}</td>
+            <td class="py-3 px-3 text-right font-extrabold text-brand-700">${Number(m.reward_points || 0)} 回</td>
+          `;
+
+          if (isAdminView) {
+            const pCount = Number(m.penalty_points || 0);
+            const pStyle = pCount > 0 ? 'text-rose-600 font-extrabold' : 'text-slate-400 font-medium';
+            rowHtml += `<td class="py-3 px-3 text-right ${pStyle}">${pCount} 回</td>`;
+          }
+
+          tr.innerHTML = rowHtml;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-xs text-rose-500">ランキングの取得に失敗しました: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    // =========================================================================
+    // 7. Step 4: Admin専用機能 (会計・未提出レシート警告・直接起票・抽選・管理パネル)
+    // =========================================================================
+
+    let LAST_LOTTERY_RESULT = null;
+
+    /**
+     * Adminログイン完了時に呼ばれる初期化フック
+     */
+    window.onAdminAuthReady = function() {
+      const today = getTodayDateString();
+      const directDateInput = document.getElementById('direct-date');
+      if (directDateInput && !directDateInput.value) directDateInput.value = today;
+
+      const lotteryDateInput = document.getElementById('lottery-shift-date');
+      if (lotteryDateInput && !lotteryDateInput.value) lotteryDateInput.value = today;
+
+      window.populateAdminEventSelectors();
+      renderControlPanelMembers();
+    };
+
+    /**
+     * 直接起票フォームのイベント選択プルダウンを同期
+     */
+    window.populateAdminEventSelectors = function() {
+      const directEvSelect = document.getElementById('direct-event-id');
+      if (!directEvSelect) return;
+      const currentVal = directEvSelect.value;
+      directEvSelect.innerHTML = '<option value="">指定なし</option>';
+      APP_STATE.eventsList.forEach(ev => {
+        const opt = document.createElement('option');
+        opt.value = ev.event_id;
+        opt.textContent = `${ev.event_name} (${ev.event_id})`;
+        directEvSelect.appendChild(opt);
+      });
+      directEvSelect.value = currentVal;
+    };
+
+    // -------------------------------------------------------------------------
+    // 7-1. 会計・イベント予実・未提出レシート警告ダッシュボード
+    // -------------------------------------------------------------------------
+
+    window.loadAdminDashboard = async function() {
+      if (!APP_STATE.user || APP_STATE.user.role !== 'Admin') return;
+
+      const pendingContainer = document.getElementById('pending-list-container');
+      const recentTbody = document.getElementById('recent-tx-tbody');
+      pendingContainer.innerHTML = '<div class="p-4 text-xs text-slate-400 text-center">読み込み中...</div>';
+      recentTbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-xs text-slate-400">読み込み中...</td></tr>';
+
+      try {
+        const data = await callGasRpc('getAdminDashboardData');
+        const balances = data.balances || {};
+
+        // 1. 口座残高の反映
+        document.getElementById('dash-total-assets').textContent = `¥${Number(data.total_assets || 0).toLocaleString()}`;
+        document.getElementById('dash-pending-expense').textContent = `承認待ち支出: ¥${Number(data.pending_expense_total || 0).toLocaleString()}`;
+        document.getElementById('dash-bal-bank').textContent = `¥${Number(balances['サークル口座'] || 0).toLocaleString()}`;
+        document.getElementById('dash-bal-paypay').textContent = `¥${Number(balances['PayPay'] || 0).toLocaleString()}`;
+        document.getElementById('dash-bal-cash').textContent = `¥${Number(balances['現金'] || 0).toLocaleString()}`;
+
+        // 2. 🚨 未提出レシート警告アラートの描画 (receipt_pending_transactions)
+        renderReceiptPendingAlerts(data.receipt_pending_transactions || []);
+
+        // 3. イベント別予算消化ステータスの描画 (event_budget_status)
+        renderEventBudgetStatus(data.event_budget_status || []);
+
+        // 4. 承認待ち（Pending）一覧の描画
+        renderPendingTransactions(data.pending_transactions || []);
+
+        // 5. 直近の取引履歴の描画
+        renderRecentTransactions(data.recent_transactions || []);
+      } catch (err) {
+        showToast('ダッシュボードの取得に失敗しました: ' + err.message, 'error');
+      }
+    };
+
+    /**
+     * 🚨 証憑未提出（receipt_pending）の赤色アラート領域を描画し、その場で画像添付できるUIを構築
+     */
+    function renderReceiptPendingAlerts(receiptPendingList) {
+      const alertBox = document.getElementById('receipt-pending-alert-box');
+      const countSpan = document.getElementById('receipt-pending-count');
+      const listContainer = document.getElementById('receipt-pending-list');
+
+      if (!Array.isArray(receiptPendingList) || receiptPendingList.length === 0) {
+        alertBox.classList.add('hidden');
+        listContainer.innerHTML = '';
+        return;
+      }
+
+      alertBox.classList.remove('hidden');
+      countSpan.textContent = String(receiptPendingList.length);
+      listContainer.innerHTML = '';
+
+      receiptPendingList.forEach(tx => {
+        const txId = String(tx.transaction_id || '');
+        const card = document.createElement('div');
+        card.className = 'bg-white border border-rose-300 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+        card.innerHTML = `
+          <div class="space-y-0.5 min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-extrabold text-[11px]">証憑未提出</span>
+              <span class="text-xs font-bold text-slate-700">${escapeHtml(tx.date)}</span>
+              <span class="text-xs font-semibold text-slate-500">[${escapeHtml(tx.category)}]</span>
+              <span class="text-sm font-extrabold text-rose-700">¥${Number(tx.amount || 0).toLocaleString()}</span>
+            </div>
+            <div class="text-xs font-semibold text-slate-800 truncate">${escapeHtml(tx.description)}</div>
+            <div class="text-[11px] text-slate-500">対象者/支払先: ${escapeHtml(tx.target_person || '-')} / 出金元: ${escapeHtml(tx.source_account || '-')}</div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+            <input id="late-file-${escapeHtml(txId)}" type="file" accept="image/*,application/pdf"
+              class="text-[11px] text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-rose-100 file:text-rose-800 hover:file:bg-rose-200 cursor-pointer" />
+            <button type="button" onclick="handleAttachLateReceipt('${escapeHtml(txId)}')"
+              class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-2xs whitespace-nowrap transition">
+              証憑を提出する
+            </button>
+          </div>
+        `;
+        listContainer.appendChild(card);
+      });
+    }
+
+    /**
+     * 後日提出分のレシート画像をアップロードして紐付ける (attachLateReceipt)
+     */
+    async function handleAttachLateReceipt(txId) {
+      const fileInput = document.getElementById(`late-file-${txId}`);
+      const file = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+      if (!file) {
+        showToast('アップロードするレシート画像を選択してください。', 'error');
+        return;
+      }
+
+      showLoader('証憑画像をGoogle Driveへアップロードしています...');
+      try {
+        const base64Data = await readFileAsBase64(file);
+        await callGasRpc('attachLateReceipt', {
+          transaction_id: txId,
+          receipt_base64: base64Data,
+          receipt_mime_type: file.type || 'image/jpeg',
+          receipt_file_name: file.name || 'late_receipt.jpg'
+        });
+        showToast('証憑画像の紐付けが完了し、未提出アラートを解消しました！', 'success');
+        await window.loadAdminDashboard();
+      } catch (err) {
+        showToast(err.message || '証憑のアップロードに失敗しました。', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+
+    /**
+     * イベント作成・編集フォームの開閉
+     */
+    function toggleEventFormBox(forceState) {
+      const form = document.getElementById('event-upsert-form');
+      if (typeof forceState === 'boolean') {
+        form.classList.toggle('hidden', !forceState);
+      } else {
+        form.classList.toggle('hidden');
+      }
+    }
+
+    /**
+     * イベントカードを編集フォームに読み込む
+     */
+    function editEventInForm(evId) {
+      const ev = APP_STATE.eventsList.find(e => e.event_id === evId);
+      if (!ev) return;
+      document.getElementById('ev-id').value = ev.event_id || '';
+      document.getElementById('ev-name').value = ev.event_name || '';
+      document.getElementById('ev-start-date').value = ev.start_date || '';
+      document.getElementById('ev-end-date').value = ev.end_date || '';
+      document.getElementById('ev-planned-income').value = String(ev.planned_income || 0);
+      document.getElementById('ev-planned-expense').value = String(ev.planned_expense || 0);
+      toggleEventFormBox(true);
+    }
+
+    /**
+     * イベントの新規作成・更新送信 (upsertEvent)
+     */
+    async function handleUpsertEvent(event) {
+      event.preventDefault();
+      const evId = document.getElementById('ev-id').value.trim();
+      const evName = document.getElementById('ev-name').value.trim();
+      const startDate = document.getElementById('ev-start-date').value;
+      const endDate = document.getElementById('ev-end-date').value;
+      const plannedIncome = Math.round(Number(document.getElementById('ev-planned-income').value) || 0);
+      const plannedExpense = Math.round(Number(document.getElementById('ev-planned-expense').value) || 0);
+
+      if (!evName) {
+        showToast('イベント名を入力してください。', 'error');
+        return;
+      }
+
+      showLoader('イベント予算を保存しています...');
+      try {
+        await callGasRpc('upsertEvent', {
+          event_id: evId,
+          event_name: evName,
+          start_date: startDate,
+          end_date: endDate,
+          planned_income: plannedIncome,
+          planned_expense: plannedExpense,
+          status: 'Active'
+        });
+
+        const updatedEvents = await callGasRpc('getEvents');
+        APP_STATE.eventsList = Array.isArray(updatedEvents) ? updatedEvents : [];
+        populateEventSelectors();
+
+        document.getElementById('event-upsert-form').reset();
+        toggleEventFormBox(false);
+        showToast('イベント予算を保存しました！', 'success');
+        await window.loadAdminDashboard();
+      } catch (err) {
+        showToast(err.message || 'イベント保存に失敗しました。', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+
+    /**
+     * イベント別予算消化ステータスの描画
+     */
+    function renderEventBudgetStatus(eventStatusList) {
+      const container = document.getElementById('event-budget-list');
+      if (!Array.isArray(eventStatusList) || eventStatusList.length === 0) {
+        container.innerHTML = '<div class="sm:col-span-2 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-400 text-center">登録されているイベントはありません。「＋ 新規イベント作成 / 編集」からイベント予算を登録できます。</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      eventStatusList.forEach(ev => {
+        const rate = Number(ev.expense_consumption_rate || 0);
+        const clampedWidth = Math.min(100, Math.max(0, rate));
+        const barColor =
+          rate >= 100
+            ? 'bg-rose-600'
+            : rate >= 80
+            ? 'bg-amber-500'
+            : 'bg-brand-600';
+
+        const card = document.createElement('div');
+        card.className = 'border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-2.5';
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="text-xs font-mono text-slate-400">${escapeHtml(ev.event_id)}</div>
+              <div class="text-sm font-bold text-slate-900">${escapeHtml(ev.event_name)}</div>
+              <div class="text-[11px] text-slate-500">${escapeHtml(ev.start_date || '-')} 〜 ${escapeHtml(ev.end_date || '-')}</div>
+            </div>
+            <button type="button" onclick="editEventInForm('${escapeHtml(ev.event_id)}')" class="text-xs font-semibold text-brand-600 hover:underline">
+              編集
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs bg-white rounded-lg p-2.5 border border-slate-100">
+            <div>
+              <div class="text-[11px] text-slate-400">収入 (実績 / 予算)</div>
+              <div class="font-bold text-emerald-700">¥${Number(ev.actual_income || 0).toLocaleString()} <span class="text-slate-400 font-normal">/ ¥${Number(ev.planned_income || 0).toLocaleString()}</span></div>
+            </div>
+            <div>
+              <div class="text-[11px] text-slate-400">支出 (実績 / 予算)</div>
+              <div class="font-bold text-rose-700">¥${Number(ev.actual_expense || 0).toLocaleString()} <span class="text-slate-400 font-normal">/ ¥${Number(ev.planned_expense || 0).toLocaleString()}</span></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between text-[11px] mb-1">
+              <span class="font-semibold text-slate-600">予算消化率（承認待ち ¥${Number(ev.pending_expense || 0).toLocaleString()} 含む）</span>
+              <span class="font-extrabold ${rate >= 100 ? 'text-rose-600' : 'text-slate-800'}">${rate}%</span>
+            </div>
+            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div class="h-full ${barColor} transition-all" style="width: ${clampedWidth}%"></div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    /**
+     * 承認待ち（Pending）一覧の描画
+     */
+    function renderPendingTransactions(pendingList) {
+      const pendingContainer = document.getElementById('pending-list-container');
+      if (pendingList.length === 0) {
+        pendingContainer.innerHTML = '<div class="p-4 text-xs text-slate-400 text-center bg-slate-50 rounded-xl">現在、承認待ちの取引はありません。</div>';
+        return;
+      }
+
+      pendingContainer.innerHTML = '';
+      pendingList.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'border border-amber-200 bg-amber-50/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+        const txId = String(item.transaction_id || '');
+        const payId = String(item.payment_id || '----');
+
+        card.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-md bg-brand-600 text-white font-extrabold text-xs tracking-wider">照合番号: ${escapeHtml(payId)}</span>
+              <span class="text-xs font-bold text-slate-600">${escapeHtml(item.date)}</span>
+              <span class="text-xs font-semibold text-slate-500">受取代表: <strong class="text-slate-800">${escapeHtml(item.target_person)}</strong></span>
+            </div>
+            <div class="text-xs text-slate-700 font-medium">${escapeHtml(item.description)}</div>
+            <div class="text-[11px] text-slate-500">${escapeHtml(item.remarks || '')}</div>
+          </div>
+
+          <div class="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-amber-200/60">
+            <div class="text-lg font-extrabold text-slate-900">¥${Number(item.amount || 0).toLocaleString()}</div>
+            <div class="flex items-center gap-1.5">
+              <select id="approve-acc-${escapeHtml(txId)}" class="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-semibold text-slate-700">
+                <option value="PayPay" ${item.source_account === 'PayPay' ? 'selected' : ''}>PayPay</option>
+                <option value="サークル口座" ${item.source_account === 'サークル口座' ? 'selected' : ''}>サークル口座</option>
+                <option value="現金" ${item.source_account === '現金' ? 'selected' : ''}>現金</option>
+              </select>
+              <button type="button" onclick="handleApprovePayment('${escapeHtml(txId)}')"
+                class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition">
+                承認・送金完了
+              </button>
+            </div>
+          </div>
+        `;
+        pendingContainer.appendChild(card);
+      });
+    }
+
+    /**
+     * 直近の取引履歴テーブルの描画
+     */
+    function renderRecentTransactions(recentList) {
+      const recentTbody = document.getElementById('recent-tx-tbody');
+      if (recentList.length === 0) {
+        recentTbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-xs text-slate-400">取引履歴がありません。</td></tr>';
+        return;
+      }
+
+      recentTbody.innerHTML = '';
+      recentList.forEach(tx => {
+        const tr = document.createElement('tr');
+        const isPending = tx.status === 'Pending';
+        const isReceiptPending =
+          tx.receipt_pending === true ||
+          String(tx.receipt_pending || '').toUpperCase() === 'TRUE';
+
+        const statusBadge = isPending
+          ? `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">Pending(${escapeHtml(tx.payment_id)})</span>`
+          : '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">Completed</span>';
+
+        const accountInfo =
+          tx.type === 'Income'
+            ? `→ ${tx.destination_account}`
+            : tx.type === 'Expense'
+            ? `${tx.source_account} →`
+            : `${tx.source_account} → ${tx.destination_account}`;
+
+        let receiptCell = '-';
+        if (tx.receipt_url) {
+          receiptCell = `<a href="${escapeHtml(tx.receipt_url)}" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-bold underline">証憑を開く</a>`;
+        } else if (isReceiptPending) {
+          receiptCell = '<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-bold text-[10px]">未提出</span>';
+        }
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-2 whitespace-nowrap text-slate-600">${escapeHtml(tx.date)}</td>
+          <td class="py-2.5 px-2 whitespace-nowrap font-bold">${escapeHtml(tx.type)}</td>
+          <td class="py-2.5 px-2">
+            <div class="font-bold text-slate-800">${escapeHtml(tx.category)}</div>
+            <div class="text-slate-500 text-[11px] truncate max-w-xs">${escapeHtml(tx.description)}</div>
+          </td>
+          <td class="py-2.5 px-2 text-right font-extrabold whitespace-nowrap">¥${Number(tx.amount || 0).toLocaleString()}</td>
+          <td class="py-2.5 px-2 whitespace-nowrap text-slate-600">${escapeHtml(accountInfo)}</td>
+          <td class="py-2.5 px-2 whitespace-nowrap">${statusBadge}</td>
+          <td class="py-2.5 px-2 whitespace-nowrap">${receiptCell}</td>
+        `;
+        recentTbody.appendChild(tr);
+      });
+    }
+
+    /**
+     * ワンタップ決済承認実行 (approvePayment)
+     */
+    async function handleApprovePayment(txId) {
+      const accSelect = document.getElementById(`approve-acc-${txId}`);
+      const sourceAccount = accSelect ? accSelect.value : 'PayPay';
+
+      showLoader('決済承認を反映しています...');
+      try {
+        const res = await callGasRpc('approvePayment', {
+          transactionId: txId,
+          sourceAccount: sourceAccount
+        });
+        showToast(`照合番号 ${res.payment_id || ''} の支払いを完了しました！`, 'success');
+        await window.loadAdminDashboard();
+      } catch (err) {
+        showToast(err.message || '承認処理に失敗しました。', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 7-2. 直接起票 & 「証憑は後日提出する」チェックボックス制御 (addDirectTransaction)
+    // -------------------------------------------------------------------------
+
+    function handleDirectTypeChange() {
+      const txType = document.getElementById('direct-type').value;
+      const srcWrap = document.getElementById('direct-src-wrap');
+      const dstWrap = document.getElementById('direct-dst-wrap');
+      const pendingLabel = document.getElementById('direct-receipt-pending-label');
+      const pendingCheckbox = document.getElementById('direct-receipt-pending');
+
+      if (txType === 'Income') {
+        srcWrap.classList.add('hidden');
+        dstWrap.classList.remove('hidden');
+        pendingCheckbox.checked = false;
+        pendingLabel.classList.add('hidden');
+      } else if (txType === 'Expense') {
+        srcWrap.classList.remove('hidden');
+        dstWrap.classList.add('hidden');
+        pendingLabel.classList.remove('hidden');
+      } else {
+        srcWrap.classList.remove('hidden');
+        dstWrap.classList.remove('hidden');
+        pendingCheckbox.checked = false;
+        pendingLabel.classList.add('hidden');
+      }
+
+      syncDirectReceiptRequirementUI();
+    }
+
+    function handleDirectReceiptPendingToggle() {
+      syncDirectReceiptRequirementUI();
+    }
+
+    function syncDirectReceiptRequirementUI() {
+      const txType = document.getElementById('direct-type').value;
+      const isPendingChecked = document.getElementById('direct-receipt-pending').checked;
+      const fileInput = document.getElementById('direct-receipt-file');
+      const badgeEl = document.getElementById('direct-receipt-badge');
+      const hintEl = document.getElementById('direct-receipt-hint');
+
+      if (txType === 'Expense') {
+        if (isPendingChecked) {
+          fileInput.required = false;
+          badgeEl.textContent = '【後日提出モード: 画像未選択で起票可能】';
+          badgeEl.className = 'text-amber-700 font-bold';
+          hintEl.textContent = '⚠️ 「証憑は後日提出する」が選択されています。起票後、Adminダッシュボードに赤色警告が表示されるため、後日必ずレシート画像を添付してください。';
+        } else {
+          fileInput.required = true;
+          badgeEl.textContent = '【支出時は原則必須】';
+          badgeEl.className = 'text-rose-600 font-bold';
+          hintEl.textContent = '※アップロードされた画像はGoogle Driveの証憑専用フォルダに自動保存され、スプレッドシートに閲覧リンクが記録されます。';
+        }
+      } else {
+        fileInput.required = false;
+        badgeEl.textContent = '【任意（収入・資金移動）】';
+        badgeEl.className = 'text-slate-500 font-semibold';
+        hintEl.textContent = '※収入・資金移動では証憑画像の添付は任意です。';
+      }
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = err => reject(err);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleAddDirectTransaction(event) {
+      event.preventDefault();
+
+      const txType = document.getElementById('direct-type').value;
+      const receiptPending = document.getElementById('direct-receipt-pending').checked;
+      const fileInput = document.getElementById('direct-receipt-file');
+      const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+
+      // フロントエンド側ガード: 支出 かつ 後日提出チェックなし の場合はファイル必須
+      if (txType === 'Expense' && !receiptPending && !file) {
+        showToast('支出の起票時は、レシート等証憑画像をアップロードするか「証憑は後日提出する」にチェックを入れてください。', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit-direct');
+      btn.disabled = true;
+      showLoader('取引データを記帳しています...');
+
+      try {
+        let base64Data = '';
+        let mimeType = '';
+        let fileName = '';
+
+        if (file) {
+          base64Data = await readFileAsBase64(file);
+          mimeType = file.type || 'image/jpeg';
+          fileName = file.name || 'receipt.jpg';
+        }
+
+        const payload = {
+          date: document.getElementById('direct-date').value,
+          type: txType,
+          category: document.getElementById('direct-category').value.trim(),
+          description: document.getElementById('direct-description').value.trim(),
+          amount: Number(document.getElementById('direct-amount').value),
+          source_account: document.getElementById('direct-source-account').value,
+          destination_account: document.getElementById('direct-dest-account').value,
+          target_person: document.getElementById('direct-target-person').value.trim(),
+          event_id: document.getElementById('direct-event-id').value.trim(),
+          remarks: document.getElementById('direct-remarks').value.trim(),
+          receipt_pending: txType === 'Expense' ? receiptPending : false,
+          receipt_base64: base64Data,
+          receipt_mime_type: mimeType,
+          receipt_file_name: fileName
+        };
+
+        await callGasRpc('addDirectTransaction', payload);
+        showToast(
+          receiptPending && !file
+            ? '証憑後日提出として記帳しました（ダッシュボードから後日添付できます）。'
+            : '直接記帳が完了しました！',
+          'success'
+        );
+
+        document.getElementById('direct-category').value = '';
+        document.getElementById('direct-description').value = '';
+        document.getElementById('direct-amount').value = '';
+        document.getElementById('direct-remarks').value = '';
+        document.getElementById('direct-receipt-pending').checked = false;
+        fileInput.value = '';
+        syncDirectReceiptRequirementUI();
+      } catch (err) {
+        showToast(err.message || '直接記帳に失敗しました。', 'error');
+      } finally {
+        btn.disabled = false;
+        hideLoader();
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 7-3. シフト自動抽選UI (drawShiftLottery)
+    // -------------------------------------------------------------------------
+
+    function insertPenaltyHoldersToLottery() {
+      const penaltyMembers = APP_STATE.usersList
+        .filter(u => Number(u.penalty_points || 0) > 0)
+        .map(u => u.name);
+
+      if (penaltyMembers.length === 0) {
+        showToast('現在ペナルティを保有しているメンバーはいません。', 'info');
+        return;
+      }
+
+      const textarea = document.getElementById('lottery-candidates');
+      const existing = textarea.value.trim();
+      textarea.value = existing
+        ? `${existing}\n${penaltyMembers.join('\n')}`
+        : penaltyMembers.join('\n');
+      showToast(`ペナルティ保有者 ${penaltyMembers.length} 名を応募者欄に追加しました。`, 'info');
+    }
+
+    async function handleRunShiftLottery(event) {
+      event.preventDefault();
+      const rawCandidates = document.getElementById('lottery-candidates').value.trim();
+      const winnerCount = Math.max(1, Number(document.getElementById('lottery-winner-count').value) || 1);
+      const shiftDate = document.getElementById('lottery-shift-date').value;
+      const registerToPlanned = document.getElementById('lottery-register-planned').checked;
+
+      if (!rawCandidates) {
+        showToast('応募者の名前を1名以上入力してください。', 'error');
+        return;
+      }
+      if (registerToPlanned && !shiftDate) {
+        showToast('Planned_Shifts シートへ自動登録する場合は、対象シフト日を指定してください。', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-run-lottery');
+      btn.disabled = true;
+      showLoader('過去2カ月の参加実績とペナルティを参照して抽選スコアを計算しています...');
+
+      try {
+        const result = await callGasRpc('drawShiftLottery', {
+          candidates: rawCandidates,
+          winner_count: winnerCount,
+          shift_date: shiftDate,
+          register_to_planned_shifts: registerToPlanned
+        });
+
+        LAST_LOTTERY_RESULT = result;
+        renderLotteryResult(result);
+
+        if (result.registered_to_planned_shifts) {
+          showToast(`抽選完了！当選者 ${result.winner_count} 名を ${result.shift_date} の予定シフトに登録しました。`, 'success');
+          if (document.getElementById('shift-date').value === result.shift_date) {
+            await handleShiftDateChange();
+          }
+        } else {
+          showToast(`抽選が完了しました！（当選: ${result.winner_count} 名 / 応募: ${result.total_candidates} 名）`, 'success');
+        }
+      } catch (err) {
+        showToast(err.message || '抽選処理に失敗しました。', 'error');
+      } finally {
+        btn.disabled = false;
+        hideLoader();
+      }
+    }
+
+    function renderLotteryResult(result) {
+      const box = document.getElementById('lottery-result-box');
+      const meta = document.getElementById('lottery-result-meta');
+      const tbody = document.getElementById('lottery-result-tbody');
+
+      box.classList.remove('hidden');
+      const regText = result.registered_to_planned_shifts
+        ? ` / ✅ ${result.shift_date} の Planned_Shifts シートへ自動登録済`
+        : '';
+      meta.textContent = `応募総数: ${result.total_candidates} 名 / 当選枠: ${result.winner_count} 名 / 直近集計基準日: ${result.cutoff_date} 以降${regText}`;
+
+      const list = Array.isArray(result.all_ranked) ? result.all_ranked : [];
+      tbody.innerHTML = '';
+
+      list.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = item.is_winner ? 'bg-emerald-50/70 font-semibold' : 'text-slate-500';
+
+        const badge = item.is_winner
+          ? '<span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[11px]">当選</span>'
+          : '<span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 font-bold text-[11px]">補欠</span>';
+
+        const sb = item.score_breakdown || {};
+        const breakdownStr = `基礎${sb.base || 100} / ペナルティ+${sb.penalty_bonus || 0} / 直近${sb.recent_2m_deduction || 0} / 累計${sb.cumulative_deduction || 0} / 乱数+${sb.random_tie_breaker || 0}`;
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-2 whitespace-nowrap">${badge}</td>
+          <td class="py-2.5 px-2 whitespace-nowrap font-bold">${item.rank}位</td>
+          <td class="py-2.5 px-2 whitespace-nowrap text-slate-900">
+            ${escapeHtml(item.name)} <span class="text-[11px] text-slate-400">(${escapeHtml(item.grade)})</span>
+          </td>
+          <td class="py-2.5 px-2 text-right whitespace-nowrap ${item.penalty_points > 0 ? 'text-rose-600 font-extrabold' : ''}">
+            ${item.penalty_points} 回
+          </td>
+          <td class="py-2.5 px-2 text-right whitespace-nowrap">${item.recent_2m_count} 回</td>
+          <td class="py-2.5 px-2 text-right whitespace-nowrap">${item.reward_points} 回</td>
+          <td class="py-2.5 px-2 text-right whitespace-nowrap">
+            <span class="font-extrabold text-brand-700">${item.score} pt</span>
+            <div class="text-[10px] text-slate-400 font-normal">${escapeHtml(breakdownStr)}</div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function copyLotteryWinnersText() {
+      if (!LAST_LOTTERY_RESULT) return;
+      const winners = (LAST_LOTTERY_RESULT.winners || []).map(w => `・${w.name} (${w.grade})`);
+      const waitlist = (LAST_LOTTERY_RESULT.waitlist || []).map((w, i) => `${i + 1}. ${w.name}`);
+      const dateLabel = LAST_LOTTERY_RESULT.shift_date || '次回シフト';
+
+      const lines = [
+        `【DWC シフト抽選結果 (${dateLabel})】`,
+        `■ 当選者 (${winners.length}名):`,
+        winners.join('\n') || 'なし'
+      ];
+      if (waitlist.length > 0) {
+        lines.push('', '■ 補欠順:', waitlist.join('\n'));
+      }
+      const text = lines.join('\n');
+
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('当選者リストをクリップボードにコピーしました！', 'success');
+      } catch (_) {
+        showToast('コピーに失敗しました。', 'error');
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 7-4. Adminコントロールパネル (権限変更・学年一括繰り上げ・全セッション強制切断)
+    // -------------------------------------------------------------------------
+
+    window.loadAdminControlPanel = async function() {
+      if (!APP_STATE.user || APP_STATE.user.role !== 'Admin') return;
+
+      try {
+        const users = await callGasRpc('getUsers');
+        APP_STATE.usersList = Array.isArray(users) ? users : [];
+        renderControlPanelMembers();
+        renderGradeAccordionParticipants();
+      } catch (err) {
+        showToast('メンバー一覧の取得に失敗しました: ' + err.message, 'error');
+      }
+    };
+
+    function renderControlPanelMembers() {
+      const selectEl = document.getElementById('ctrl-user-select');
+      const specialBox = document.getElementById('ctrl-special-members-box');
+      if (!selectEl || !specialBox) return;
+
+      selectEl.innerHTML = '<option value="">-- 名簿からメンバーを選択 --</option>';
+      APP_STATE.usersList.forEach((u, idx) => {
+        const opt = document.createElement('option');
+        opt.value = String(idx);
+        opt.textContent = `[${u.role}] ${u.name} (${u.grade || '未設定'}) ${u.email ? '- ' + u.email : ''}`;
+        selectEl.appendChild(opt);
+      });
+
+      // Member (要確認) と Admin のメンバーをピックアップ表示
+      const pendingUsers = APP_STATE.usersList.filter(u => u.role === 'Member (要確認)');
+      const adminUsers = APP_STATE.usersList.filter(u => u.role === 'Admin');
+
+      let html = '';
+      if (pendingUsers.length > 0) {
+        html += `
+          <div class="bg-orange-50 border border-orange-200 rounded-xl p-3 space-y-2">
+            <div class="text-xs font-bold text-orange-900">⚠️ 承認待ちの「Member (要確認)」メンバー (${pendingUsers.length}名)</div>
+            <div class="divide-y divide-orange-200/60">
+              ${pendingUsers
+                .map(
+                  u => `
+                <div class="py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div>
+                    <span class="font-bold text-slate-900">${escapeHtml(u.name)}</span>
+                    <span class="text-slate-500">(${escapeHtml(u.grade)})</span>
+                    <span class="font-mono text-[11px] text-slate-500 ml-1">${escapeHtml(u.email)}</span>
+                  </div>
+                  <button type="button" onclick="quickChangeUserRole(${Number(u.row_index)}, '${escapeHtml(u.name)}', 'Member')"
+                    class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px]">
+                    正式 Member に承認する
+                  </button>
+                </div>
+              `
+                )
+                .join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (adminUsers.length > 0) {
+        html += `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+            <div class="text-xs font-bold text-slate-700 mb-1.5">現在の Admin（幹部）メンバー (${adminUsers.length}名)</div>
+            <div class="flex flex-wrap gap-1.5">
+              ${adminUsers
+                .map(
+                  u => `<span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold">${escapeHtml(u.name)} (${escapeHtml(u.grade)})</span>`
+                )
+                .join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      specialBox.innerHTML = html;
+    }
+
+    function handleControlUserSelectChange() {
+      const selectEl = document.getElementById('ctrl-user-select');
+      const idx = selectEl.value;
+      if (idx === '') return;
+
+      const u = APP_STATE.usersList[Number(idx)];
+      if (!u) return;
+
+      document.getElementById('ctrl-user-name').value = u.name || '';
+      document.getElementById('ctrl-user-email').value = u.email || '';
+      document.getElementById('ctrl-new-role').value = u.role || 'Member';
+    }
+
+    async function quickChangeUserRole(rowIndex, name, newRole) {
+      showLoader(`「${name}」を ${newRole} に更新しています...`);
+      try {
+        await callGasRpc('updateUserRole', {
+          row_index: rowIndex,
+          name: name,
+          new_role: newRole
+        });
+        showToast(`「${name}」の権限を ${newRole} に変更しました！`, 'success');
+        await window.loadAdminControlPanel();
+      } catch (err) {
+        showToast(err.message || '権限更新に失敗しました。', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+
+    async function handleUpdateUserRole(event) {
+      event.preventDefault();
+      const selectEl = document.getElementById('ctrl-user-select');
+      const selectedUser = selectEl.value !== '' ? APP_STATE.usersList[Number(selectEl.value)] : null;
+
+      const targetName = document.getElementById('ctrl-user-name').value.trim();
+      const targetEmail = document.getElementById('ctrl-user-email').value.trim();
+      const newRole = document.getElementById('ctrl-new-role').value;
+
+      if (!targetName && !targetEmail && !selectedUser) {
+        showToast('対象メンバーを選択するか、氏名・メールアドレスを入力してください。', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-update-role');
+      btn.disabled = true;
+      showLoader('メンバーの権限を更新しています...');
+
+      try {
+        const res = await callGasRpc('updateUserRole', {
+          row_index: selectedUser ? selectedUser.row_index : -1,
+          name: targetName || (selectedUser ? selectedUser.name : ''),
+          email: targetEmail || (selectedUser ? selectedUser.email : ''),
+          new_role: newRole
+        });
+
+        showToast(`「${res.name}」の権限を ${res.old_role} → ${res.new_role} に更新しました！`, 'success');
+        await window.loadAdminControlPanel();
+      } catch (err) {
+        showToast(err.message || '権限変更に失敗しました。', 'error');
+      } finally {
+        btn.disabled = false;
+        hideLoader();
+      }
+    }
+
+    /**
+     * 新年度の「学年一括繰り上げ」実行 (promoteAllGrades)
+     */
+    async function handlePromoteAllGrades() {
+      const ok = window.confirm(
+        '【確認】Usersシート全員の学年を一括で1学年繰り上げます（1回生→2回生、2回生→3回生、3回生→4回生、4回生→卒業・OBOG）。\n\n本当に実行してよろしいですか？'
+      );
+      if (!ok) return;
+
+      const btn = document.getElementById('btn-promote-grades');
+      btn.disabled = true;
+      showLoader('全員の学年を一括繰り上げしています...');
+
+      try {
+        const res = await callGasRpc('promoteAllGrades', {});
+        const banner = document.getElementById('promote-result-banner');
+        banner.classList.remove('hidden');
+        banner.textContent = `✅ 学年一括繰り上げが完了しました（更新人数: ${res.updated_count} 名）。`;
+        showToast(`${res.updated_count} 名の学年を進級更新しました！`, 'success');
+        await window.loadAdminControlPanel();
+      } catch (err) {
+        showToast(err.message || '学年繰り上げ処理に失敗しました。', 'error');
+      } finally {
+        btn.disabled = false;
+        hideLoader();
+      }
+    }
+
+    /**
+     * 緊急時の「全セッション強制切断（キルスイッチ）」実行 (killAllSessions)
+     */
+    async function handleKillAllSessions() {
+      const ok1 = window.confirm(
+        '🚨【緊急確認】Sessionsシートの全トークンを削除し、現在ログイン中の全メンバー（あなた自身を含む全員）を強制ログアウトさせます。\n\n本当に実行しますか？'
+      );
+      if (!ok1) return;
+
+      const btn = document.getElementById('btn-kill-sessions');
+      btn.disabled = true;
+      showLoader('全セッションを強制切断しています...');
+
+      try {
+        const res = await callGasRpc('killAllSessions', {});
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        APP_STATE.user = null;
+        showLoginScreen();
+        showToast(`全セッション（${res.cleared_count}件）を強制切断しました。再度ログインしてください。`, 'info');
+      } catch (err) {
+        showToast(err.message || '全セッション切断に失敗しました。', 'error');
+      } finally {
+        btn.disabled = false;
+        hideLoader();
+      }
+    }
+  </script>
+</body>
+</html>
