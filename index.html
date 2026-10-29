@@ -132,28 +132,42 @@
       </div>
     </div>
 
-    <!-- ナビゲーションタブ (認証完了後に表示) -->
-    <nav id="main-nav" class="hidden max-w-4xl mx-auto px-4 border-t border-slate-100 bg-slate-50/70">
-      <div class="flex space-x-1 overflow-x-auto no-scrollbar py-1.5">
-        <button type="button" id="tab-btn-shift" onclick="switchTab('shift')" class="tab-btn whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
-          業務完了報告
+    <!-- ナビゲーションタブ (スマホ対応・横スクロールなし3タブ構成 + Admin統合メニュー) -->
+    <nav id="main-nav" class="hidden max-w-4xl mx-auto px-3 sm:px-4 border-t border-slate-100 bg-slate-50/80">
+      <div class="grid grid-cols-2 sm:flex sm:items-center gap-1.5 py-2" id="main-nav-bar">
+        <button type="button" id="tab-btn-shift" onclick="switchTab('shift')" class="tab-btn flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition">
+          <span>📝 業務完了報告</span>
         </button>
-        <button type="button" id="tab-btn-leaderboard" onclick="switchTab('leaderboard')" class="tab-btn whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
-          🏆 メンバー貢献度（参加ランキング）
+        <button type="button" id="tab-btn-leaderboard" onclick="switchTab('leaderboard')" class="tab-btn flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition">
+          <span>🏆 ランキング</span>
         </button>
-        <!-- Admin専用タブ群 (Step 4 で中身を完全実装) -->
-        <button type="button" id="tab-btn-admin-dashboard" onclick="switchTab('admin-dashboard')" class="tab-btn hidden whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
-          Admin: 会計・予実
-        </button>
-        <button type="button" id="tab-btn-admin-direct" onclick="switchTab('admin-direct')" class="tab-btn hidden whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
-          Admin: 直接起票
-        </button>
-        <button type="button" id="tab-btn-admin-lottery" onclick="switchTab('admin-lottery')" class="tab-btn hidden whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
-          Admin: シフト抽選
-        </button>
-        <button type="button" id="tab-btn-admin-control" onclick="switchTab('admin-control')" class="tab-btn hidden whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
-          Admin: 管理パネル
-        </button>
+
+        <!-- Admin専用統合メニュー（Adminログイン時のみ表示・スマホでも横スクロール不要） -->
+        <div id="admin-nav-wrapper" class="hidden relative col-span-2 sm:col-span-1 sm:ml-auto">
+          <button type="button" id="tab-btn-admin-menu" onclick="toggleAdminNavMenu(event)"
+            class="w-full sm:w-auto flex items-center justify-center sm:justify-between gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition border border-slate-200/80 bg-white text-slate-700 hover:bg-slate-100 shadow-2xs">
+            <span id="admin-menu-current-label">⚙️ Adminメニュー</span>
+            <svg id="admin-menu-chevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <!-- Admin機能ドロップダウンパネル -->
+          <div id="admin-nav-dropdown" class="hidden absolute right-0 left-0 sm:left-auto sm:w-60 mt-1.5 bg-white rounded-2xl shadow-xl ring-1 ring-slate-200 p-1.5 z-40 space-y-1">
+            <button type="button" id="tab-btn-admin-dashboard" onclick="switchTab('admin-dashboard')" class="tab-btn hidden w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition">
+              <span>📊 会計・予実ダッシュボード</span>
+            </button>
+            <button type="button" id="tab-btn-admin-direct" onclick="switchTab('admin-direct')" class="tab-btn hidden w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition">
+              <span>✍️ 直接記帳（経費・収入）</span>
+            </button>
+            <button type="button" id="tab-btn-admin-lottery" onclick="switchTab('admin-lottery')" class="tab-btn hidden w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition">
+              <span>🎲 シフト一括抽選</span>
+            </button>
+            <button type="button" id="tab-btn-admin-control" onclick="switchTab('admin-control')" class="tab-btn hidden w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition">
+              <span>🛠️ 管理パネル</span>
+            </button>
+          </div>
+        </div>
       </div>
     </nav>
   </header>
@@ -161,7 +175,7 @@
   <!-- ===================================================================== -->
   <!-- メインコンテンツ領域 -->
   <!-- ===================================================================== -->
-  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-5">
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-6">
 
     <!-- GAS API URL 未設定時の案内バナー -->
     <div id="gas-url-warning" class="hidden mb-5 bg-amber-50 border border-amber-300 rounded-2xl p-4 text-xs text-amber-900">
@@ -181,44 +195,51 @@
     <!-- 1. ログイン画面 (Email & 4桁PINコード認証) -->
     <!-- =================================================================== -->
     <section id="login-view" class="hidden max-w-md mx-auto my-4">
-      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
-        <h2 class="text-lg font-bold text-slate-900 mb-1">ログイン（PINコード認証）</h2>
-        <p class="text-xs text-slate-500 mb-5 leading-relaxed">
-          メールアドレス宛に届く4桁のPINコードでログインします。一度ログインすると約9カ月間（端末内トークン保持）ログイン状態が維持されます。
-        </p>
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-6 shadow-xs">
+        <div class="flex items-center justify-between gap-2 mb-4">
+          <h2 class="text-lg font-bold text-slate-900">ログイン</h2>
+          <details class="relative">
+            <summary class="list-none inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer select-none">
+              <span>ℹ️ ログインについて</span>
+            </summary>
+            <div class="mt-2 text-xs text-slate-500 bg-slate-50 rounded-xl p-3 leading-relaxed">
+              メールアドレス宛に届く4桁のPINコードで認証します。一度ログインすると約9カ月間ログイン状態が維持されます。
+            </div>
+          </details>
+        </div>
 
         <!-- Step 1: メールアドレス入力フォーム -->
         <form id="pin-request-form" onsubmit="handleRequestPin(event)" class="space-y-4">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">
               メールアドレス <span class="text-rose-500">*</span>
             </label>
             <input id="login-email" type="email" required placeholder="example@gmail.com"
-              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+              class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
           </div>
 
           <button id="btn-request-pin" type="submit"
-            class="w-full py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow transition active:scale-[0.99]">
+            class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-sm transition active:scale-[0.99]">
             4桁のPINコードをメールで受け取る
           </button>
         </form>
 
         <!-- Step 2: 4桁PINコード検証フォーム (送信後に切り替え表示) -->
         <form id="pin-verify-form" onsubmit="handleVerifyPin(event)" class="hidden space-y-4">
-          <div class="bg-brand-50 border border-brand-200 rounded-xl p-3 text-xs text-brand-900">
-            <span id="pin-sent-email" class="font-bold underline"></span> 宛に4桁のPINコードを送信しました（有効期限10分）。
+          <div class="bg-brand-50/70 rounded-xl p-3 text-xs text-brand-900">
+            <span id="pin-sent-email" class="font-bold underline"></span> 宛にPINコードを送信しました（10分間有効）。
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">
               4桁のPINコード <span class="text-rose-500">*</span>
             </label>
             <input id="login-pin" type="text" inputmode="numeric" pattern="\d{4}" maxlength="4" required placeholder="1234"
-              class="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-center text-2xl font-extrabold tracking-[0.5em] focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+              class="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-center text-2xl font-extrabold tracking-[0.5em] focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
           </div>
 
           <button id="btn-verify-pin" type="submit"
-            class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow transition active:scale-[0.99]">
+            class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-sm transition active:scale-[0.99]">
             ログインする
           </button>
 
@@ -241,32 +262,36 @@
     <!-- 2. 初回ログイン時の名簿突合・プロフィール登録画面 (needsRegistration 時) -->
     <!-- =================================================================== -->
     <section id="registration-view" class="hidden max-w-md mx-auto my-4">
-      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
-        <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-brand-100 text-brand-800 mb-3">
-          初回プロフィール確認（名簿自動突合）
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-6 shadow-xs">
+        <div class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-brand-50 text-brand-700 mb-2">
+          初回プロフィール登録
         </div>
         <h2 class="text-lg font-bold text-slate-900 mb-1">氏名と学年の登録</h2>
-        <p class="text-xs text-slate-500 mb-5 leading-relaxed">
-          事前登録されたメンバー名簿と氏名を自動突合します（全角・半角スペースの有無は自動で無視されます）。名簿にまだお名前がない新入生の方もそのままシステムをご利用いただけます。
-        </p>
+        <details class="mb-4">
+          <summary class="list-none inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer select-none">
+            <span>ℹ️ 名簿との自動突合について</span>
+          </summary>
+          <div class="mt-1.5 text-xs text-slate-500 bg-slate-50 rounded-xl p-3 leading-relaxed">
+            事前登録されたメンバー名簿と氏名を自動突合します（姓名の間のスペース有無は自動で無視されます）。名簿にまだお名前がない新入生の方もそのままご利用いただけます。
+          </div>
+        </details>
 
         <form id="registration-form" onsubmit="handleSelfRegistration(event)" class="space-y-4">
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">ログイン中のメールアドレス</label>
-            <input id="reg-email" type="text" readonly class="w-full rounded-xl bg-slate-100 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-600 font-mono" />
+            <input id="reg-email" type="text" readonly class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-500 font-mono" />
           </div>
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">氏名（フルネーム） <span class="text-rose-500">*</span></label>
             <input id="reg-name" type="text" required placeholder="例: 同志社 太郎"
-              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
-            <p class="text-[11px] text-slate-400 mt-1">※姓名の間のスペース有無に関わらず名簿と自動突合されます。</p>
+              class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
           </div>
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">学年 <span class="text-rose-500">*</span></label>
             <select id="reg-grade" required
-              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none">
+              class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none">
               <option value="">選択してください</option>
               <option value="1回生">1回生</option>
               <option value="2回生">2回生</option>
@@ -279,7 +304,7 @@
           </div>
 
           <button id="btn-register-submit" type="submit"
-            class="w-full py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow transition active:scale-[0.99]">
+            class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-sm transition active:scale-[0.99]">
             登録して利用開始する
           </button>
         </form>
@@ -291,59 +316,64 @@
     <!-- =================================================================== -->
     <div id="app-container" class="hidden space-y-6">
 
-      <!-- Member (要確認) 向け 안내バナー -->
-      <div id="pending-member-banner" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 text-xs text-amber-800">
-        現在 <strong>Member (要確認)</strong> ステータスとして登録されています。通常の業務完了報告やランキング閲覧はそのままご利用いただけます（幹部が確認後に正式名簿へ承認されます）。
+      <!-- Member (要確認) 向け案内バナー -->
+      <div id="pending-member-banner" class="hidden bg-amber-50/80 border border-amber-200/80 rounded-xl px-4 py-2.5 text-xs text-amber-800">
+        現在 <strong>Member (要確認)</strong> として登録されています。通常の業務完了報告やランキング閲覧はそのままご利用いただけます。
       </div>
 
       <!-- ================================================================= -->
       <!-- TAB 1: 業務完了報告 & ルート別交通費請求 (学年別アコーディオンUI) -->
       <!-- ================================================================= -->
       <section id="tab-shift" class="tab-panel space-y-5">
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-          <div class="mb-4">
-            <h2 class="text-base sm:text-lg font-bold text-slate-900">業務完了報告 &amp; ルート別交通費請求</h2>
-            <p class="text-xs text-slate-500 mt-0.5">
-              学年別アコーディオンから参加者を選択し、各自の利用ルートを選択してください。報告と同時に参加者のペナルティは 0 にリセットされます。
-            </p>
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 sm:p-6 shadow-xs">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+            <h2 class="text-base sm:text-lg font-bold text-slate-900">業務完了報告 &amp; 交通費請求</h2>
+            <details>
+              <summary class="list-none inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer select-none">
+                <span>ℹ️ 使い方・ルールを見る</span>
+              </summary>
+              <div class="mt-2 text-xs text-slate-500 bg-slate-50 rounded-xl p-3 leading-relaxed">
+                シフト枠を選択し、実際の参加者と利用ルートを確認して送信してください。出席したメンバーのペナルティは自動で0にリセットされます。
+              </div>
+            </details>
           </div>
 
-          <form id="shift-report-form" onsubmit="handleSubmitShiftReport(event)" class="space-y-5">
+          <form id="shift-report-form" onsubmit="handleSubmitShiftReport(event)" class="space-y-6">
             <!-- 業務日（シフト枠名プルダウン）・代表受取人・関連イベント -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">業務日（シフト枠名） <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">業務日（シフト枠名） <span class="text-rose-500">*</span></label>
                 <select id="shift-date" required onchange="handleShiftDateChange()"
-                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none">
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none">
                   <option value="">-- シフト枠を選択してください --</option>
                 </select>
               </div>
 
               <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">代表受取人（PayPay受取者） <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">代表受取人（PayPay受取者） <span class="text-rose-500">*</span></label>
                 <input id="shift-target-person" type="text" required placeholder="代表者氏名"
-                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+                  class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
               </div>
 
               <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">関連イベント（任意）</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">関連イベント（任意）</label>
                 <select id="shift-event-id"
-                  class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
+                  class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
                   <option value="">指定なし（通常業務）</option>
                 </select>
               </div>
             </div>
 
             <!-- 予定シフト案内バー -->
-            <div id="planned-shifts-banner" class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600">
+            <div id="planned-shifts-banner" class="bg-slate-50 rounded-xl px-3.5 py-2.5 text-xs text-slate-600">
               業務日を選択すると、予定シフト登録メンバーが自動でチェックされます。
             </div>
 
             <!-- 参加者選択 & 学年別アコーディオンリスト -->
             <div>
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
                 <label class="block text-xs font-bold text-slate-700">
-                  実際の参加者と交通費ルートの選択（学年別アコーディオン）
+                  実際の参加者と交通費ルート
                 </label>
                 <div class="flex items-center gap-2">
                   <button type="button" onclick="toggleAllGradeAccordions(true)" class="text-[11px] font-semibold text-brand-600 hover:underline">すべて開く</button>
@@ -355,64 +385,72 @@
               <!-- 200名対応クイック検索フィルタ -->
               <div class="mb-3">
                 <input id="participant-search" type="search" oninput="filterParticipantRows()"
-                  placeholder="🔍 氏名や学年でメンバーを検索（入力すると該当アコーディオンが自動で開きます）..."
-                  class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs focus:bg-white focus:border-brand-500 focus:outline-none" />
+                  placeholder="🔍 氏名や学年でメンバーを検索..."
+                  class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-xs focus:bg-white focus:border-brand-500 focus:outline-none" />
               </div>
 
               <!-- 学年別アコーディオン描画コンテナ -->
-              <div id="participants-accordion-container" class="space-y-2.5">
+              <div id="participants-accordion-container" class="space-y-2">
                 <!-- JSで grade ごとのアコーディオンを動的生成 -->
               </div>
             </div>
 
-            <!-- イレギュラー請求・名簿外対応UI (V5 複数行の動的追加・リアルタイム合算対応) -->
-            <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-3">
+            <!-- イレギュラー請求・名簿外対応UI (クリーンUI化・圧迫感軽減) -->
+            <div class="bg-slate-50/80 rounded-2xl p-4 sm:p-5 space-y-3 ring-1 ring-slate-200/60">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <h3 class="text-xs sm:text-sm font-bold text-amber-900">イレギュラー請求（名簿外参加者・特殊立て替え等）</h3>
-                  <p class="text-[11px] text-amber-700 mt-0.5">
-                    名簿にない体験参加者分の交通費や、業務中の緊急立て替え等が複数ある場合は「＋ イレギュラー請求を追加」で行を追加してください。
-                  </p>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="text-xs sm:text-sm font-bold text-slate-800">イレギュラー請求（名簿外・特殊立て替え等）</h3>
+                  <details>
+                    <summary class="list-none inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-600 cursor-pointer select-none">
+                      <span>ℹ️ 入力例を見る</span>
+                    </summary>
+                    <div class="mt-1.5 text-[11px] text-slate-500 bg-white rounded-lg p-2.5 shadow-2xs">
+                      名簿にない体験参加者分の交通費や、業務中の緊急立て替え等がある場合に記入してください。複数件ある場合は「＋ イレギュラー請求を追加」で行を増やせます。
+                    </div>
+                  </details>
                 </div>
                 <button type="button" onclick="addIrregularClaimRow()"
-                  class="self-start sm:self-auto shrink-0 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs transition active:scale-[0.99]">
+                  class="self-start sm:self-auto shrink-0 px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-[0.99]">
                   ＋ イレギュラー請求を追加
                 </button>
               </div>
 
               <!-- 動的イレギュラー請求行コンテナ -->
-              <div id="irregular-claims-container" class="space-y-2.5">
+              <div id="irregular-claims-container" class="space-y-2">
                 <!-- JS (initIrregularClaimsRows / addIrregularClaimRow) で行を動的生成 -->
               </div>
             </div>
 
             <!-- リアルタイム集計プレビュー -->
-            <div class="bg-brand-50 border border-brand-200 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+            <div class="bg-slate-50 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 ring-1 ring-slate-200/70">
               <div class="space-y-0.5">
-                <div class="text-xs text-brand-800 font-semibold">
-                  選択中の参加人数: <span id="preview-participant-count" class="text-base font-extrabold">0</span> 名
+                <div class="text-xs text-slate-600 font-semibold">
+                  選択中の参加人数: <span id="preview-participant-count" class="text-base font-extrabold text-slate-900">0</span> 名
                 </div>
-                <div id="preview-irregular-badge" class="hidden text-[11px] text-amber-800 font-semibold">
+                <div id="preview-irregular-badge" class="hidden text-[11px] text-slate-600 font-semibold">
                   ＋ イレギュラー請求 (<span id="preview-irregular-count">0</span>件): ¥<span id="preview-irregular-amount">0</span>
                 </div>
               </div>
               <div class="text-right">
-                <span class="text-xs text-brand-700 font-semibold">合計請求予定額:</span>
-                <span id="preview-total-amount" class="text-xl font-extrabold text-brand-900 ml-1">¥0</span>
+                <span class="text-xs text-slate-500 font-semibold">合計請求予定額:</span>
+                <span id="preview-total-amount" class="text-xl font-extrabold text-brand-700 ml-1">¥0</span>
               </div>
             </div>
 
             <!-- 備考 -->
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">備考・連絡事項（任意）</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">備考・連絡事項（任意）</label>
               <input id="shift-remarks" type="text" placeholder="補足事項があれば入力してください"
-                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+                class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
             </div>
 
-            <button id="btn-submit-shift" type="submit"
-              class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition active:scale-[0.99]">
-              業務完了報告を送信して照合番号を発行する
-            </button>
+            <!-- Primary送信ボタン -->
+            <div class="pt-1">
+              <button id="btn-submit-shift" type="submit"
+                class="w-full py-3.5 px-6 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition active:scale-[0.99]">
+                業務完了報告を送信する
+              </button>
+            </div>
           </form>
         </div>
       </section>
@@ -421,16 +459,16 @@
       <!-- TAB 2: 🏆 メンバー貢献度（参加ランキング） (一般メンバー時はペナルティ列完全非表示) -->
       <!-- ================================================================= -->
       <section id="tab-leaderboard" class="tab-panel hidden space-y-4">
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 sm:p-6 shadow-xs">
+          <div class="flex items-center justify-between gap-2 mb-4">
             <div>
-              <h2 class="text-base sm:text-lg font-bold text-slate-900">🏆 メンバー貢献度（参加ランキング）</h2>
-              <p id="leaderboard-subtitle" class="text-xs text-slate-500 mt-0.5">
-                業務への累計参加回数ランキングです。
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">🏆 メンバー貢献度ランキング</h2>
+              <p id="leaderboard-subtitle" class="text-xs text-slate-400 mt-0.5">
+                業務への累計参加回数ランキング
               </p>
             </div>
-            <button type="button" onclick="loadLeaderboard()" class="self-start sm:self-auto px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">
-              ↻ 最新に更新
+            <button type="button" onclick="loadLeaderboard()" class="shrink-0 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50">
+              ↻ 更新
             </button>
           </div>
 
@@ -455,16 +493,16 @@
       <section id="tab-admin-dashboard" class="tab-panel hidden space-y-5">
 
         <!-- 🚨 証憑未提出（後日提出分）の赤色警告アラート領域 -->
-        <div id="receipt-pending-alert-box" class="hidden bg-rose-50 border-2 border-rose-400 rounded-2xl p-5 shadow-xs space-y-3">
+        <div id="receipt-pending-alert-box" class="hidden bg-rose-50/90 border border-rose-300 rounded-2xl p-5 shadow-xs space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center gap-2">
-              <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-rose-600 text-white font-extrabold text-sm">!</span>
+            <div class="flex items-center gap-2.5">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-600 text-white font-extrabold text-xs">!</span>
               <div>
                 <h3 class="text-sm sm:text-base font-extrabold text-rose-900">
-                  🚨 証憑未提出の経費が <span id="receipt-pending-count" class="underline">0</span> 件あります
+                  証憑未提出の経費が <span id="receipt-pending-count" class="underline">0</span> 件あります
                 </h3>
                 <p class="text-xs text-rose-700">
-                  「証憑後日提出」として起票された支出です。レシート画像を選択してその場でアップロードし、警告を解消してください。
+                  レシート画像を選択してアップロードすると警告が解消されます。
                 </p>
               </div>
             </div>
@@ -482,67 +520,74 @@
             <div id="dash-total-assets" class="text-2xl font-extrabold mt-1">¥0</div>
             <div id="dash-pending-expense" class="text-[11px] text-amber-300 mt-1">承認待ち支出: ¥0</div>
           </div>
-          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+          <div class="bg-white ring-1 ring-slate-200/80 rounded-2xl p-4 shadow-xs">
             <div class="text-xs text-slate-500 font-semibold">サークル口座</div>
             <div id="dash-bal-bank" class="text-xl font-extrabold text-slate-900 mt-1">¥0</div>
           </div>
-          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+          <div class="bg-white ring-1 ring-slate-200/80 rounded-2xl p-4 shadow-xs">
             <div class="text-xs text-slate-500 font-semibold">PayPay</div>
             <div id="dash-bal-paypay" class="text-xl font-extrabold text-slate-900 mt-1">¥0</div>
           </div>
-          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+          <div class="bg-white ring-1 ring-slate-200/80 rounded-2xl p-4 shadow-xs">
             <div class="text-xs text-slate-500 font-semibold">現金</div>
             <div id="dash-bal-cash" class="text-xl font-extrabold text-slate-900 mt-1">¥0</div>
           </div>
         </div>
 
         <!-- イベント別予算・予実消化ステータス -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h3 class="text-base font-bold text-slate-900">📊 イベント別 予算・実績（予実管理）</h3>
-              <p class="text-xs text-slate-500">イベントごとの予算に対する実収入・実支出・承認待ち支出の消化状況です。</p>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-base font-bold text-slate-900">📊 イベント別 予算・実績</h3>
+              <details>
+                <summary class="list-none inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer select-none">
+                  <span>ℹ️ 説明</span>
+                </summary>
+                <div class="mt-1.5 text-xs text-slate-500 bg-slate-50 rounded-xl p-2.5">
+                  イベントごとの予算に対する実収入・実支出・承認待ち支出の消化状況を確認できます。
+                </div>
+              </details>
             </div>
-            <button type="button" onclick="toggleEventFormBox()" class="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold transition">
+            <button type="button" onclick="toggleEventFormBox()" class="self-start sm:self-auto px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition">
               ＋ 新規イベント作成 / 編集
             </button>
           </div>
 
           <!-- イベント新規作成・編集フォーム（折りたたみ） -->
-          <form id="event-upsert-form" onsubmit="handleUpsertEvent(event)" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+          <form id="event-upsert-form" onsubmit="handleUpsertEvent(event)" class="hidden bg-slate-50/80 ring-1 ring-slate-200/70 rounded-xl p-4 space-y-3">
             <div class="text-xs font-bold text-slate-800">イベント予算の登録・更新</div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div class="min-w-0">
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">イベントID（空欄で自動採番）</label>
                 <input id="ev-id" type="text" placeholder="例: EVT-2026-SUMMER"
-                  class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-mono" />
+                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-mono" />
               </div>
               <div class="sm:col-span-2 min-w-0">
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">イベント名 <span class="text-rose-500">*</span></label>
                 <input id="ev-name" type="text" required placeholder="例: 2026年度 新歓イベント / 夏合宿"
-                  class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs" />
+                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs" />
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <div class="min-w-0">
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">開始日</label>
                 <input id="ev-start-date" type="date"
-                  class="w-full box-border max-w-[100%] rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs" />
+                  class="w-full box-border max-w-[100%] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs" />
               </div>
               <div class="min-w-0">
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">終了日</label>
                 <input id="ev-end-date" type="date"
-                  class="w-full box-border max-w-[100%] rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs" />
+                  class="w-full box-border max-w-[100%] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs" />
               </div>
               <div class="min-w-0">
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">予算収入 (円)</label>
                 <input id="ev-planned-income" type="number" min="0" step="100" value="0"
-                  class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-right font-bold" />
+                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-right font-bold" />
               </div>
               <div class="min-w-0">
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">予算支出 (円)</label>
                 <input id="ev-planned-expense" type="number" min="0" step="100" value="0"
-                  class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-right font-bold" />
+                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-right font-bold" />
               </div>
             </div>
             <div class="flex items-center justify-end gap-2">
@@ -558,13 +603,20 @@
         </div>
 
         <!-- 承認待ち（Pending）一覧 -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-          <div class="flex items-center justify-between mb-4">
-            <div>
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs">
+          <div class="flex items-center justify-between gap-2 mb-4">
+            <div class="flex items-center gap-2 flex-wrap">
               <h3 class="text-base font-bold text-slate-900">⏳ 承認・送金待ち一覧 (Pending)</h3>
-              <p class="text-xs text-slate-500">LINEで届いた4桁の照合番号（payment_id）を確認し、送金後にワンタップで決済完了にしてください。</p>
+              <details>
+                <summary class="list-none inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer select-none">
+                  <span>ℹ️ 照合手順</span>
+                </summary>
+                <div class="mt-1.5 text-xs text-slate-500 bg-slate-50 rounded-xl p-2.5">
+                  LINEで届いた4桁の照合番号（payment_id）を確認し、送金後に決済完了ボタンを押してください。
+                </div>
+              </details>
             </div>
-            <button type="button" onclick="loadAdminDashboard()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+            <button type="button" onclick="loadAdminDashboard()" class="shrink-0 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50">
               ↻ 更新
             </button>
           </div>
@@ -575,7 +627,7 @@
         </div>
 
         <!-- 直近の取引履歴 -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs">
           <h3 class="text-base font-bold text-slate-900 mb-3">直近の取引履歴（最新30件）</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
@@ -602,26 +654,31 @@
       <!-- TAB 4: Admin専用 - 直接起票 (「証憑は後日提出する」チェックボックス搭載) -->
       <!-- ================================================================= -->
       <section id="tab-admin-direct" class="tab-panel hidden space-y-5">
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-          <div class="mb-4">
-            <h2 class="text-base sm:text-lg font-bold text-slate-900">直接記帳（収入・支出・資金移動）</h2>
-            <p class="text-xs text-slate-500 mt-0.5">
-              原則として<strong>支出（Expense）の起票時は証憑画像のアップロードが必須</strong>ですが、手元にレシートがない場合は「証憑は後日提出する」にチェックを入れて起票できます（ダッシュボードに赤色警告として表示されます）。
-            </p>
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 sm:p-6 shadow-xs">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+            <h2 class="text-base sm:text-lg font-bold text-slate-900">✍️ 直接記帳（収入・支出・資金移動）</h2>
+            <details>
+              <summary class="list-none inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer select-none">
+                <span>ℹ️ 証憑ルールを見る</span>
+              </summary>
+              <div class="mt-2 text-xs text-slate-500 bg-slate-50 rounded-xl p-3 leading-relaxed">
+                支出（Expense）の起票時は原則レシート画像が必須です。手元にない場合は「証憑は後日提出する」にチェックを入れて先行起票し、後日ダッシュボードから添付してください。
+              </div>
+            </details>
           </div>
 
-          <form id="direct-tx-form" onsubmit="handleAddDirectTransaction(event)" class="space-y-4">
+          <form id="direct-tx-form" onsubmit="handleAddDirectTransaction(event)" class="space-y-5">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">発生日 <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">発生日 <span class="text-rose-500">*</span></label>
                 <input id="direct-date" type="date" required
-                  class="w-full box-border max-w-[100%] rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+                  class="w-full box-border max-w-[100%] rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
               </div>
 
               <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">取引種別 <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">取引種別 <span class="text-rose-500">*</span></label>
                 <select id="direct-type" onchange="handleDirectTypeChange()"
-                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
+                  class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
                   <option value="Expense">支出 (Expense)</option>
                   <option value="Income">収入 (Income)</option>
                   <option value="Transfer">資金移動 (Transfer)</option>
@@ -629,31 +686,31 @@
               </div>
 
               <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">勘定科目 <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">勘定科目 <span class="text-rose-500">*</span></label>
                 <input id="direct-category" type="text" required placeholder="例: 備品代 / 合宿費 / 部費収入"
-                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+                  class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
               </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div class="sm:col-span-2 min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">摘要・内容 <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">摘要・内容 <span class="text-rose-500">*</span></label>
                 <input id="direct-description" type="text" required placeholder="例: 新歓ビラ印刷代 / 銀行からPayPayチャージ"
-                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+                  class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
               </div>
 
               <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">金額 (円) <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">金額 (円) <span class="text-rose-500">*</span></label>
                 <input id="direct-amount" type="number" min="1" step="1" required placeholder="例: 3500"
-                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-bold text-right focus:border-brand-600 focus:outline-none" />
+                  class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-bold text-right focus:border-brand-600 focus:outline-none" />
               </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div id="direct-src-wrap" class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">出金元口座</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">出金元口座</label>
                 <select id="direct-source-account"
-                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
+                  class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
                   <option value="サークル口座">サークル口座</option>
                   <option value="PayPay" selected>PayPay</option>
                   <option value="現金">現金</option>
@@ -661,9 +718,9 @@
               </div>
 
               <div id="direct-dst-wrap" class="hidden min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">入金先口座</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">入金先口座</label>
                 <select id="direct-dest-account"
-                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
+                  class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
                   <option value="サークル口座" selected>サークル口座</option>
                   <option value="PayPay">PayPay</option>
                   <option value="現金">現金</option>
@@ -671,53 +728,55 @@
               </div>
 
               <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">対象者・支払先</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">対象者・支払先</label>
                 <input id="direct-target-person" type="text" placeholder="氏名または店舗・取引先名"
-                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+                  class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
               </div>
 
               <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">関連イベント（任意）</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">関連イベント（任意）</label>
                 <select id="direct-event-id"
-                  class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
+                  class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white focus:border-brand-600 focus:outline-none">
                   <option value="">指定なし</option>
                 </select>
               </div>
             </div>
 
             <!-- 証憑画像アップロード & 「証憑は後日提出する」チェックボックス -->
-            <div id="direct-receipt-section" class="bg-rose-50/70 border border-rose-200 rounded-2xl p-4 space-y-3">
+            <div id="direct-receipt-section" class="bg-slate-50/90 ring-1 ring-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <label class="block text-xs font-bold text-rose-900">
-                  レシート等証憑画像のアップロード <span id="direct-receipt-badge" class="text-rose-600">【支出時は原則必須】</span>
+                <label class="block text-xs font-bold text-slate-800">
+                  レシート等証憑画像 <span id="direct-receipt-badge" class="text-rose-600">【支出時は原則必須】</span>
                 </label>
 
                 <!-- 証憑後日提出チェックボックス -->
-                <label id="direct-receipt-pending-label" class="inline-flex items-center gap-2 cursor-pointer select-none bg-white border border-rose-300 px-3 py-1.5 rounded-xl">
+                <label id="direct-receipt-pending-label" class="inline-flex items-center gap-2 cursor-pointer select-none bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs">
                   <input id="direct-receipt-pending" type="checkbox" onchange="handleDirectReceiptPendingToggle()"
-                    class="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 border-slate-300" />
-                  <span class="text-xs font-bold text-rose-800">証憑は後日提出する（画像なしで先行起票）</span>
+                    class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
+                  <span class="text-xs font-bold text-slate-700">証憑は後日提出する</span>
                 </label>
               </div>
 
               <input id="direct-receipt-file" type="file" accept="image/*,application/pdf" required
-                class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-rose-600 file:text-white hover:file:bg-rose-700 cursor-pointer" />
+                class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-white hover:file:bg-slate-700 cursor-pointer" />
 
-              <p id="direct-receipt-hint" class="text-[11px] text-rose-700">
-                ※アップロードされた画像はGoogle Driveの証憑専用フォルダに自動保存され、スプレッドシートに閲覧リンクが記録されます。
+              <p id="direct-receipt-hint" class="text-[11px] text-slate-500">
+                ※Google Driveの証憑フォルダに自動保存され、シートに閲覧リンクが記録されます。
               </p>
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">備考（任意）</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">備考（任意）</label>
               <input id="direct-remarks" type="text" placeholder="補足メモ"
-                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
+                class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
             </div>
 
-            <button id="btn-submit-direct" type="submit"
-              class="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition active:scale-[0.99]">
-              取引を記帳する
-            </button>
+            <div class="pt-1">
+              <button id="btn-submit-direct" type="submit"
+                class="w-full py-3.5 px-6 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition active:scale-[0.99]">
+                取引を記帳する
+              </button>
+            </div>
           </form>
         </div>
       </section>
@@ -726,78 +785,88 @@
       <!-- TAB 5: Admin専用 - 複数日程シフト一括抽選 & カレンダー出力システム (V5改修) -->
       <!-- ================================================================= -->
       <section id="tab-admin-lottery" class="tab-panel hidden space-y-5">
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 class="text-base sm:text-lg font-bold text-slate-900">🎲 複数日程シフト一括抽選 &amp; カレンダー出力</h2>
-              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                1カ月分（複数日程）のシフトを一気に抽選できます。<strong>①ペナルティ保有者の優先選出</strong>、<strong>②直近2カ月参加回数による減点</strong>に加え、<strong>③同一バッチ内での重複当選偏り防止</strong>を自動計算し、<code>Planned_Shifts</code>（縦積み）と <code>Shift_Calendar</code>（A列:シフト枠名 / B列以降:当選者名）へ同時出力します。
-              </p>
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 sm:p-6 shadow-xs space-y-5">
+          <!-- セクションヘッダー: タイトル + 使い方折りたたみ + 右上に外部スプレッドシートリンク & 日程追加ボタン -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-base sm:text-lg font-bold text-slate-900">🎲 シフト一括抽選 &amp; カレンダー出力</h2>
+                <details>
+                  <summary class="list-none inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer select-none">
+                    <span>ℹ️ 抽選アルゴリズムを見る</span>
+                  </summary>
+                  <div class="mt-2 text-xs text-slate-500 bg-slate-50 rounded-xl p-3 leading-relaxed max-w-xl">
+                    ①ペナルティ保有者の優先選出、②直近2カ月参加回数による減点、③同一バッチ内での重複当選偏り防止を自動計算し、<code>Planned_Shifts</code>（縦積み）と <code>Shift_Calendar</code>（A列:シフト枠名 / B列以降:当選者名）へ同時出力します。
+                  </div>
+                </details>
+              </div>
             </div>
+
             <div class="flex flex-wrap items-center gap-2 shrink-0">
               <a href="#" target="_blank" rel="noopener noreferrer"
-                class="admin-spreadsheet-link hidden inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs shadow-2xs transition">
-                📊 データベースを直接開く（スプレッドシート）
+                class="admin-spreadsheet-link hidden inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold text-xs transition">
+                <span>📊 シートを開く</span>
+                <span class="text-slate-400">↗</span>
               </a>
               <button type="button" onclick="addShiftLotteryBlock()"
-                class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs sm:text-sm shadow-xs transition active:scale-[0.99]">
+                class="px-3.5 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-[0.99]">
                 ＋ 日程を追加
               </button>
             </div>
           </div>
 
-          <form id="lottery-form" onsubmit="handleRunShiftLottery(event)" class="space-y-4">
+          <form id="lottery-form" onsubmit="handleRunShiftLottery(event)" class="space-y-5">
             <!-- 動的日程ブロック一覧コンテナ -->
             <div id="lottery-blocks-container" class="space-y-4">
               <!-- JS (initShiftLotteryBlocks / addShiftLotteryBlock) で日程ブロックを動的生成 -->
             </div>
 
-            <!-- 下部アクションバー: 日程追加ボタン & シート自動出力設定 & 一括抽選実行ボタン -->
-            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+            <!-- 下部アクションエリア: Secondary追加ボタン & 自動保存チェック & Primary抽選実行ボタン -->
+            <div class="pt-2 space-y-4">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <button type="button" onclick="addShiftLotteryBlock()"
-                  class="px-3.5 py-2 rounded-xl border border-brand-300 bg-white hover:bg-brand-50 text-brand-700 font-bold text-xs transition">
-                  ＋ 日程ブロックをさらに追加する
+                  class="self-start sm:self-auto px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition">
+                  ＋ 日程ブロックを追加
                 </button>
 
-                <label class="flex items-center gap-2 cursor-pointer select-none bg-brand-50 border border-brand-200 rounded-xl px-3.5 py-2">
+                <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs text-slate-600">
                   <input id="lottery-register-planned" type="checkbox" checked
                     class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
-                  <span class="text-xs font-bold text-brand-900">
-                    当選結果を <code>Planned_Shifts</code> と <code>Shift_Calendar</code>（横並び表）へ自動保存する
+                  <span class="font-semibold text-slate-700">
+                    当選結果を <code>Planned_Shifts</code> と <code>Shift_Calendar</code> へ自動保存する
                   </span>
                 </label>
               </div>
 
               <button id="btn-run-lottery" type="submit"
-                class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition active:scale-[0.99]">
-                全日程の優先度スコアを計算して一括抽選を実行する
+                class="w-full py-3.5 px-6 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition active:scale-[0.99]">
+                抽選を実行する
               </button>
             </div>
           </form>
 
           <!-- 抽選結果表示エリア (カレンダー横並びプレビュー + 日程別スコア内訳) -->
-          <div id="lottery-result-box" class="hidden space-y-5 pt-4 border-t border-slate-200">
+          <div id="lottery-result-box" class="hidden space-y-5 pt-5 border-t border-slate-100">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h3 class="text-sm sm:text-base font-bold text-slate-900">🎉 一括抽選結果 &amp; Shift_Calendar プレビュー</h3>
+                <h3 class="text-sm sm:text-base font-bold text-slate-900">🎉 抽選結果 &amp; Shift_Calendar プレビュー</h3>
                 <p id="lottery-result-meta" class="text-xs text-slate-500 mt-0.5"></p>
               </div>
-              <button type="button" onclick="copyLotteryWinnersText()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold shadow-2xs">
+              <button type="button" onclick="copyLotteryWinnersText()" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs">
                 📋 全日程の当選者リストをコピー
               </button>
             </div>
 
             <!-- Shift_Calendar 横並びマトリックスプレビュー -->
             <div class="space-y-1.5">
-              <div class="text-xs font-bold text-slate-700">📅 Shift_Calendar 横並びプレビュー（A列: シフト枠名 / B列以降: 当選者の名前）</div>
+              <div class="text-xs font-bold text-slate-700">📅 Shift_Calendar 横並び表（A列: シフト枠名 / B列以降: 当選者の名前）</div>
               <div id="lottery-calendar-preview" class="overflow-x-auto border border-slate-200 rounded-xl">
                 <!-- JSで横並びマトリックステーブルを描画 -->
               </div>
             </div>
 
             <!-- 日程別の詳細スコア内訳コンテナ -->
-            <div id="lottery-shifts-detail-container" class="space-y-4">
+            <div id="lottery-shifts-detail-container" class="space-y-3">
               <!-- JSで各日程の当選・補欠・スコア内訳テーブルを描画 -->
             </div>
           </div>
@@ -809,48 +878,51 @@
       <!-- ================================================================= -->
       <section id="tab-admin-control" class="tab-panel hidden space-y-5">
 
-        <!-- スプレッドシート直接アクセスバー (V5新設) -->
-        <div class="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+        <!-- 管理パネル共通ヘッダー（右上にスプレッドシート直接リンクをコンパクト配置） -->
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 px-5 py-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 class="text-sm font-bold text-emerald-950">📊 スプレッドシート（データベース）の直接編集・閲覧</h3>
-            <p class="text-xs text-emerald-800 mt-0.5">
-              シフト枠の手動削除・修正や、<code>Shift_Calendar</code>・<code>Transactions</code> シートの直接確認はこちらから行えます。
-            </p>
+            <h2 class="text-base sm:text-lg font-bold text-slate-900">🛠️ システム管理パネル</h2>
           </div>
-          <a href="#" target="_blank" rel="noopener noreferrer"
-            class="admin-spreadsheet-link hidden self-start sm:self-auto shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-xs transition">
-            📊 データベースを直接開く（スプレッドシート） ↗
-          </a>
+          <div class="flex items-center gap-2">
+            <a href="#" target="_blank" rel="noopener noreferrer"
+              class="admin-spreadsheet-link hidden inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold text-xs transition">
+              <span>📊 データベース（シート）を直接開く</span>
+              <span class="text-slate-400">↗</span>
+            </a>
+            <button type="button" onclick="loadAdminControlPanel()" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50">
+              ↻ 再読込
+            </button>
+          </div>
         </div>
 
         <!-- カード1: メンバー権限 (Role) の変更フォーム -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h3 class="text-base font-bold text-slate-900">1. メンバー権限（Role）管理・要確認メンバー承認</h3>
-              <p class="text-xs text-slate-500">
-                名簿外から自動吸収された「Member (要確認)」の正式承認や、次期幹部への「Admin」権限の付与・剥奪を行います。
-              </p>
-            </div>
-            <button type="button" onclick="loadAdminControlPanel()" class="self-start sm:self-auto px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">
-              ↻ 名簿を再読込
-            </button>
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs space-y-4">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <h3 class="text-sm sm:text-base font-bold text-slate-900">1. メンバー権限（Role）管理・要確認承認</h3>
+            <details>
+              <summary class="list-none inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer select-none">
+                <span>ℹ️ 権限について</span>
+              </summary>
+              <div class="mt-1.5 text-xs text-slate-500 bg-slate-50 rounded-xl p-2.5">
+                名簿外から自動登録された「Member (要確認)」の正式承認や、次期幹部への「Admin」権限の付与・解除を行います。
+              </div>
+            </details>
           </div>
 
-          <form id="role-update-form" onsubmit="handleUpdateUserRole(event)" class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+          <form id="role-update-form" onsubmit="handleUpdateUserRole(event)" class="bg-slate-50/70 ring-1 ring-slate-200/60 rounded-xl p-4 space-y-3">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div class="sm:col-span-2 min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">対象メンバーを選択（または下の欄に氏名/メールを入力）</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1">対象メンバーを選択</label>
                 <select id="ctrl-user-select" onchange="handleControlUserSelectChange()"
-                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:outline-none">
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:outline-none">
                   <option value="">-- 名簿からメンバーを選択 --</option>
                 </select>
               </div>
 
               <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">変更後のロール (new_role) <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-700 mb-1">変更後のロール <span class="text-rose-500">*</span></label>
                 <select id="ctrl-new-role" required
-                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm font-bold focus:border-brand-600 focus:outline-none">
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-bold focus:border-brand-600 focus:outline-none">
                   <option value="Member">Member (一般メンバー・正式承認)</option>
                   <option value="Admin">Admin (幹部・管理者)</option>
                   <option value="Member (要確認)">Member (要確認)</option>
@@ -862,16 +934,16 @@
               <div class="min-w-0">
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">対象氏名（直接指定可）</label>
                 <input id="ctrl-user-name" type="text" placeholder="氏名"
-                  class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs" />
+                  class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs" />
               </div>
               <div class="min-w-0">
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">対象メールアドレス（直接指定可）</label>
                 <input id="ctrl-user-email" type="text" placeholder="example@gmail.com"
-                  class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-mono" />
+                  class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-mono" />
               </div>
               <div class="flex items-end">
                 <button id="btn-update-role" type="submit"
-                  class="w-full py-2 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow transition">
+                  class="w-full py-2 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-xs transition">
                   権限を更新する
                 </button>
               </div>
@@ -885,52 +957,58 @@
         </div>
 
         <!-- カード2: 会計役のLINE URL更新フォーム (V5新設) -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
-          <div>
-            <h3 class="text-base font-bold text-slate-900">2. 会計役のLINE URL設定（ログインエラー案内・業務報告連携用）</h3>
-            <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
-              ログイン画面下部の「※エラーが続く場合は [こちらのLINE] までご連絡ください」および業務完了報告後のLINE送信ボタンの遷移先URLを更新します（<code>PropertiesService</code> に永続保存されます）。
-            </p>
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs space-y-3">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <h3 class="text-sm sm:text-base font-bold text-slate-900">2. 会計役のLINE URL設定</h3>
+            <details>
+              <summary class="list-none inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer select-none">
+                <span>ℹ️ 反映箇所を見る</span>
+              </summary>
+              <div class="mt-1.5 text-xs text-slate-500 bg-slate-50 rounded-xl p-2.5">
+                ログイン画面下部の問い合わせリンクおよび業務完了報告後のLINE連絡ボタンの遷移先URLを更新します。
+              </div>
+            </details>
           </div>
 
           <form id="admin-line-url-form" onsubmit="handleUpdateAdminLineUrl(event)" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             <input id="ctrl-admin-line-url" type="url" required placeholder="https://line.me/ti/p/..."
-              class="flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-mono focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+              class="flex-1 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-mono focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
             <button id="btn-save-admin-line-url" type="submit"
-              class="shrink-0 px-5 py-2.5 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white font-bold text-xs sm:text-sm shadow-xs transition active:scale-[0.99]">
-              LINE URLを保存する
+              class="shrink-0 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-xs transition active:scale-[0.99]">
+              LINE URLを保存
             </button>
           </form>
         </div>
 
-        <!-- カード3: 新年度の「学年一括繰り上げ」実行ボタン -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h3 class="text-base font-bold text-slate-900">3. 新年度の「学年一括繰り上げ」処理</h3>
-              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                <code>Users</code> シート全員の学年（<code>grade</code>）を一括で進級更新します（1回生→2回生、2回生→3回生、3回生→4回生、4回生→卒業・OBOG、院1回生→院2回生）。年度替わりのタイミングで1回だけ実行してください。
+        <!-- カード3 & 4: 年次・緊急メンテナンス操作 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- カード3: 新年度の「学年一括繰り上げ」実行ボタン -->
+          <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs flex flex-col justify-between gap-4">
+            <div class="space-y-1">
+              <h3 class="text-sm font-bold text-slate-900">3. 新年度の学年一括繰り上げ</h3>
+              <p class="text-xs text-slate-500 leading-relaxed">
+                全員の学年（1回生→2回生…4回生→卒業・OBOG）を一括更新します（年1回実行）。
               </p>
             </div>
-            <button id="btn-promote-grades" type="button" onclick="handlePromoteAllGrades()"
-              class="shrink-0 px-4 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs sm:text-sm shadow transition">
-              🎓 全員の学年を一括繰り上げする
-            </button>
-          </div>
-          <div id="promote-result-banner" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900"></div>
-        </div>
-
-        <!-- カード4: 緊急時の「全セッション強制切断（キルスイッチ）」ボタン -->
-        <div class="bg-rose-50/70 rounded-2xl border-2 border-rose-300 p-5 shadow-xs space-y-3">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 class="text-base font-extrabold text-rose-900">4. 緊急時の「全セッション強制切断（キルスイッチ）」</h3>
-              <p class="text-xs text-rose-800 mt-0.5 leading-relaxed">
-                <code>Sessions</code> シートの全トークンデータを一括消去し、現在ログイン中の全メンバー（幹部含む全員）を強制ログアウト状態にします。端末紛失時や幹部交代時のセキュリティリセットに使用してください。
+              <button id="btn-promote-grades" type="button" onclick="handlePromoteAllGrades()"
+                class="w-full py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs shadow-2xs transition">
+                🎓 全員の学年を一括繰り上げする
+              </button>
+              <div id="promote-result-banner" class="hidden mt-2 bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-xs text-amber-900"></div>
+            </div>
+          </div>
+
+          <!-- カード4: 緊急時の「全セッション強制切断（キルスイッチ）」ボタン -->
+          <div class="bg-white rounded-2xl ring-1 ring-rose-200 p-5 shadow-xs flex flex-col justify-between gap-4">
+            <div class="space-y-1">
+              <h3 class="text-sm font-bold text-rose-900">4. 全セッション強制切断（緊急用）</h3>
+              <p class="text-xs text-slate-500 leading-relaxed">
+                全端末のログイントークンを破棄し、全員を強制ログアウト状態にします。
               </p>
             </div>
             <button id="btn-kill-sessions" type="button" onclick="handleKillAllSessions()"
-              class="shrink-0 px-4 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs sm:text-sm shadow-md transition">
+              class="w-full py-2.5 px-4 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white font-bold text-xs transition">
               🚨 全セッションを強制切断する
             </button>
           </div>
@@ -1391,7 +1469,16 @@
         pendingBanner.classList.add('hidden');
       }
 
-      // Admin専用タブの表示切り替え
+      // Admin専用メニューラッパーとサブタブの表示切り替え
+      const adminWrapper = document.getElementById('admin-nav-wrapper');
+      if (adminWrapper) {
+        if (authContext.role === 'Admin') {
+          adminWrapper.classList.remove('hidden');
+        } else {
+          adminWrapper.classList.add('hidden');
+        }
+      }
+
       const adminTabIds = [
         'tab-btn-admin-dashboard',
         'tab-btn-admin-direct',
@@ -1514,10 +1601,47 @@
     }
 
     // =========================================================================
-    // 4. タブ切り替え制御
+    // 4. タブ切り替え制御 & Admin統合メニュードロップダウン
     // =========================================================================
 
+    const ADMIN_TAB_LABELS = {
+      'admin-dashboard': '📊 会計・予実',
+      'admin-direct': '✍️ 直接記帳',
+      'admin-lottery': '🎲 シフト抽選',
+      'admin-control': '🛠️ 管理パネル'
+    };
+
+    function toggleAdminNavMenu(event) {
+      if (event) event.stopPropagation();
+      const dropdown = document.getElementById('admin-nav-dropdown');
+      const chevron = document.getElementById('admin-menu-chevron');
+      if (!dropdown) return;
+      const isHidden = dropdown.classList.contains('hidden');
+      if (isHidden) {
+        dropdown.classList.remove('hidden');
+        if (chevron) chevron.classList.add('rotate-180');
+      } else {
+        closeAdminNavMenu();
+      }
+    }
+
+    function closeAdminNavMenu() {
+      const dropdown = document.getElementById('admin-nav-dropdown');
+      const chevron = document.getElementById('admin-menu-chevron');
+      if (dropdown) dropdown.classList.add('hidden');
+      if (chevron) chevron.classList.remove('rotate-180');
+    }
+
+    document.addEventListener('click', function (e) {
+      const wrapper = document.getElementById('admin-nav-wrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        closeAdminNavMenu();
+      }
+    });
+
     function switchTab(tabName) {
+      closeAdminNavMenu();
+
       const panels = {
         'shift': document.getElementById('tab-shift'),
         'leaderboard': document.getElementById('tab-leaderboard'),
@@ -1536,19 +1660,47 @@
         'admin-control': document.getElementById('tab-btn-admin-control')
       };
 
+      const isAdminRole = Boolean(APP_STATE.user && APP_STATE.user.role === 'Admin');
+
       Object.keys(panels).forEach(key => {
         if (!panels[key] || !buttons[key]) return;
+        const isSubAdmin = key.startsWith('admin-');
+
         if (key === tabName) {
           panels[key].classList.remove('hidden');
-          buttons[key].className = 'tab-btn whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition bg-brand-600 text-white shadow-xs';
+          if (isSubAdmin) {
+            buttons[key].className = 'tab-btn w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition bg-brand-50 text-brand-700';
+          } else {
+            buttons[key].className = 'tab-btn flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-brand-600 text-white shadow-xs';
+          }
         } else {
           panels[key].classList.add('hidden');
-          buttons[key].className = 'tab-btn whitespace-nowrap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-200/70';
-          if (key.startsWith('admin-') && (!APP_STATE.user || APP_STATE.user.role !== 'Admin')) {
-            buttons[key].classList.add('hidden');
+          if (isSubAdmin) {
+            buttons[key].className = 'tab-btn w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition text-slate-700 hover:bg-slate-100';
+            if (!isAdminRole) {
+              buttons[key].classList.add('hidden');
+            }
+          } else {
+            buttons[key].className = 'tab-btn flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-200/70';
           }
         }
       });
+
+      // Admin統合メニュー親ボタンのアクティブ状態・ラベル更新
+      const adminMenuBtn = document.getElementById('tab-btn-admin-menu');
+      const adminMenuLabel = document.getElementById('admin-menu-current-label');
+      const adminMenuChevron = document.getElementById('admin-menu-chevron');
+      if (adminMenuBtn && adminMenuLabel) {
+        if (tabName.startsWith('admin-')) {
+          adminMenuLabel.textContent = `⚙️ ${ADMIN_TAB_LABELS[tabName] || 'Adminメニュー'}`;
+          adminMenuBtn.className = 'w-full sm:w-auto flex items-center justify-center sm:justify-between gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-brand-600 text-white shadow-xs';
+          if (adminMenuChevron) adminMenuChevron.className = 'w-3.5 h-3.5 text-white/90 transition-transform duration-150';
+        } else {
+          adminMenuLabel.textContent = '⚙️ Adminメニュー';
+          adminMenuBtn.className = 'w-full sm:w-auto flex items-center justify-center sm:justify-between gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition border border-slate-200/80 bg-white text-slate-700 hover:bg-slate-100 shadow-2xs';
+          if (adminMenuChevron) adminMenuChevron.className = 'w-3.5 h-3.5 text-slate-400 transition-transform duration-150';
+        }
+      }
 
       if (tabName === 'leaderboard') {
         loadLeaderboard();
@@ -1742,11 +1894,11 @@
       const banner = document.getElementById('planned-shifts-banner');
       const planned = APP_STATE.plannedMembersForDate;
       if (planned.length === 0) {
-        banner.className = 'bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-500';
-        banner.textContent = 'この日の予定シフト登録はありません。実際に参加したメンバーを学年アコーディオンから選択してください。';
+        banner.className = 'bg-slate-50 rounded-xl px-3.5 py-2.5 text-xs text-slate-500';
+        banner.textContent = '予定シフト登録なし（参加メンバーをリストから選択してください）';
       } else {
-        banner.className = 'bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900';
-        banner.innerHTML = `<span class="font-bold">予定シフト登録メンバー (${planned.length}名):</span> ${planned.map(escapeHtml).join('、')} <span class="text-[11px] block mt-0.5 text-amber-700">※チェックを外して送信すると該当メンバーに無断欠勤ペナルティ(+1)が自動記録され、出席したメンバーのペナルティは0にリセットされます。</span>`;
+        banner.className = 'bg-brand-50/60 ring-1 ring-brand-200/70 rounded-xl px-3.5 py-2.5 text-xs text-slate-700';
+        banner.innerHTML = `<span class="font-bold text-brand-900">予定シフト (${planned.length}名):</span> ${planned.map(escapeHtml).join('、')}`;
       }
     }
 
@@ -1840,14 +1992,14 @@
       if (!container) return;
 
       const row = document.createElement('div');
-      row.className = 'irregular-claim-row bg-white/90 border border-amber-200 rounded-xl p-2.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2';
+      row.className = 'irregular-claim-row bg-white ring-1 ring-slate-200/80 rounded-xl p-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shadow-2xs';
       row.innerHTML = `
         <div class="flex-1 min-w-0">
           <input type="text"
             value="${escapeHtml(initialNote)}"
             oninput="recalculateShiftPreview()"
             placeholder="内訳・理由・名簿外参加者名（例: 体験業務 佐藤さん 〇〇駅往復）"
-            class="irregular-note-input w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs sm:text-sm focus:border-amber-600 focus:outline-none" />
+            class="irregular-note-input w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
         </div>
         <div class="flex items-center gap-2 sm:w-48">
           <div class="relative flex-1">
@@ -1857,12 +2009,12 @@
               value="${escapeHtml(initialAmount)}"
               oninput="recalculateShiftPreview()"
               placeholder="金額 (円)"
-              class="irregular-amount-input w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs sm:text-sm font-bold text-right focus:border-amber-600 focus:outline-none" />
+              class="irregular-amount-input w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-bold text-right focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
           </div>
           <button type="button"
             onclick="removeIrregularClaimRow(this)"
             title="この行を削除"
-            class="shrink-0 w-8 h-8 rounded-lg border border-amber-200 bg-amber-50 hover:bg-rose-100 hover:border-rose-300 text-amber-800 hover:text-rose-700 font-bold text-sm flex items-center justify-center transition">
+            class="shrink-0 w-8 h-8 rounded-lg border border-slate-200 bg-slate-50 hover:bg-rose-50 hover:border-rose-200 text-slate-500 hover:text-rose-600 font-bold text-sm flex items-center justify-center transition">
             &times;
           </button>
         </div>
@@ -2760,37 +2912,36 @@
       const blockEl = document.createElement('div');
       blockEl.id = `lottery-block-${blockId}`;
       blockEl.dataset.blockId = String(blockId);
-      blockEl.className = 'lottery-shift-block bg-slate-50/80 border border-slate-200 rounded-2xl p-4 space-y-3.5 shadow-2xs';
+      blockEl.className = 'lottery-shift-block bg-slate-50/70 ring-1 ring-slate-200/80 rounded-2xl p-5 space-y-4 shadow-2xs';
 
       blockEl.innerHTML = `
-        <div class="flex items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
+        <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-200/70">
           <div class="flex items-center gap-2">
-            <span class="lottery-block-badge inline-flex items-center px-2.5 py-1 rounded-lg bg-brand-600 text-white text-xs font-extrabold">
+            <span class="lottery-block-badge inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-800 text-white text-xs font-bold">
               日程 #${blockId}
             </span>
-            <span class="text-xs font-bold text-slate-600">シフト枠名・募集定員（上限人数）・応募者リスト</span>
           </div>
           <button type="button" onclick="removeShiftLotteryBlock(${blockId})"
-            class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-300 text-slate-500 hover:text-rose-600 text-xs font-bold transition">
-            &times; この日程を削除
+            class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-200 text-slate-500 hover:text-rose-600 text-xs font-semibold transition">
+            &times; 削除
           </button>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="sm:col-span-2 min-w-0">
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              対象シフト日・シフト枠名 (` + '`shift_date`' + `) <span class="text-rose-500">*</span>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+              対象シフト日・シフト枠名 <span class="text-rose-500">*</span>
             </label>
             <input type="text"
               id="lottery-date-${blockId}"
               value="${escapeHtml(defaultDate)}"
               placeholder="例: 11/6〜7(宿泊)"
               required
-              class="lottery-block-date w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+              class="lottery-block-date w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
           </div>
 
           <div class="min-w-0">
-            <label class="block text-xs font-bold text-slate-700 mb-1">
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">
               募集定員（上限人数） <span class="text-rose-500">*</span>
             </label>
             <input type="number"
@@ -2799,15 +2950,15 @@
               max="200"
               value="${Number(initialWinnerCount) || 4}"
               required
-              class="lottery-block-winner-count w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-bold text-right focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+              class="lottery-block-winner-count w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-right focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
           </div>
         </div>
 
         <!-- 名簿から検索追加（サジェスト入力補助機能 V5新設） -->
         <div class="relative">
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
-            <label class="block text-xs font-bold text-brand-800">
-              🔍 名簿から検索追加（クリックで応募者欄に自動挿入）
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+            <label class="block text-xs font-bold text-slate-700">
+              🔍 名簿から検索追加
             </label>
             <div class="flex items-center gap-2">
               <button type="button" onclick="insertPenaltyHoldersToBlock(${blockId})" class="text-[11px] font-semibold text-rose-600 hover:underline">
@@ -2815,7 +2966,7 @@
               </button>
               <span class="text-slate-300">|</span>
               <button type="button" onclick="clearBlockCandidates(${blockId})" class="text-[11px] font-semibold text-slate-500 hover:underline">
-                応募者欄をクリア
+                クリア
               </button>
             </div>
           </div>
@@ -2826,8 +2977,8 @@
             oninput="handleLotterySuggestInput(${blockId})"
             onfocus="handleLotterySuggestInput(${blockId})"
             onblur="hideLotterySuggestListDelayed(${blockId})"
-            placeholder="名前や学年を入力して候補を検索（例: 同志社 / 2回生）..."
-            class="w-full rounded-xl border border-brand-300 bg-white px-3.5 py-2 text-xs sm:text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+            placeholder="名前や学年を入力してクリックで追加（例: 同志社 / 2回生）..."
+            class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs sm:text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
 
           <!-- サジェスト候補プルダウンリスト -->
           <div id="lottery-suggest-list-${blockId}"
@@ -2836,15 +2987,15 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">
-            応募者名リスト（改行またはカンマ・読点区切り） <span class="text-rose-500">*</span>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">
+            応募者名リスト（改行・読点区切り） <span class="text-rose-500">*</span>
           </label>
           <textarea
             id="lottery-candidates-${blockId}"
             rows="4"
             required
-            placeholder="上の検索欄からクリックして追加するか、直接名前を入力してください（改行区切り）"
-            class="lottery-block-candidates w-full rounded-xl border border-slate-300 bg-white p-3 text-xs sm:text-sm font-mono focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none">${escapeHtml(initialCandidates)}</textarea>
+            placeholder="上の検索欄からクリックして追加するか、直接名前を入力してください"
+            class="lottery-block-candidates w-full rounded-xl border border-slate-200 bg-white p-3 text-xs sm:text-sm font-mono focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none">${escapeHtml(initialCandidates)}</textarea>
         </div>
       `;
 
