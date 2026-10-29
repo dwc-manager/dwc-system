@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>DWC 会計・業務管理システム</title>
+  <!-- PWA / スマホホーム画面追加対応アイコン・メタタグ (V5追加) -->
+  <link rel="icon" type="image/png" href="./icon.png" />
+  <link rel="apple-touch-icon" href="./icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="DWC管理" />
+  <meta name="theme-color" content="#2563eb" />
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -219,6 +227,13 @@
             ← メールアドレス入力に戻る / PINを再送する
           </button>
         </form>
+
+        <!-- ログイン画面 常設エラー案内・LINE問い合わせリンク (V5追加) -->
+        <div class="mt-5 pt-4 border-t border-slate-100 text-center">
+          <p class="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+            ※エラーが続く場合やPINが届かない場合は、<a id="login-help-line-link" href="https://line.me/ti/p/" target="_blank" rel="noopener noreferrer" class="font-bold text-[#06C755] hover:underline">[こちらのLINE]</a> までご連絡ください。
+          </p>
+        </div>
       </div>
     </section>
 
@@ -348,30 +363,24 @@
               </div>
             </div>
 
-            <!-- イレギュラー請求・名簿外対応UI (V4新機能) -->
+            <!-- イレギュラー請求・名簿外対応UI (V5 複数行の動的追加・リアルタイム合算対応) -->
             <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-3">
-              <div class="flex items-center justify-between">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <h3 class="text-xs sm:text-sm font-bold text-amber-900">イレギュラー請求（名簿外参加者・特殊立て替え等）</h3>
                   <p class="text-[11px] text-amber-700 mt-0.5">
-                    名簿にない体験参加者分の交通費や、業務中の緊急立て替え等がある場合はこちらに入力してください（名簿シートを汚染せず合算請求できます）。
+                    名簿にない体験参加者分の交通費や、業務中の緊急立て替え等が複数ある場合は「＋ イレギュラー請求を追加」で行を追加してください。
                   </p>
                 </div>
+                <button type="button" onclick="addIrregularClaimRow()"
+                  class="self-start sm:self-auto shrink-0 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs transition active:scale-[0.99]">
+                  ＋ イレギュラー請求を追加
+                </button>
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div class="sm:col-span-2">
-                  <label class="block text-xs font-bold text-amber-900 mb-1">内訳・理由・名簿外参加者名（自由記述）</label>
-                  <input id="shift-irregular-note" type="text" oninput="recalculateShiftPreview()"
-                    placeholder="例: 体験参加 佐藤さん（出町柳往復860円） / 駐輪代200円"
-                    class="w-full rounded-xl border border-amber-300 bg-white px-3.5 py-2 text-xs sm:text-sm focus:border-amber-600 focus:outline-none" />
-                </div>
-                <div>
-                  <label class="block text-xs font-bold text-amber-900 mb-1">イレギュラー加算額 (円)</label>
-                  <input id="shift-irregular-amount" type="number" min="0" step="1" value="0" oninput="recalculateShiftPreview()"
-                    placeholder="0"
-                    class="w-full rounded-xl border border-amber-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-bold text-right focus:border-amber-600 focus:outline-none" />
-                </div>
+              <!-- 動的イレギュラー請求行コンテナ -->
+              <div id="irregular-claims-container" class="space-y-2.5">
+                <!-- JS (initIrregularClaimsRows / addIrregularClaimRow) で行を動的生成 -->
               </div>
             </div>
 
@@ -382,7 +391,7 @@
                   選択中の参加人数: <span id="preview-participant-count" class="text-base font-extrabold">0</span> 名
                 </div>
                 <div id="preview-irregular-badge" class="hidden text-[11px] text-amber-800 font-semibold">
-                  ＋ イレギュラー請求: ¥<span id="preview-irregular-amount">0</span>
+                  ＋ イレギュラー請求 (<span id="preview-irregular-count">0</span>件): ¥<span id="preview-irregular-amount">0</span>
                 </div>
               </div>
               <div class="text-right">
@@ -712,104 +721,83 @@
       </section>
 
       <!-- ================================================================= -->
-      <!-- TAB 5: Admin専用 - シフト自動抽選システム (drawShiftLottery) -->
+      <!-- TAB 5: Admin専用 - 複数日程シフト一括抽選 & カレンダー出力システム (V5改修) -->
       <!-- ================================================================= -->
       <section id="tab-admin-lottery" class="tab-panel hidden space-y-5">
         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-          <div>
-            <h2 class="text-base sm:text-lg font-bold text-slate-900">🎲 シフト自動抽選・優先度スコアリング</h2>
-            <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
-              応募者の名前を入力すると、<strong>①ペナルティ保有者の優先選出（参加によるペナルティ0リセット機会の付与）</strong>および<strong>②直近2カ月（60日間）の参加回数が少ないメンバーの優先</strong>を自動計算して当選者を選出します。
-            </p>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">🎲 複数日程シフト一括抽選 &amp; カレンダー出力</h2>
+              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                1カ月分（複数日程）のシフトを一気に抽選できます。<strong>①ペナルティ保有者の優先選出</strong>、<strong>②直近2カ月参加回数による減点</strong>に加え、<strong>③同一バッチ内での重複当選偏り防止</strong>を自動計算し、<code>Planned_Shifts</code>（縦積み）と <code>Shift_Calendar</code>（横並びカレンダー形式）へ同時出力します。
+              </p>
+            </div>
+            <button type="button" onclick="addShiftLotteryBlock()"
+              class="self-start sm:self-auto shrink-0 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs sm:text-sm shadow-xs transition active:scale-[0.99]">
+              ＋ 日程を追加
+            </button>
           </div>
 
           <form id="lottery-form" onsubmit="handleRunShiftLottery(event)" class="space-y-4">
-            <div>
-              <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
-                <label class="block text-xs font-bold text-slate-700">
-                  シフト応募者の名前リスト（改行またはカンマ・読点区切り） <span class="text-rose-500">*</span>
-                </label>
-                <div class="flex items-center gap-2">
-                  <button type="button" onclick="insertPenaltyHoldersToLottery()" class="text-[11px] font-semibold text-rose-600 hover:underline">
-                    ＋ ペナルティ保有者を挿入
-                  </button>
-                  <span class="text-slate-300">|</span>
-                  <button type="button" onclick="document.getElementById('lottery-candidates').value = ''" class="text-[11px] font-semibold text-slate-500 hover:underline">
-                    クリア
-                  </button>
-                </div>
-              </div>
-              <textarea id="lottery-candidates" rows="5" required
-                placeholder="例:&#10;同志社 太郎&#10;今出川 花子&#10;京田辺 次郎"
-                class="w-full rounded-xl border border-slate-300 p-3 text-xs sm:text-sm font-mono focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none"></textarea>
-              <p class="text-[11px] text-slate-400 mt-1">※姓名の間のスペース有無は自動で正規化され、Users名簿と突合されます。</p>
+            <!-- 動的日程ブロック一覧コンテナ -->
+            <div id="lottery-blocks-container" class="space-y-4">
+              <!-- JS (initShiftLotteryBlocks / addShiftLotteryBlock) で日程ブロックを動的生成 -->
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">当選枠数 (N名) <span class="text-rose-500">*</span></label>
-                <input id="lottery-winner-count" type="number" min="1" max="200" value="4" required
-                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-bold focus:border-brand-600 focus:outline-none" />
-              </div>
+            <!-- 下部アクションバー: 日程追加ボタン & シート自動出力設定 & 一括抽選実行ボタン -->
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <button type="button" onclick="addShiftLotteryBlock()"
+                  class="px-3.5 py-2 rounded-xl border border-brand-300 bg-white hover:bg-brand-50 text-brand-700 font-bold text-xs transition">
+                  ＋ 日程ブロックをさらに追加する
+                </button>
 
-              <div class="min-w-0">
-                <label class="block text-xs font-bold text-slate-700 mb-1">対象シフト日（予定シフト登録用）</label>
-                <input id="lottery-shift-date" type="date"
-                  class="w-full box-border max-w-[100%] rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-brand-600 focus:outline-none" />
-              </div>
-
-              <div class="flex items-end">
-                <label class="flex items-center gap-2 cursor-pointer select-none bg-brand-50 border border-brand-200 rounded-xl px-3.5 py-2.5 w-full">
-                  <input id="lottery-register-planned" type="checkbox"
+                <label class="flex items-center gap-2 cursor-pointer select-none bg-brand-50 border border-brand-200 rounded-xl px-3.5 py-2">
+                  <input id="lottery-register-planned" type="checkbox" checked
                     class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
-                  <span class="text-xs font-bold text-brand-900">当選者を Planned_Shifts シートへ自動登録する</span>
+                  <span class="text-xs font-bold text-brand-900">
+                    当選結果を <code>Planned_Shifts</code> と <code>Shift_Calendar</code>（横並び表）へ自動保存する
+                  </span>
                 </label>
               </div>
-            </div>
 
-            <button id="btn-run-lottery" type="submit"
-              class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition active:scale-[0.99]">
-              優先度スコアを計算して抽選を実行する
-            </button>
+              <button id="btn-run-lottery" type="submit"
+                class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition active:scale-[0.99]">
+                全日程の優先度スコアを計算して一括抽選を実行する
+              </button>
+            </div>
           </form>
 
-          <!-- 抽選結果表示エリア -->
-          <div id="lottery-result-box" class="hidden space-y-4 pt-3 border-t border-slate-200">
+          <!-- 抽選結果表示エリア (カレンダー横並びプレビュー + 日程別スコア内訳) -->
+          <div id="lottery-result-box" class="hidden space-y-5 pt-4 border-t border-slate-200">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h3 class="text-sm font-bold text-slate-900">抽選結果 &amp; スコア内訳</h3>
-                <p id="lottery-result-meta" class="text-xs text-slate-500"></p>
+                <h3 class="text-sm sm:text-base font-bold text-slate-900">🎉 一括抽選結果 &amp; Shift_Calendar プレビュー</h3>
+                <p id="lottery-result-meta" class="text-xs text-slate-500 mt-0.5"></p>
               </div>
-              <button type="button" onclick="copyLotteryWinnersText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold">
-                当選者リストをコピー
+              <button type="button" onclick="copyLotteryWinnersText()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold shadow-2xs">
+                📋 全日程の当選者リストをコピー
               </button>
             </div>
 
-            <!-- 当選者・補欠者テーブル -->
-            <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr class="border-b border-slate-200 text-slate-500">
-                    <th class="py-2 px-2">結果</th>
-                    <th class="py-2 px-2">順位</th>
-                    <th class="py-2 px-2">氏名 (学年)</th>
-                    <th class="py-2 px-2 text-right">現在ペナルティ</th>
-                    <th class="py-2 px-2 text-right">直近2カ月参加</th>
-                    <th class="py-2 px-2 text-right">累計参加</th>
-                    <th class="py-2 px-2 text-right">合計スコア (内訳)</th>
-                  </tr>
-                </thead>
-                <tbody id="lottery-result-tbody" class="divide-y divide-slate-100">
-                  <!-- JSで描画 -->
-                </tbody>
-              </table>
+            <!-- Shift_Calendar 横並びマトリックスプレビュー -->
+            <div class="space-y-1.5">
+              <div class="text-xs font-bold text-slate-700">📅 カレンダー形式プレビュー（1行目: 日付 / 2行目以降: 当選者名）</div>
+              <div id="lottery-calendar-preview" class="overflow-x-auto border border-slate-200 rounded-xl">
+                <!-- JSで横並びマトリックステーブルを描画 -->
+              </div>
+            </div>
+
+            <!-- 日程別の詳細スコア内訳コンテナ -->
+            <div id="lottery-shifts-detail-container" class="space-y-4">
+              <!-- JSで各日程の当選・補欠・スコア内訳テーブルを描画 -->
             </div>
           </div>
         </div>
       </section>
 
       <!-- ================================================================= -->
-      <!-- TAB 6: Admin専用 - コントロールパネル (権限・進級・キルスイッチ) -->
+      <!-- TAB 6: Admin専用 - コントロールパネル (権限・進級・LINE URL・キルスイッチ) -->
       <!-- ================================================================= -->
       <section id="tab-admin-control" class="tab-panel hidden space-y-5">
 
@@ -874,11 +862,30 @@
           </div>
         </div>
 
-        <!-- カード2: 新年度の「学年一括繰り上げ」実行ボタン -->
+        <!-- カード2: 会計役のLINE URL更新フォーム (V5新設) -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">2. 会計役のLINE URL設定（ログインエラー案内・業務報告連携用）</h3>
+            <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+              ログイン画面下部の「※エラーが続く場合は [こちらのLINE] までご連絡ください」および業務完了報告後のLINE送信ボタンの遷移先URLを更新します（<code>PropertiesService</code> に永続保存されます）。
+            </p>
+          </div>
+
+          <form id="admin-line-url-form" onsubmit="handleUpdateAdminLineUrl(event)" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            <input id="ctrl-admin-line-url" type="url" required placeholder="https://line.me/ti/p/..."
+              class="flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-mono focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+            <button id="btn-save-admin-line-url" type="submit"
+              class="shrink-0 px-5 py-2.5 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white font-bold text-xs sm:text-sm shadow-xs transition active:scale-[0.99]">
+              LINE URLを保存する
+            </button>
+          </form>
+        </div>
+
+        <!-- カード3: 新年度の「学年一括繰り上げ」実行ボタン -->
         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 class="text-base font-bold text-slate-900">2. 新年度の「学年一括繰り上げ」処理</h3>
+              <h3 class="text-base font-bold text-slate-900">3. 新年度の「学年一括繰り上げ」処理</h3>
               <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
                 <code>Users</code> シート全員の学年（<code>grade</code>）を一括で進級更新します（1回生→2回生、2回生→3回生、3回生→4回生、4回生→卒業・OBOG、院1回生→院2回生）。年度替わりのタイミングで1回だけ実行してください。
               </p>
@@ -891,11 +898,11 @@
           <div id="promote-result-banner" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900"></div>
         </div>
 
-        <!-- カード3: 緊急時の「全セッション強制切断（キルスイッチ）」ボタン -->
+        <!-- カード4: 緊急時の「全セッション強制切断（キルスイッチ）」ボタン -->
         <div class="bg-rose-50/70 rounded-2xl border-2 border-rose-300 p-5 shadow-xs space-y-3">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 class="text-base font-extrabold text-rose-900">3. 緊急時の「全セッション強制切断（キルスイッチ）」</h3>
+              <h3 class="text-base font-extrabold text-rose-900">4. 緊急時の「全セッション強制切断（キルスイッチ）」</h3>
               <p class="text-xs text-rose-800 mt-0.5 leading-relaxed">
                 <code>Sessions</code> シートの全トークンデータを一括消去し、現在ログイン中の全メンバー（幹部含む全員）を強制ログアウト状態にします。端末紛失時や幹部交代時のセキュリティリセットに使用してください。
               </p>
@@ -1078,10 +1085,34 @@
 
     window.addEventListener('DOMContentLoaded', initApp);
 
+    /**
+     * ログイン画面および業務報告完了モーダル内の会計LINE URLリンクを同期するヘルパー (V5追加)
+     * @param {string=} newUrl
+     */
+    function syncAdminLineUrlLinks(newUrl) {
+      if (newUrl && /^https?:\/\//i.test(String(newUrl).trim())) {
+        APP_STATE.adminLineUrl = String(newUrl).trim();
+      }
+      const effectiveUrl = APP_STATE.adminLineUrl || 'https://line.me/ti/p/';
+
+      const loginHelpLink = document.getElementById('login-help-line-link');
+      if (loginHelpLink) {
+        loginHelpLink.href = effectiveUrl;
+      }
+
+      const modalLineLink = document.getElementById('modal-line-link');
+      if (modalLineLink) {
+        modalLineLink.href = effectiveUrl;
+      }
+    }
+
     async function initApp() {
       const today = getTodayDateString();
       const shiftDateInput = document.getElementById('shift-date');
       if (shiftDateInput) shiftDateInput.value = today;
+
+      syncAdminLineUrlLinks(APP_STATE.adminLineUrl);
+      initIrregularClaimsRows();
 
       const targetUrl = getEffectiveGasUrl();
       if (!targetUrl || targetUrl === 'YOUR_GAS_WEB_APP_URL') {
@@ -1095,6 +1126,14 @@
       if (!savedToken) {
         hideLoader();
         showLoginScreen();
+        // 未ログイン時でもバックグラウンドで公開設定（会計LINE URL等）を取得してリンクに反映
+        callGasRpc('getAuthContext', { token: '' })
+          .then(ctx => {
+            if (ctx && ctx.config && ctx.config.adminLineUrl) {
+              syncAdminLineUrlLinks(ctx.config.adminLineUrl);
+            }
+          })
+          .catch(() => {});
         return;
       }
 
@@ -1112,6 +1151,7 @@
     }
 
     function showLoginScreen() {
+      syncAdminLineUrlLinks(APP_STATE.adminLineUrl);
       document.getElementById('header-user-info').textContent = '未ログイン';
       document.getElementById('header-role-badge').classList.add('hidden');
       document.getElementById('btn-logout').classList.add('hidden');
@@ -1251,6 +1291,15 @@
      * 認証コンテキストをUIに適用し、必要な初期データをロードする
      */
     async function applyAuthContext(authContext) {
+      if (authContext && authContext.config) {
+        if (Array.isArray(authContext.config.transportRoutes) && authContext.config.transportRoutes.length > 0) {
+          APP_STATE.transportRoutes = authContext.config.transportRoutes;
+        }
+        if (authContext.config.adminLineUrl) {
+          syncAdminLineUrlLinks(authContext.config.adminLineUrl);
+        }
+      }
+
       if (!authContext || !authContext.tokenValid) {
         localStorage.removeItem(SESSION_TOKEN_KEY);
         showLoginScreen();
@@ -1258,15 +1307,6 @@
       }
 
       APP_STATE.user = authContext;
-
-      if (authContext.config) {
-        if (Array.isArray(authContext.config.transportRoutes) && authContext.config.transportRoutes.length > 0) {
-          APP_STATE.transportRoutes = authContext.config.transportRoutes;
-        }
-        if (authContext.config.adminLineUrl) {
-          APP_STATE.adminLineUrl = authContext.config.adminLineUrl;
-        }
-      }
 
       document.getElementById('login-view').classList.add('hidden');
       document.getElementById('btn-logout').classList.remove('hidden');
@@ -1422,6 +1462,8 @@
         loadLeaderboard();
       } else if (tabName === 'admin-dashboard' && typeof window.loadAdminDashboard === 'function') {
         window.loadAdminDashboard();
+      } else if (tabName === 'admin-lottery' && typeof initShiftLotteryBlocks === 'function') {
+        initShiftLotteryBlocks();
       } else if (tabName === 'admin-control' && typeof window.loadAdminControlPanel === 'function') {
         window.loadAdminControlPanel();
       }
@@ -1682,7 +1724,79 @@
     }
 
     /**
-     * 選択された参加者＋イレギュラー請求からリアルタイム合計金額と各学年バッジを更新
+     * イレギュラー請求入力行の初期化（初期状態で1行配置） (V5追加)
+     */
+    function initIrregularClaimsRows() {
+      const container = document.getElementById('irregular-claims-container');
+      if (!container) return;
+      container.innerHTML = '';
+      addIrregularClaimRow('', '');
+    }
+
+    /**
+     * 「＋ イレギュラー請求を追加」ボタン押下時に内訳（テキスト）と金額（数値）の入力行を動的に追加する (V5追加)
+     * @param {string=} initialNote
+     * @param {string|number=} initialAmount
+     */
+    function addIrregularClaimRow(initialNote = '', initialAmount = '') {
+      const container = document.getElementById('irregular-claims-container');
+      if (!container) return;
+
+      const row = document.createElement('div');
+      row.className = 'irregular-claim-row bg-white/90 border border-amber-200 rounded-xl p-2.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2';
+      row.innerHTML = `
+        <div class="flex-1 min-w-0">
+          <input type="text"
+            value="${escapeHtml(initialNote)}"
+            oninput="recalculateShiftPreview()"
+            placeholder="内訳・理由・名簿外参加者名（例: 体験業務 佐藤さん 〇〇駅往復）"
+            class="irregular-note-input w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs sm:text-sm focus:border-amber-600 focus:outline-none" />
+        </div>
+        <div class="flex items-center gap-2 sm:w-48">
+          <div class="relative flex-1">
+            <input type="number"
+              min="0"
+              step="1"
+              value="${escapeHtml(initialAmount)}"
+              oninput="recalculateShiftPreview()"
+              placeholder="金額 (円)"
+              class="irregular-amount-input w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs sm:text-sm font-bold text-right focus:border-amber-600 focus:outline-none" />
+          </div>
+          <button type="button"
+            onclick="removeIrregularClaimRow(this)"
+            title="この行を削除"
+            class="shrink-0 w-8 h-8 rounded-lg border border-amber-200 bg-amber-50 hover:bg-rose-100 hover:border-rose-300 text-amber-800 hover:text-rose-700 font-bold text-sm flex items-center justify-center transition">
+            &times;
+          </button>
+        </div>
+      `;
+      container.appendChild(row);
+      recalculateShiftPreview();
+    }
+
+    /**
+     * イレギュラー請求行を削除する（最後の1行の場合は中身をクリア） (V5追加)
+     * @param {HTMLElement} btnEl
+     */
+    function removeIrregularClaimRow(btnEl) {
+      const container = document.getElementById('irregular-claims-container');
+      const row = btnEl ? btnEl.closest('.irregular-claim-row') : null;
+      if (!container || !row) return;
+
+      const allRows = container.querySelectorAll('.irregular-claim-row');
+      if (allRows.length <= 1) {
+        const noteInput = row.querySelector('.irregular-note-input');
+        const amountInput = row.querySelector('.irregular-amount-input');
+        if (noteInput) noteInput.value = '';
+        if (amountInput) amountInput.value = '';
+      } else {
+        row.remove();
+      }
+      recalculateShiftPreview();
+    }
+
+    /**
+     * 選択された参加者＋複数イレギュラー請求からリアルタイム合計金額と各学年バッジを更新 (V5改修)
      */
     function recalculateShiftPreview() {
       const checkboxes = document.querySelectorAll('.participant-checkbox');
@@ -1729,15 +1843,27 @@
         }
       });
 
-      // イレギュラー請求額の加算
-      const irregularVal = Math.max(
-        0,
-        Math.round(Number(document.getElementById('shift-irregular-amount').value) || 0)
-      );
+      // 複数行のイレギュラー請求額をリアルタイム合算 (V5改修)
+      let irregularVal = 0;
+      let activeIrregularCount = 0;
+      const irregularRows = document.querySelectorAll('#irregular-claims-container .irregular-claim-row');
+      irregularRows.forEach(row => {
+        const amountEl = row.querySelector('.irregular-amount-input');
+        const noteEl = row.querySelector('.irregular-note-input');
+        const amt = Math.max(0, Math.round(Number(amountEl ? amountEl.value : 0) || 0));
+        const note = String(noteEl ? noteEl.value : '').trim();
+        if (amt > 0 || note !== '') {
+          activeIrregularCount++;
+        }
+        irregularVal += amt;
+      });
+
       const irregularBadge = document.getElementById('preview-irregular-badge');
+      const irregularCountSpan = document.getElementById('preview-irregular-count');
       const irregularSpan = document.getElementById('preview-irregular-amount');
       if (irregularVal > 0) {
         irregularBadge.classList.remove('hidden');
+        if (irregularCountSpan) irregularCountSpan.textContent = String(activeIrregularCount);
         irregularSpan.textContent = irregularVal.toLocaleString();
       } else {
         irregularBadge.classList.add('hidden');
@@ -1749,7 +1875,7 @@
     }
 
     /**
-     * 業務完了報告フォーム送信処理
+     * 業務完了報告フォーム送信処理 (V5 複数イレギュラー請求配列対応)
      */
     async function handleSubmitShiftReport(event) {
       event.preventDefault();
@@ -1757,18 +1883,47 @@
       const shiftDate = document.getElementById('shift-date').value;
       const targetPerson = document.getElementById('shift-target-person').value.trim();
       const eventId = document.getElementById('shift-event-id').value.trim();
-      const irregularNote = document.getElementById('shift-irregular-note').value.trim();
-      const irregularAmount = Math.round(Number(document.getElementById('shift-irregular-amount').value) || 0);
       const remarks = document.getElementById('shift-remarks').value.trim();
 
-      const checkedBoxes = Array.from(document.querySelectorAll('.participant-checkbox:checked'));
-      if (checkedBoxes.length === 0 && irregularAmount <= 0) {
-        showToast('実際の参加者を1名以上選択するか、イレギュラー請求を入力してください。', 'error');
-        return;
+      // 複数イレギュラー請求行の収集とバリデーション
+      const irregularClaimsPayload = [];
+      let totalIrregularAmount = 0;
+      const irregularRows = Array.from(document.querySelectorAll('#irregular-claims-container .irregular-claim-row'));
+
+      for (let i = 0; i < irregularRows.length; i++) {
+        const row = irregularRows[i];
+        const noteEl = row.querySelector('.irregular-note-input');
+        const amountEl = row.querySelector('.irregular-amount-input');
+        const note = String(noteEl ? noteEl.value : '').trim();
+        const rawAmount = amountEl ? amountEl.value : '';
+        const amount = Math.round(Number(rawAmount) || 0);
+
+        if (note === '' && (rawAmount === '' || amount === 0)) {
+          continue;
+        }
+        if (amount < 0) {
+          showToast(`イレギュラー請求 #${i + 1} の金額には0円以上を入力してください。`, 'error');
+          return;
+        }
+        if (amount > 0 && !note) {
+          showToast(`イレギュラー請求 #${i + 1} の内訳・理由を入力してください。`, 'error');
+          return;
+        }
+        if (note && amount <= 0) {
+          showToast(`イレギュラー請求「${note}」の金額（1円以上）を入力してください。`, 'error');
+          return;
+        }
+
+        irregularClaimsPayload.push({
+          note: note,
+          amount: amount
+        });
+        totalIrregularAmount += amount;
       }
 
-      if (irregularAmount > 0 && !irregularNote) {
-        showToast('イレギュラー加算額を入力する場合は、内訳・理由も入力してください。', 'error');
+      const checkedBoxes = Array.from(document.querySelectorAll('.participant-checkbox:checked'));
+      if (checkedBoxes.length === 0 && irregularClaimsPayload.length === 0) {
+        showToast('実際の参加者を1名以上選択するか、イレギュラー請求を入力してください。', 'error');
         return;
       }
 
@@ -1806,16 +1961,16 @@
           shift_date: shiftDate,
           target_person: targetPerson,
           participants: participantsPayload,
-          irregular_note: irregularNote,
-          irregular_amount: irregularAmount,
+          irregular_claims: irregularClaimsPayload,
+          irregular_note: irregularClaimsPayload.map(c => c.note).join(' / '),
+          irregular_amount: totalIrregularAmount,
           event_id: eventId,
           remarks: remarks
         });
 
         showToast(`報告が完了しました！照合番号: ${result.payment_id}`, 'success');
         document.getElementById('shift-remarks').value = '';
-        document.getElementById('shift-irregular-note').value = '';
-        document.getElementById('shift-irregular-amount').value = '0';
+        initIrregularClaimsRows();
         openLineModal(result);
       } catch (err) {
         showToast(err.message || '業務報告の送信に失敗しました。', 'error');
@@ -1939,11 +2094,14 @@
       const directDateInput = document.getElementById('direct-date');
       if (directDateInput && !directDateInput.value) directDateInput.value = today;
 
-      const lotteryDateInput = document.getElementById('lottery-shift-date');
-      if (lotteryDateInput && !lotteryDateInput.value) lotteryDateInput.value = today;
-
+      initShiftLotteryBlocks();
       window.populateAdminEventSelectors();
       renderControlPanelMembers();
+
+      const adminLineInput = document.getElementById('ctrl-admin-line-url');
+      if (adminLineInput) {
+        adminLineInput.value = APP_STATE.adminLineUrl || 'https://line.me/ti/p/';
+      }
     };
 
     /**
@@ -2470,10 +2628,317 @@
     }
 
     // -------------------------------------------------------------------------
-    // 7-3. シフト自動抽選UI (drawShiftLottery)
+    // 7-3. 複数日程シフト一括抽選UI & 名簿検索サジェスト入力補助 (V5 drawMultipleShiftsLottery 対応)
     // -------------------------------------------------------------------------
 
-    function insertPenaltyHoldersToLottery() {
+    let LOTTERY_BLOCK_SEQ = 0;
+
+    /**
+     * シフト抽選画面の初期日程ブロックを1件生成する (V5追加)
+     */
+    function initShiftLotteryBlocks() {
+      const container = document.getElementById('lottery-blocks-container');
+      if (!container) return;
+      if (container.querySelectorAll('.lottery-shift-block').length > 0) return;
+
+      container.innerHTML = '';
+      LOTTERY_BLOCK_SEQ = 0;
+      addShiftLotteryBlock(getTodayDateString(), 4, '');
+    }
+
+    /**
+     * 「＋ 日程を追加」ボタン押下時に新しい日程ブロックを動的に追加する (V5追加)
+     * @param {string=} initialDate
+     * @param {number=} initialWinnerCount
+     * @param {string=} initialCandidates
+     */
+    function addShiftLotteryBlock(initialDate = '', initialWinnerCount = 4, initialCandidates = '') {
+      const container = document.getElementById('lottery-blocks-container');
+      if (!container) return;
+
+      LOTTERY_BLOCK_SEQ++;
+      const blockId = LOTTERY_BLOCK_SEQ;
+
+      // 既存ブロックがあり initialDate が未指定なら、最後のブロックの翌日を初期値として提案
+      let defaultDate = initialDate;
+      if (!defaultDate) {
+        const existingDateInputs = container.querySelectorAll('.lottery-block-date');
+        if (existingDateInputs.length > 0) {
+          const lastVal = existingDateInputs[existingDateInputs.length - 1].value;
+          if (/^\d{4}-\d{2}-\d{2}$/.test(lastVal)) {
+            const parts = lastVal.split('-').map(Number);
+            const nextDay = new Date(parts[0], parts[1] - 1, parts[2] + 1);
+            const yyyy = nextDay.getFullYear();
+            const mm = String(nextDay.getMonth() + 1).padStart(2, '0');
+            const dd = String(nextDay.getDate()).padStart(2, '0');
+            defaultDate = `${yyyy}-${mm}-${dd}`;
+          }
+        }
+        if (!defaultDate) {
+          defaultDate = getTodayDateString();
+        }
+      }
+
+      const blockEl = document.createElement('div');
+      blockEl.id = `lottery-block-${blockId}`;
+      blockEl.dataset.blockId = String(blockId);
+      blockEl.className = 'lottery-shift-block bg-slate-50/80 border border-slate-200 rounded-2xl p-4 space-y-3.5 shadow-2xs';
+
+      blockEl.innerHTML = `
+        <div class="flex items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="lottery-block-badge inline-flex items-center px-2.5 py-1 rounded-lg bg-brand-600 text-white text-xs font-extrabold">
+              日程 #${blockId}
+            </span>
+            <span class="text-xs font-bold text-slate-600">対象シフト日・当選枠・応募者リスト</span>
+          </div>
+          <button type="button" onclick="removeShiftLotteryBlock(${blockId})"
+            class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-300 text-slate-500 hover:text-rose-600 text-xs font-bold transition">
+            &times; この日程を削除
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2 min-w-0">
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+              対象シフト日 (` + '`shift_date`' + `) <span class="text-rose-500">*</span>
+            </label>
+            <input type="date"
+              id="lottery-date-${blockId}"
+              value="${escapeHtml(defaultDate)}"
+              required
+              class="lottery-block-date w-full box-border max-w-[100%] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+          </div>
+
+          <div class="min-w-0">
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+              当選枠数 (` + '`winner_count`' + `) <span class="text-rose-500">*</span>
+            </label>
+            <input type="number"
+              id="lottery-winner-count-${blockId}"
+              min="1"
+              max="200"
+              value="${Number(initialWinnerCount) || 4}"
+              required
+              class="lottery-block-winner-count w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-bold text-right focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+          </div>
+        </div>
+
+        <!-- 名簿から検索追加（サジェスト入力補助機能 V5新設） -->
+        <div class="relative">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <label class="block text-xs font-bold text-brand-800">
+              🔍 名簿から検索追加（クリックで応募者欄に自動挿入）
+            </label>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="insertPenaltyHoldersToBlock(${blockId})" class="text-[11px] font-semibold text-rose-600 hover:underline">
+                ＋ ペナルティ保有者を挿入
+              </button>
+              <span class="text-slate-300">|</span>
+              <button type="button" onclick="clearBlockCandidates(${blockId})" class="text-[11px] font-semibold text-slate-500 hover:underline">
+                応募者欄をクリア
+              </button>
+            </div>
+          </div>
+
+          <input type="text"
+            id="lottery-suggest-input-${blockId}"
+            autocomplete="off"
+            oninput="handleLotterySuggestInput(${blockId})"
+            onfocus="handleLotterySuggestInput(${blockId})"
+            onblur="hideLotterySuggestListDelayed(${blockId})"
+            placeholder="名前や学年を入力して候補を検索（例: 同志社 / 2回生）..."
+            class="w-full rounded-xl border border-brand-300 bg-white px-3.5 py-2 text-xs sm:text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+
+          <!-- サジェスト候補プルダウンリスト -->
+          <div id="lottery-suggest-list-${blockId}"
+            class="hidden absolute left-0 right-0 z-20 mt-1 max-h-56 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            応募者名リスト（改行またはカンマ・読点区切り） <span class="text-rose-500">*</span>
+          </label>
+          <textarea
+            id="lottery-candidates-${blockId}"
+            rows="4"
+            required
+            placeholder="上の検索欄からクリックして追加するか、直接名前を入力してください（改行区切り）"
+            class="lottery-block-candidates w-full rounded-xl border border-slate-300 bg-white p-3 text-xs sm:text-sm font-mono focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none">${escapeHtml(initialCandidates)}</textarea>
+        </div>
+      `;
+
+      container.appendChild(blockEl);
+      renumberShiftLotteryBlocks();
+    }
+
+    /**
+     * 指定した日程ブロックを削除する（最低1ブロックは残す） (V5追加)
+     * @param {number} blockId
+     */
+    function removeShiftLotteryBlock(blockId) {
+      const container = document.getElementById('lottery-blocks-container');
+      const blockEl = document.getElementById(`lottery-block-${blockId}`);
+      if (!container || !blockEl) return;
+
+      const allBlocks = container.querySelectorAll('.lottery-shift-block');
+      if (allBlocks.length <= 1) {
+        showToast('最低1つの日程ブロックが必要です（内容をクリアしました）。', 'info');
+        clearBlockCandidates(blockId);
+        return;
+      }
+
+      blockEl.remove();
+      renumberShiftLotteryBlocks();
+    }
+
+    /**
+     * 日程ブロックの通し番号バッジを #1, #2, ... に振り直す
+     */
+    function renumberShiftLotteryBlocks() {
+      const blocks = document.querySelectorAll('#lottery-blocks-container .lottery-shift-block');
+      blocks.forEach((b, idx) => {
+        const badge = b.querySelector('.lottery-block-badge');
+        if (badge) {
+          badge.textContent = `日程 #${idx + 1}`;
+        }
+      });
+    }
+
+    /**
+     * 名簿から検索追加: 入力文字列に応じて APP_STATE.usersList から候補をサジェスト表示する (V5新設)
+     * @param {number} blockId
+     */
+    function handleLotterySuggestInput(blockId) {
+      const inputEl = document.getElementById(`lottery-suggest-input-${blockId}`);
+      const listEl = document.getElementById(`lottery-suggest-list-${blockId}`);
+      const textareaEl = document.getElementById(`lottery-candidates-${blockId}`);
+      if (!inputEl || !listEl) return;
+
+      const rawKeyword = inputEl.value.trim().toLowerCase();
+      const normKeyword = normalizeNameClient(rawKeyword);
+
+      if (!rawKeyword) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+        return;
+      }
+
+      // すでに応募者欄に入っているメンバーは「追加済」表示にするためセット化
+      const currentLines = String(textareaEl ? textareaEl.value : '')
+        .split(/[\r\n,、]+/)
+        .map(s => normalizeNameClient(s))
+        .filter(Boolean);
+      const alreadyAddedSet = new Set(currentLines);
+
+      const matched = APP_STATE.usersList
+        .filter(u => {
+          const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
+          const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
+          return nameNorm.includes(normKeyword) || gradeNorm.includes(normKeyword);
+        })
+        .slice(0, 25);
+
+      if (matched.length === 0) {
+        listEl.innerHTML = `
+          <div class="px-3.5 py-2.5 text-xs text-slate-400">
+            該当するメンバーが名簿に見つかりません（直接テキストエリアに入力することも可能です）。
+          </div>
+        `;
+        listEl.classList.remove('hidden');
+        return;
+      }
+
+      listEl.innerHTML = matched
+        .map(u => {
+          const normName = normalizeNameClient(u.name);
+          const isAdded = alreadyAddedSet.has(normName);
+          const penaltyCount = Number(u.penalty_points || 0);
+          const rewardCount = Number(u.reward_points || 0);
+
+          const penaltyBadge =
+            penaltyCount > 0
+              ? `<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-extrabold text-[10px]">ペナルティ ${penaltyCount}</span>`
+              : '';
+          const addedBadge = isAdded
+            ? `<span class="px-2 py-0.5 rounded bg-slate-200 text-slate-600 font-bold text-[10px]">追加済</span>`
+            : `<span class="px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-bold text-[10px]">＋ 追加</span>`;
+
+          const safeJsName = escapeHtml(String(u.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+
+          return `
+            <button type="button"
+              onmousedown="event.preventDefault(); insertSuggestedMemberToBlock(${blockId}, '${safeJsName}')"
+              class="w-full px-3.5 py-2.5 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
+              <div class="min-w-0 flex items-center gap-2 flex-wrap">
+                <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(u.name)}</span>
+                <span class="text-[11px] text-slate-500">(${escapeHtml(u.grade || '未設定')})</span>
+                ${penaltyBadge}
+                <span class="text-[11px] text-slate-400">累計参加: ${rewardCount}回</span>
+              </div>
+              <div class="shrink-0">${addedBadge}</div>
+            </button>
+          `;
+        })
+        .join('');
+
+      listEl.classList.remove('hidden');
+    }
+
+    /**
+     * サジェスト候補をクリックした際に応募者テキストエリアへ名前＋改行を自動挿入する (V5新設)
+     * @param {number} blockId
+     * @param {string} memberName
+     */
+    function insertSuggestedMemberToBlock(blockId, memberName) {
+      const textarea = document.getElementById(`lottery-candidates-${blockId}`);
+      const inputEl = document.getElementById(`lottery-suggest-input-${blockId}`);
+      const listEl = document.getElementById(`lottery-suggest-list-${blockId}`);
+      if (!textarea) return;
+
+      const targetNorm = normalizeNameClient(memberName);
+      const existingNames = textarea.value
+        .split(/[\r\n,、]+/)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      const alreadyExists = existingNames.some(n => normalizeNameClient(n) === targetNorm);
+      if (alreadyExists) {
+        showToast(`「${memberName}」はすでにこの日程の応募者欄に入力されています。`, 'info');
+      } else {
+        const currentVal = textarea.value.trim();
+        textarea.value = currentVal ? `${currentVal}\n${memberName}\n` : `${memberName}\n`;
+        showToast(`「${memberName}」を応募者欄に追加しました。`, 'success');
+      }
+
+      if (inputEl) {
+        inputEl.value = '';
+      }
+      if (listEl) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+      }
+    }
+
+    /**
+     * フォーカスが外れた際にサジェストリストを閉じる
+     * @param {number} blockId
+     */
+    function hideLotterySuggestListDelayed(blockId) {
+      setTimeout(() => {
+        const listEl = document.getElementById(`lottery-suggest-list-${blockId}`);
+        if (listEl) {
+          listEl.classList.add('hidden');
+        }
+      }, 180);
+    }
+
+    /**
+     * 指定した日程ブロックにペナルティ保有者を一括挿入する
+     * @param {number} blockId
+     */
+    function insertPenaltyHoldersToBlock(blockId) {
       const penaltyMembers = APP_STATE.usersList
         .filter(u => Number(u.penalty_points || 0) > 0)
         .map(u => u.name);
@@ -2483,136 +2948,272 @@
         return;
       }
 
-      const textarea = document.getElementById('lottery-candidates');
-      const existing = textarea.value.trim();
-      textarea.value = existing
-        ? `${existing}\n${penaltyMembers.join('\n')}`
-        : penaltyMembers.join('\n');
-      showToast(`ペナルティ保有者 ${penaltyMembers.length} 名を応募者欄に追加しました。`, 'info');
+      const textarea = document.getElementById(`lottery-candidates-${blockId}`);
+      if (!textarea) return;
+
+      const existingLines = textarea.value
+        .split(/[\r\n,、]+/)
+        .map(s => s.trim())
+        .filter(Boolean);
+      const existingNormSet = new Set(existingLines.map(n => normalizeNameClient(n)));
+
+      let addedCount = 0;
+      penaltyMembers.forEach(name => {
+        if (!existingNormSet.has(normalizeNameClient(name))) {
+          existingLines.push(name);
+          existingNormSet.add(normalizeNameClient(name));
+          addedCount++;
+        }
+      });
+
+      textarea.value = existingLines.length > 0 ? `${existingLines.join('\n')}\n` : '';
+      showToast(`ペナルティ保有者 ${addedCount} 名を応募者欄に追加しました。`, 'info');
     }
 
+    /**
+     * 指定した日程ブロックの応募者欄をクリアする
+     * @param {number} blockId
+     */
+    function clearBlockCandidates(blockId) {
+      const textarea = document.getElementById(`lottery-candidates-${blockId}`);
+      if (textarea) textarea.value = '';
+    }
+
+    /**
+     * 全日程ブロックのデータを配列にまとめ、drawMultipleShiftsLottery API を呼び出す (V5改修)
+     */
     async function handleRunShiftLottery(event) {
       event.preventDefault();
-      const rawCandidates = document.getElementById('lottery-candidates').value.trim();
-      const winnerCount = Math.max(1, Number(document.getElementById('lottery-winner-count').value) || 1);
-      const shiftDate = document.getElementById('lottery-shift-date').value;
-      const registerToPlanned = document.getElementById('lottery-register-planned').checked;
 
-      if (!rawCandidates) {
-        showToast('応募者の名前を1名以上入力してください。', 'error');
-        return;
-      }
-      if (registerToPlanned && !shiftDate) {
-        showToast('Planned_Shifts シートへ自動登録する場合は、対象シフト日を指定してください。', 'error');
+      const blockEls = Array.from(document.querySelectorAll('#lottery-blocks-container .lottery-shift-block'));
+      if (blockEls.length === 0) {
+        showToast('抽選対象の日程ブロックを1件以上追加してください。', 'error');
         return;
       }
 
+      const shiftsPayload = [];
+      for (let i = 0; i < blockEls.length; i++) {
+        const blockEl = blockEls[i];
+        const dateInput = blockEl.querySelector('.lottery-block-date');
+        const countInput = blockEl.querySelector('.lottery-block-winner-count');
+        const candidatesInput = blockEl.querySelector('.lottery-block-candidates');
+
+        const shiftDate = String(dateInput ? dateInput.value : '').trim();
+        const winnerCount = Math.max(1, Math.round(Number(countInput ? countInput.value : 1) || 1));
+        const rawCandidates = String(candidatesInput ? candidatesInput.value : '').trim();
+
+        if (!shiftDate) {
+          showToast(`日程 #${i + 1} の対象シフト日を選択してください。`, 'error');
+          return;
+        }
+        if (!rawCandidates) {
+          showToast(`日程 #${i + 1}（${shiftDate}）の応募者を1名以上入力してください。`, 'error');
+          return;
+        }
+
+        shiftsPayload.push({
+          shift_date: shiftDate,
+          winner_count: winnerCount,
+          candidates: rawCandidates
+        });
+      }
+
+      const registerToSheets = document.getElementById('lottery-register-planned').checked;
       const btn = document.getElementById('btn-run-lottery');
       btn.disabled = true;
-      showLoader('過去2カ月の参加実績とペナルティを参照して抽選スコアを計算しています...');
+      showLoader(`全 ${shiftsPayload.length} 日程の優先度スコア計算と一括抽選を実行しています...`);
 
       try {
-        const result = await callGasRpc('drawShiftLottery', {
-          candidates: rawCandidates,
-          winner_count: winnerCount,
-          shift_date: shiftDate,
-          register_to_planned_shifts: registerToPlanned
+        const result = await callGasRpc('drawMultipleShiftsLottery', {
+          shifts: shiftsPayload,
+          register_to_sheets: registerToSheets
         });
 
         LAST_LOTTERY_RESULT = result;
         renderLotteryResult(result);
 
-        if (result.registered_to_planned_shifts) {
-          showToast(`抽選完了！当選者 ${result.winner_count} 名を ${result.shift_date} の予定シフトに登録しました。`, 'success');
-          if (document.getElementById('shift-date').value === result.shift_date) {
+        if (result.registered_to_sheets) {
+          showToast(
+            `全 ${result.total_shifts} 日程の抽選が完了し、Planned_Shifts と Shift_Calendar（横並び表）へ出力しました！`,
+            'success'
+          );
+          const currentReportDate = document.getElementById('shift-date').value;
+          if (shiftsPayload.some(s => s.shift_date === currentReportDate)) {
             await handleShiftDateChange();
           }
         } else {
-          showToast(`抽選が完了しました！（当選: ${result.winner_count} 名 / 応募: ${result.total_candidates} 名）`, 'success');
+          showToast(`全 ${result.total_shifts} 日程の抽選シミュレーションが完了しました！`, 'success');
         }
       } catch (err) {
-        showToast(err.message || '抽選処理に失敗しました。', 'error');
+        showToast(err.message || '一括抽選処理に失敗しました。', 'error');
       } finally {
         btn.disabled = false;
         hideLoader();
       }
     }
 
+    /**
+     * 複数日程の一括抽選結果（Shift_Calendar 横並びプレビュー ＋ 日程別スコア内訳）を描画する (V5改修)
+     */
     function renderLotteryResult(result) {
       const box = document.getElementById('lottery-result-box');
       const meta = document.getElementById('lottery-result-meta');
-      const tbody = document.getElementById('lottery-result-tbody');
+      const calendarPreview = document.getElementById('lottery-calendar-preview');
+      const detailContainer = document.getElementById('lottery-shifts-detail-container');
 
       box.classList.remove('hidden');
-      const regText = result.registered_to_planned_shifts
-        ? ` / ✅ ${result.shift_date} の Planned_Shifts シートへ自動登録済`
-        : '';
-      meta.textContent = `応募総数: ${result.total_candidates} 名 / 当選枠: ${result.winner_count} 名 / 直近集計基準日: ${result.cutoff_date} 以降${regText}`;
+      const shifts = Array.isArray(result.shifts) ? result.shifts : [];
 
-      const list = Array.isArray(result.all_ranked) ? result.all_ranked : [];
-      tbody.innerHTML = '';
+      const regText = result.registered_to_sheets
+        ? ' / ✅ Planned_Shifts（縦積み）& Shift_Calendar（横並びカレンダー表）へ出力済'
+        : ' / ※シート未保存（プレビューのみ）';
+      meta.textContent = `抽選日程数: ${shifts.length} 日程 / 直近2カ月集計基準日: ${result.cutoff_date} 以降${regText}`;
 
-      list.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.className = item.is_winner ? 'bg-emerald-50/70 font-semibold' : 'text-slate-500';
+      // 1. Shift_Calendar 横並びマトリックスプレビューの構築
+      const maxWinners = shifts.reduce(
+        (max, s) => Math.max(max, Array.isArray(s.winners) ? s.winners.length : 0),
+        0
+      );
 
-        const badge = item.is_winner
-          ? '<span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[11px]">当選</span>'
-          : '<span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 font-bold text-[11px]">補欠</span>';
+      let calendarTableHtml = `
+        <table class="w-full text-center border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-900 text-white font-bold">
+              ${shifts
+                .map(
+                  s => `<th class="py-2.5 px-3 border-r border-slate-700 last:border-r-0 whitespace-nowrap">${escapeHtml(s.shift_date)}</th>`
+                )
+                .join('')}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 bg-white">
+      `;
 
-        const sb = item.score_breakdown || {};
-        const breakdownStr = `基礎${sb.base || 100} / ペナルティ+${sb.penalty_bonus || 0} / 直近${sb.recent_2m_deduction || 0} / 累計${sb.cumulative_deduction || 0} / 乱数+${sb.random_tie_breaker || 0}`;
+      for (let r = 0; r < Math.max(1, maxWinners); r++) {
+        calendarTableHtml += '<tr>';
+        shifts.forEach(s => {
+          const w = s.winners && s.winners[r];
+          calendarTableHtml += `
+            <td class="py-2 px-3 border-r border-slate-100 last:border-r-0 whitespace-nowrap font-bold text-slate-800">
+              ${w ? escapeHtml(w.name) : '<span class="text-slate-300">-</span>'}
+            </td>
+          `;
+        });
+        calendarTableHtml += '</tr>';
+      }
+      calendarTableHtml += '</tbody></table>';
+      calendarPreview.innerHTML = calendarTableHtml;
 
-        tr.innerHTML = `
-          <td class="py-2.5 px-2 whitespace-nowrap">${badge}</td>
-          <td class="py-2.5 px-2 whitespace-nowrap font-bold">${item.rank}位</td>
-          <td class="py-2.5 px-2 whitespace-nowrap text-slate-900">
-            ${escapeHtml(item.name)} <span class="text-[11px] text-slate-400">(${escapeHtml(item.grade)})</span>
-          </td>
-          <td class="py-2.5 px-2 text-right whitespace-nowrap ${item.penalty_points > 0 ? 'text-rose-600 font-extrabold' : ''}">
-            ${item.penalty_points} 回
-          </td>
-          <td class="py-2.5 px-2 text-right whitespace-nowrap">${item.recent_2m_count} 回</td>
-          <td class="py-2.5 px-2 text-right whitespace-nowrap">${item.reward_points} 回</td>
-          <td class="py-2.5 px-2 text-right whitespace-nowrap">
-            <span class="font-extrabold text-brand-700">${item.score} pt</span>
-            <div class="text-[10px] text-slate-400 font-normal">${escapeHtml(breakdownStr)}</div>
-          </td>
+      // 2. 日程別の詳細スコア内訳テーブルの構築
+      detailContainer.innerHTML = '';
+      shifts.forEach((s, sIdx) => {
+        const card = document.createElement('div');
+        card.className = 'bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5';
+
+        const rankedList = Array.isArray(s.all_ranked) ? s.all_ranked : [];
+        const rowsHtml = rankedList
+          .map(item => {
+            const rowStyle = item.is_winner ? 'bg-emerald-50/80 font-semibold' : 'bg-white text-slate-500';
+            const badge = item.is_winner
+              ? '<span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[11px]">当選</span>'
+              : '<span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 font-bold text-[11px]">補欠</span>';
+
+            const sb = item.score_breakdown || {};
+            const inBatchDed = sb.in_batch_deduction ? ` / バッチ内当選${sb.in_batch_deduction}` : '';
+            const breakdownStr = `基礎${sb.base || 100} / ペナルティ+${sb.penalty_bonus || 0} / 直近${sb.recent_2m_deduction || 0}${inBatchDed} / 累計${sb.cumulative_deduction || 0} / 乱数+${sb.random_tie_breaker || 0}`;
+
+            return `
+              <tr class="${rowStyle}">
+                <td class="py-2 px-2 whitespace-nowrap">${badge}</td>
+                <td class="py-2 px-2 whitespace-nowrap font-bold">${item.rank}位</td>
+                <td class="py-2 px-2 whitespace-nowrap text-slate-900">
+                  ${escapeHtml(item.name)} <span class="text-[11px] text-slate-400">(${escapeHtml(item.grade)})</span>
+                </td>
+                <td class="py-2 px-2 text-right whitespace-nowrap ${item.penalty_points > 0 ? 'text-rose-600 font-extrabold' : ''}">
+                  ${item.penalty_points} 回
+                </td>
+                <td class="py-2 px-2 text-right whitespace-nowrap">
+                  ${item.recent_2m_count} 回${item.in_batch_win_count > 0 ? ` <span class="text-[10px] text-amber-700 font-bold">(今回+${item.in_batch_win_count})</span>` : ''}
+                </td>
+                <td class="py-2 px-2 text-right whitespace-nowrap">${item.reward_points} 回</td>
+                <td class="py-2 px-2 text-right whitespace-nowrap">
+                  <span class="font-extrabold text-brand-700">${item.score} pt</span>
+                  <div class="text-[10px] text-slate-400 font-normal">${escapeHtml(breakdownStr)}</div>
+                </td>
+              </tr>
+            `;
+          })
+          .join('');
+
+        card.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="text-xs sm:text-sm font-extrabold text-slate-900">
+              📌 日程 #${sIdx + 1}: ${escapeHtml(s.shift_date)}
+              <span class="ml-2 text-xs font-semibold text-slate-500">（当選 ${s.winner_count} 名 / 応募 ${s.total_candidates} 名）</span>
+            </div>
+          </div>
+          <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 bg-slate-100/70 text-slate-600">
+                  <th class="py-2 px-2">結果</th>
+                  <th class="py-2 px-2">順位</th>
+                  <th class="py-2 px-2">氏名 (学年)</th>
+                  <th class="py-2 px-2 text-right">ペナルティ</th>
+                  <th class="py-2 px-2 text-right">直近2カ月参加</th>
+                  <th class="py-2 px-2 text-right">累計参加</th>
+                  <th class="py-2 px-2 text-right">合計スコア (内訳)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </div>
         `;
-        tbody.appendChild(tr);
+        detailContainer.appendChild(card);
       });
     }
 
+    /**
+     * 全日程の当選者リストをLINE共有用テキストとしてクリップボードへコピーする
+     */
     async function copyLotteryWinnersText() {
-      if (!LAST_LOTTERY_RESULT) return;
-      const winners = (LAST_LOTTERY_RESULT.winners || []).map(w => `・${w.name} (${w.grade})`);
-      const waitlist = (LAST_LOTTERY_RESULT.waitlist || []).map((w, i) => `${i + 1}. ${w.name}`);
-      const dateLabel = LAST_LOTTERY_RESULT.shift_date || '次回シフト';
+      if (!LAST_LOTTERY_RESULT || !Array.isArray(LAST_LOTTERY_RESULT.shifts)) return;
 
-      const lines = [
-        `【DWC シフト抽選結果 (${dateLabel})】`,
-        `■ 当選者 (${winners.length}名):`,
-        winners.join('\n') || 'なし'
-      ];
-      if (waitlist.length > 0) {
-        lines.push('', '■ 補欠順:', waitlist.join('\n'));
-      }
-      const text = lines.join('\n');
+      const blocksText = LAST_LOTTERY_RESULT.shifts.map(s => {
+        const winners = (s.winners || []).map(w => `・${w.name} (${w.grade})`);
+        const waitlist = (s.waitlist || []).map((w, i) => `${i + 1}. ${w.name}`);
+        const lines = [
+          `📅 【${s.shift_date}】 (当選 ${winners.length}名)`,
+          winners.join('\n') || '・該当なし'
+        ];
+        if (waitlist.length > 0) {
+          lines.push(`  [補欠: ${waitlist.join('、')}]`);
+        }
+        return lines.join('\n');
+      });
 
+      const fullText = `【DWC シフト抽選結果】\n\n${blocksText.join('\n\n')}`;
       try {
-        await navigator.clipboard.writeText(text);
-        showToast('当選者リストをクリップボードにコピーしました！', 'success');
+        await navigator.clipboard.writeText(fullText);
+        showToast('全日程の当選者リストをクリップボードにコピーしました！', 'success');
       } catch (_) {
         showToast('コピーに失敗しました。', 'error');
       }
     }
 
     // -------------------------------------------------------------------------
-    // 7-4. Adminコントロールパネル (権限変更・学年一括繰り上げ・全セッション強制切断)
+    // 7-4. Adminコントロールパネル (権限変更・LINE URL設定・学年一括繰り上げ・全セッション強制切断)
     // -------------------------------------------------------------------------
 
     window.loadAdminControlPanel = async function() {
       if (!APP_STATE.user || APP_STATE.user.role !== 'Admin') return;
+
+      const adminLineInput = document.getElementById('ctrl-admin-line-url');
+      if (adminLineInput) {
+        adminLineInput.value = APP_STATE.adminLineUrl || 'https://line.me/ti/p/';
+      }
 
       try {
         const users = await callGasRpc('getUsers');
@@ -2623,6 +3224,39 @@
         showToast('メンバー一覧の取得に失敗しました: ' + err.message, 'error');
       }
     };
+
+    /**
+     * 会計役のLINE URLを更新して PropertiesService に保存する (V5新設: updateAdminLineUrl)
+     */
+    async function handleUpdateAdminLineUrl(event) {
+      event.preventDefault();
+      const inputEl = document.getElementById('ctrl-admin-line-url');
+      const newUrl = String(inputEl ? inputEl.value : '').trim();
+
+      if (!newUrl || !/^https?:\/\//i.test(newUrl)) {
+        showToast('有効なLINE URL（https://...）を入力してください。', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-save-admin-line-url');
+      btn.disabled = true;
+      showLoader('会計役のLINE URLを保存しています...');
+
+      try {
+        const res = await callGasRpc('updateAdminLineUrl', {
+          admin_line_url: newUrl
+        });
+        const savedUrl = (res && res.admin_line_url) ? res.admin_line_url : newUrl;
+        syncAdminLineUrlLinks(savedUrl);
+        if (inputEl) inputEl.value = savedUrl;
+        showToast('会計役のLINE URLを更新しました！（ログイン画面・報告モーダルへ即時反映済）', 'success');
+      } catch (err) {
+        showToast(err.message || 'LINE URLの更新に失敗しました。', 'error');
+      } finally {
+        btn.disabled = false;
+        hideLoader();
+      }
+    }
 
     function renderControlPanelMembers() {
       const selectEl = document.getElementById('ctrl-user-select');
