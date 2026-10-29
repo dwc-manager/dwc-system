@@ -364,6 +364,25 @@
               </div>
             </div>
 
+            <!-- ⚠️ 緊急・予定外業務（手動入力）選択時の動的入力エリア (V5最終調整) -->
+            <div id="emergency-shift-inputs" class="hidden bg-amber-50/70 ring-1 ring-amber-200 rounded-2xl p-4 space-y-3">
+              <div class="text-xs font-bold text-amber-900">
+                ⚠️ 緊急・予定外業務の手動入力（予定シフトとの欠勤突合はスキップされます）
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="min-w-0">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">発生日 <span class="text-rose-500">*</span></label>
+                  <input id="emergency-shift-date" type="date"
+                    class="w-full box-border max-w-[100%] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-brand-600 focus:outline-none" />
+                </div>
+                <div class="min-w-0">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">用途・シフト名 <span class="text-rose-500">*</span></label>
+                  <input id="emergency-shift-title" type="text" placeholder="例: 緊急機材運搬 / 臨時買い出し"
+                    class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm focus:border-brand-600 focus:outline-none" />
+                </div>
+              </div>
+            </div>
+
             <!-- 予定シフト案内バー -->
             <div id="planned-shifts-banner" class="bg-slate-50 rounded-xl px-3.5 py-2.5 text-xs text-slate-600">
               業務日を選択すると、予定シフト登録メンバーが自動でチェックされます。
@@ -796,7 +815,7 @@
                     <span>ℹ️ 抽選アルゴリズムを見る</span>
                   </summary>
                   <div class="mt-2 text-xs text-slate-500 bg-slate-50 rounded-xl p-3 leading-relaxed max-w-xl">
-                    ①ペナルティ保有者の優先選出、②直近2カ月参加回数による減点、③同一バッチ内での重複当選偏り防止を自動計算し、<code>Planned_Shifts</code>（縦積み）と <code>Shift_Calendar</code>（A列:シフト枠名 / B列以降:当選者名）へ同時出力します。
+                    入力された<strong>立候補者（確定メンバー）は無条件で当選</strong>とし、<code>(募集定員) － (立候補者数) ＝ 不足枠</code> に対して、<code>Users</code> 名簿全体（立候補者以外）から①ペナルティ保有者優先、②直近2カ月参加回数減点、③同一バッチ内での重複当選偏り防止を自動計算して抽選補填し、<code>Planned_Shifts</code> と <code>Shift_Calendar</code>（横並び表）へ同時出力します。
                   </div>
                 </details>
               </div>
@@ -980,12 +999,59 @@
           </form>
         </div>
 
-        <!-- カード3 & 4: 年次・緊急メンテナンス操作 -->
+        <!-- カード3: メンバーのペナルティ手動調整 (V5最終調整新設) -->
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs space-y-4">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <h3 class="text-sm sm:text-base font-bold text-slate-900">3. メンバーのペナルティ手動調整</h3>
+            <details>
+              <summary class="list-none inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer select-none">
+                <span>ℹ️ 使い方を見る</span>
+              </summary>
+              <div class="mt-1.5 text-xs text-slate-500 bg-slate-50 rounded-xl p-2.5">
+                名簿からメンバーを選択し、現在のペナルティ回数を確認した上で「+1 追加」「-1 減算」「0 にリセット」を手動で行えます。
+              </div>
+            </details>
+          </div>
+
+          <div class="bg-slate-50/70 ring-1 ring-slate-200/60 rounded-xl p-4 space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+              <div class="sm:col-span-2 min-w-0">
+                <label class="block text-xs font-bold text-slate-700 mb-1">対象メンバーを選択</label>
+                <select id="ctrl-penalty-user-select" onchange="handlePenaltyUserSelectChange()"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:outline-none">
+                  <option value="">-- 名簿からメンバーを選択 --</option>
+                </select>
+              </div>
+
+              <div class="bg-white ring-1 ring-slate-200/80 rounded-xl px-4 py-2.5 flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-500">現在のペナルティ回数</span>
+                <span id="ctrl-current-penalty-display" class="text-lg font-extrabold text-slate-900">-</span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <button type="button" id="btn-penalty-inc" onclick="handleAdjustUserPenalty('increment')"
+                class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-2xs transition active:scale-[0.99]">
+                ＋1 追加
+              </button>
+              <button type="button" id="btn-penalty-dec" onclick="handleAdjustUserPenalty('decrement')"
+                class="flex-1 sm:flex-none px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-[0.99]">
+                －1 減算
+              </button>
+              <button type="button" id="btn-penalty-reset" onclick="handleAdjustUserPenalty('reset')"
+                class="flex-1 sm:flex-none px-4 py-2 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs shadow-2xs transition active:scale-[0.99]">
+                0 にリセット
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- カード4 & 5: 年次・緊急メンテナンス操作 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- カード3: 新年度の「学年一括繰り上げ」実行ボタン -->
+          <!-- カード4: 新年度の「学年一括繰り上げ」実行ボタン -->
           <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs flex flex-col justify-between gap-4">
             <div class="space-y-1">
-              <h3 class="text-sm font-bold text-slate-900">3. 新年度の学年一括繰り上げ</h3>
+              <h3 class="text-sm font-bold text-slate-900">4. 新年度の学年一括繰り上げ</h3>
               <p class="text-xs text-slate-500 leading-relaxed">
                 全員の学年（1回生→2回生…4回生→卒業・OBOG）を一括更新します（年1回実行）。
               </p>
@@ -999,10 +1065,10 @@
             </div>
           </div>
 
-          <!-- カード4: 緊急時の「全セッション強制切断（キルスイッチ）」ボタン -->
+          <!-- カード5: 緊急時の「全セッション強制切断（キルスイッチ）」ボタン -->
           <div class="bg-white rounded-2xl ring-1 ring-rose-200 p-5 shadow-xs flex flex-col justify-between gap-4">
             <div class="space-y-1">
-              <h3 class="text-sm font-bold text-rose-900">4. 全セッション強制切断（緊急用）</h3>
+              <h3 class="text-sm font-bold text-rose-900">5. 全セッション強制切断（緊急用）</h3>
               <p class="text-xs text-slate-500 leading-relaxed">
                 全端末のログイントークンを破棄し、全員を強制ログアウト状態にします。
               </p>
@@ -1522,18 +1588,7 @@
 
       populateEventSelectors();
       populateShiftSlotSelector();
-
-      // 選択中のシフト枠名に対する予定メンバーを取得
-      const selectedShiftSlot = document.getElementById('shift-date').value;
-      if (selectedShiftSlot) {
-        const plannedMembers = await callGasRpc('getPlannedShifts', { shiftDate: selectedShiftSlot });
-        APP_STATE.plannedMembersForDate = Array.isArray(plannedMembers) ? plannedMembers : [];
-      } else {
-        APP_STATE.plannedMembersForDate = [];
-      }
-
-      renderGradeAccordionParticipants();
-      updatePlannedShiftBanner();
+      await handleShiftDateChange();
 
       // Step 4 で定義される Admin 初期化フックがあれば呼び出す
       if (typeof window.onAdminAuthReady === 'function' && authContext.role === 'Admin') {
@@ -1544,7 +1599,8 @@
     }
 
     /**
-     * Planned_Shifts のA列から取得した一意の「シフト枠名」を業務報告プルダウン (#shift-date) にセットする (V5追加)
+     * Planned_Shifts のA列から取得した一意の「シフト枠名」＋末尾に固定の「⚠️ 緊急・予定外業務（手動入力）」を
+     * 業務報告プルダウン (#shift-date) にセットする (V5最終調整)
      * @param {string=} preferredSlotName
      */
     function populateShiftSlotSelector(preferredSlotName) {
@@ -1559,22 +1615,29 @@
       if (slots.length === 0) {
         const emptyOpt = document.createElement('option');
         emptyOpt.value = '';
-        emptyOpt.textContent = '（予定シフト枠が未登録です - Admin抽選後に選択可能）';
+        emptyOpt.textContent = '-- シフト枠を選択してください --';
         selectEl.appendChild(emptyOpt);
-        return;
+      } else {
+        slots.forEach(slotName => {
+          const opt = document.createElement('option');
+          opt.value = slotName;
+          opt.textContent = slotName;
+          selectEl.appendChild(opt);
+        });
       }
 
-      slots.forEach(slotName => {
-        const opt = document.createElement('option');
-        opt.value = slotName;
-        opt.textContent = slotName;
-        selectEl.appendChild(opt);
-      });
+      // 末尾に必ず「⚠️ 緊急・予定外業務（手動入力）」を追加 (要件2)
+      const emergencyOpt = document.createElement('option');
+      emergencyOpt.value = '__EMERGENCY_MANUAL__';
+      emergencyOpt.textContent = '⚠️ 緊急・予定外業務（手動入力）';
+      selectEl.appendChild(emergencyOpt);
 
-      if (prevValue && slots.includes(prevValue)) {
+      if (prevValue && (slots.includes(prevValue) || prevValue === '__EMERGENCY_MANUAL__')) {
         selectEl.value = prevValue;
-      } else {
+      } else if (slots.length > 0) {
         selectEl.value = slots[0];
+      } else {
+        selectEl.value = '__EMERGENCY_MANUAL__';
       }
     }
 
@@ -1818,6 +1881,26 @@
             ? '<span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded bg-orange-50 text-orange-700 border border-orange-200">要確認</span>'
             : '';
 
+          const absenceControlsHtml = isPlanned
+            ? `
+            <div id="absence-controls-${globalIdx}" class="hidden flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto pl-6 sm:pl-0">
+              <select id="absence-reason-select-${globalIdx}"
+                onchange="handleAbsenceReasonChange(${globalIdx})"
+                class="w-full sm:w-auto rounded-lg border border-amber-300 bg-amber-50/70 px-2.5 py-1.5 text-xs font-semibold text-amber-950 focus:border-amber-600 focus:bg-white focus:outline-none">
+                <option value="">-- 欠席理由を選択してください (必須) --</option>
+                <option value="1">1. 代わりの人が参加した or 事前に花背と幹部へ連絡済</option>
+                <option value="2">2. 体調不良・事故・交通遅延などのやむを得ない事情</option>
+                <option value="3">3. 代替人を見つけず直前欠勤 / 寝坊・遅刻 / 無断欠勤</option>
+                <option value="4">4. その他（自由記述）</option>
+              </select>
+              <input type="text"
+                id="absence-reason-other-${globalIdx}"
+                placeholder="欠席理由を入力してください"
+                class="hidden w-full sm:w-52 rounded-lg border border-amber-400 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-200" />
+            </div>
+          `
+            : '';
+
           row.innerHTML = `
             <label class="flex items-center gap-2.5 cursor-pointer select-none flex-1 min-w-0">
               <input type="checkbox"
@@ -1825,6 +1908,7 @@
                 data-name="${escapeHtml(user.name)}"
                 data-idx="${globalIdx}"
                 data-group-idx="${groupIdx}"
+                data-planned="${isPlanned ? 'true' : 'false'}"
                 ${isPlanned ? 'checked' : ''}
                 onchange="handleParticipantToggle(${globalIdx})"
                 class="participant-checkbox w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
@@ -1847,6 +1931,7 @@
                 oninput="recalculateShiftPreview()"
                 class="hidden w-28 rounded-lg border border-brand-400 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200" />
             </div>
+            ${absenceControlsHtml}
           `;
 
           bodyEl.appendChild(row);
@@ -1870,9 +1955,35 @@
 
     /**
      * 業務日（シフト枠名プルダウン）が変更された際に Planned_Shifts を再取得してチェック状態を同期
+     * 「⚠️ 緊急・予定外業務（手動入力）」選択時は手動入力エリアを展開する (V5改修)
      */
     async function handleShiftDateChange() {
       const shiftDate = document.getElementById('shift-date').value;
+      const emergencyBox = document.getElementById('emergency-shift-inputs');
+      const emergencyDateInput = document.getElementById('emergency-shift-date');
+      const emergencyTitleInput = document.getElementById('emergency-shift-title');
+
+      if (shiftDate === '__EMERGENCY_MANUAL__') {
+        if (emergencyBox) emergencyBox.classList.remove('hidden');
+        if (emergencyDateInput) {
+          emergencyDateInput.required = true;
+          if (!emergencyDateInput.value) {
+            emergencyDateInput.value = getTodayDateString();
+          }
+        }
+        if (emergencyTitleInput) {
+          emergencyTitleInput.required = true;
+        }
+        APP_STATE.plannedMembersForDate = [];
+        renderGradeAccordionParticipants();
+        updatePlannedShiftBanner();
+        return;
+      }
+
+      if (emergencyBox) emergencyBox.classList.add('hidden');
+      if (emergencyDateInput) emergencyDateInput.required = false;
+      if (emergencyTitleInput) emergencyTitleInput.required = false;
+
       if (!shiftDate) {
         APP_STATE.plannedMembersForDate = [];
         renderGradeAccordionParticipants();
@@ -1892,7 +2003,15 @@
 
     function updatePlannedShiftBanner() {
       const banner = document.getElementById('planned-shifts-banner');
+      const shiftDate = document.getElementById('shift-date') ? document.getElementById('shift-date').value : '';
       const planned = APP_STATE.plannedMembersForDate;
+
+      if (shiftDate === '__EMERGENCY_MANUAL__') {
+        banner.className = 'bg-amber-50 ring-1 ring-amber-200 rounded-xl px-3.5 py-2.5 text-xs text-amber-900 font-medium';
+        banner.textContent = '⚠️ 緊急・予定外業務モード: 予定シフトの照合を行わず、実際に参加したメンバーの交通費・参加回数のみを記録します。';
+        return;
+      }
+
       if (planned.length === 0) {
         banner.className = 'bg-slate-50 rounded-xl px-3.5 py-2.5 text-xs text-slate-500';
         banner.textContent = '予定シフト登録なし（参加メンバーをリストから選択してください）';
@@ -1904,20 +2023,49 @@
 
     /**
      * 参加者チェックボックスのON/OFF切り替え
+     * 予定シフトメンバーのチェックを外した際は「欠席理由」プルダウンを動的に表示する (V5改修)
      */
     function handleParticipantToggle(idx) {
       const chk = document.getElementById(`chk-member-${idx}`);
       const controls = document.getElementById(`route-controls-${idx}`);
+      const absenceControls = document.getElementById(`absence-controls-${idx}`);
+
       if (chk && controls) {
         if (chk.checked) {
           controls.classList.remove('hidden');
           controls.classList.add('flex');
+          if (absenceControls) {
+            absenceControls.classList.add('hidden');
+            absenceControls.classList.remove('flex');
+          }
         } else {
           controls.classList.add('hidden');
           controls.classList.remove('flex');
+          if (absenceControls && chk.dataset.planned === 'true') {
+            absenceControls.classList.remove('hidden');
+            absenceControls.classList.add('flex');
+          }
         }
       }
       recalculateShiftPreview();
+    }
+
+    /**
+     * 欠席理由プルダウンの変更（「4. その他（自由記述）」選択時のみテキスト入力欄を表示） (V5追加)
+     */
+    function handleAbsenceReasonChange(idx) {
+      const selectEl = document.getElementById(`absence-reason-select-${idx}`);
+      const otherInput = document.getElementById(`absence-reason-other-${idx}`);
+      if (!selectEl || !otherInput) return;
+
+      if (selectEl.value === '4') {
+        otherInput.classList.remove('hidden');
+        otherInput.required = true;
+      } else {
+        otherInput.classList.add('hidden');
+        otherInput.required = false;
+        otherInput.value = '';
+      }
     }
 
     /**
@@ -2124,12 +2272,31 @@
     }
 
     /**
-     * 業務完了報告フォーム送信処理 (V5 複数イレギュラー請求配列対応)
+     * 業務完了報告フォーム送信処理 (V5 緊急・予定外業務対応 / 欠席理由必須ガード / 人数超過ソフトガード対応)
      */
     async function handleSubmitShiftReport(event) {
       event.preventDefault();
 
       const shiftDate = document.getElementById('shift-date').value;
+      const isEmergency = shiftDate === '__EMERGENCY_MANUAL__';
+      const emergencyDate = document.getElementById('emergency-shift-date')
+        ? document.getElementById('emergency-shift-date').value.trim()
+        : '';
+      const emergencyTitle = document.getElementById('emergency-shift-title')
+        ? document.getElementById('emergency-shift-title').value.trim()
+        : '';
+
+      if (isEmergency) {
+        if (!emergencyDate) {
+          showToast('緊急・予定外業務の「発生日」を入力してください。', 'error');
+          return;
+        }
+        if (!emergencyTitle) {
+          showToast('緊急・予定外業務の「用途・シフト名」を入力してください。', 'error');
+          return;
+        }
+      }
+
       const targetPerson = document.getElementById('shift-target-person').value.trim();
       const eventId = document.getElementById('shift-event-id').value.trim();
       const remarks = document.getElementById('shift-remarks').value.trim();
@@ -2176,6 +2343,49 @@
         return;
       }
 
+      // 予定シフトメンバーのチェックを外した場合、欠席理由の選択を必須とするバリデーション (V5 要件4)
+      const absenceReasonsPayload = [];
+      if (!isEmergency) {
+        const uncheckedPlannedBoxes = Array.from(
+          document.querySelectorAll('.participant-checkbox[data-planned="true"]:not(:checked)')
+        );
+        for (const chk of uncheckedPlannedBoxes) {
+          const idx = chk.dataset.idx;
+          const memberName = chk.dataset.name;
+          const reasonSelect = document.getElementById(`absence-reason-select-${idx}`);
+          const otherInput = document.getElementById(`absence-reason-other-${idx}`);
+          const reasonCode = reasonSelect ? reasonSelect.value : '';
+          const otherText = String(otherInput ? otherInput.value : '').trim();
+
+          if (!reasonCode) {
+            showToast(`予定シフトメンバー「${memberName}」の欠席理由を選択してください。`, 'error');
+            return;
+          }
+          if (reasonCode === '4' && !otherText) {
+            showToast(`予定シフトメンバー「${memberName}」の欠席理由（その他）を入力してください。`, 'error');
+            return;
+          }
+
+          absenceReasonsPayload.push({
+            name: memberName,
+            reason_code: reasonCode,
+            other_text: otherText
+          });
+        }
+      }
+
+      // 予定シフト人数を超過している場合の送信前ソフトガード (V5 要件5)
+      if (
+        !isEmergency &&
+        APP_STATE.plannedMembersForDate.length > 0 &&
+        checkedBoxes.length > APP_STATE.plannedMembersForDate.length
+      ) {
+        const ok = window.confirm(
+          '⚠️ 予定されていた人数より多くの参加者が選択されています。代打や追加メンバーの交通費処理に間違いがないか確認してください（※名簿外の人が来た場合は『イレギュラー請求』に入力してください）。このまま送信してよろしいですか？'
+        );
+        if (!ok) return;
+      }
+
       const participantsPayload = [];
       for (const chk of checkedBoxes) {
         const idx = chk.dataset.idx;
@@ -2208,8 +2418,12 @@
       try {
         const result = await callGasRpc('submitShiftReport', {
           shift_date: shiftDate,
+          is_emergency: isEmergency,
+          emergency_date: emergencyDate,
+          emergency_title: emergencyTitle,
           target_person: targetPerson,
           participants: participantsPayload,
+          absence_reasons: absenceReasonsPayload,
           irregular_claims: irregularClaimsPayload,
           irregular_note: irregularClaimsPayload.map(c => c.note).join(' / '),
           irregular_amount: totalIrregularAmount,
@@ -2219,6 +2433,10 @@
 
         showToast(`報告が完了しました！照合番号: ${result.payment_id}`, 'success');
         document.getElementById('shift-remarks').value = '';
+        if (isEmergency) {
+          const emergencyTitleInput = document.getElementById('emergency-shift-title');
+          if (emergencyTitleInput) emergencyTitleInput.value = '';
+        }
         initIrregularClaimsRows();
         openLineModal(result);
       } catch (err) {
@@ -2958,7 +3176,7 @@
         <div class="relative">
           <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
             <label class="block text-xs font-bold text-slate-700">
-              🔍 名簿から検索追加
+              🔍 立候補者を名簿から検索追加
             </label>
             <div class="flex items-center gap-2">
               <button type="button" onclick="insertPenaltyHoldersToBlock(${blockId})" class="text-[11px] font-semibold text-rose-600 hover:underline">
@@ -2988,13 +3206,12 @@
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1.5">
-            応募者名リスト（改行・読点区切り） <span class="text-rose-500">*</span>
+            立候補者（確定メンバー）の入力（改行・読点区切り / 空欄可）
           </label>
           <textarea
             id="lottery-candidates-${blockId}"
             rows="4"
-            required
-            placeholder="上の検索欄からクリックして追加するか、直接名前を入力してください"
+            placeholder="LINE等での自発的な立候補者（無条件で確定）を入力してください。定員に満たない不足枠（立候補0名の場合は全枠）は、Users名簿全体からペナルティ保有者優先・直近不参加者優先で自動補填されます。"
             class="lottery-block-candidates w-full rounded-xl border border-slate-200 bg-white p-3 text-xs sm:text-sm font-mono focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none">${escapeHtml(initialCandidates)}</textarea>
         </div>
       `;
@@ -3055,7 +3272,7 @@
         return;
       }
 
-      // すでに応募者欄に入っているメンバーは「追加済」表示にするためセット化
+      // すでに立候補者欄に入っているメンバーは「追加済」表示にするためセット化
       const currentLines = String(textareaEl ? textareaEl.value : '')
         .split(/[\r\n,、]+/)
         .map(s => normalizeNameClient(s))
@@ -3117,7 +3334,7 @@
     }
 
     /**
-     * サジェスト候補をクリックした際に応募者テキストエリアへ名前＋改行を自動挿入する (V5新設)
+     * サジェスト候補をクリックした際に立候補者テキストエリアへ名前＋改行を自動挿入する (V5新設)
      * @param {number} blockId
      * @param {string} memberName
      */
@@ -3135,11 +3352,11 @@
 
       const alreadyExists = existingNames.some(n => normalizeNameClient(n) === targetNorm);
       if (alreadyExists) {
-        showToast(`「${memberName}」はすでにこの日程の応募者欄に入力されています。`, 'info');
+        showToast(`「${memberName}」はすでにこの日程の立候補者欄に入力されています。`, 'info');
       } else {
         const currentVal = textarea.value.trim();
         textarea.value = currentVal ? `${currentVal}\n${memberName}\n` : `${memberName}\n`;
-        showToast(`「${memberName}」を応募者欄に追加しました。`, 'success');
+        showToast(`「${memberName}」を立候補者（確定メンバー）に追加しました。`, 'success');
       }
 
       if (inputEl) {
@@ -3197,11 +3414,11 @@
       });
 
       textarea.value = existingLines.length > 0 ? `${existingLines.join('\n')}\n` : '';
-      showToast(`ペナルティ保有者 ${addedCount} 名を応募者欄に追加しました。`, 'info');
+      showToast(`ペナルティ保有者 ${addedCount} 名を立候補者欄に追加しました。`, 'info');
     }
 
     /**
-     * 指定した日程ブロックの応募者欄をクリアする
+     * 指定した日程ブロックの立候補者欄をクリアする
      * @param {number} blockId
      */
     function clearBlockCandidates(blockId) {
@@ -3210,7 +3427,7 @@
     }
 
     /**
-     * 全日程ブロックのデータを配列にまとめ、drawMultipleShiftsLottery API を呼び出す (V5改修)
+     * 全日程ブロックのデータを配列にまとめ、drawMultipleShiftsLottery API を呼び出す (V5 抜本改修: 立候補0名でもOK)
      */
     async function handleRunShiftLottery(event) {
       event.preventDefault();
@@ -3233,11 +3450,7 @@
         const rawCandidates = String(candidatesInput ? candidatesInput.value : '').trim();
 
         if (!shiftDate) {
-          showToast(`日程 #${i + 1} の対象シフト日を選択してください。`, 'error');
-          return;
-        }
-        if (!rawCandidates) {
-          showToast(`日程 #${i + 1}（${shiftDate}）の応募者を1名以上入力してください。`, 'error');
+          showToast(`日程 #${i + 1} の対象シフト日・シフト枠名を入力してください。`, 'error');
           return;
         }
 
@@ -3251,7 +3464,7 @@
       const registerToSheets = document.getElementById('lottery-register-planned').checked;
       const btn = document.getElementById('btn-run-lottery');
       btn.disabled = true;
-      showLoader(`全 ${shiftsPayload.length} 日程の優先度スコア計算と一括抽選を実行しています...`);
+      showLoader(`全 ${shiftsPayload.length} 日程の立候補者確定＆不足枠の自動割当抽選を実行しています...`);
 
       try {
         const result = await callGasRpc('drawMultipleShiftsLottery', {
@@ -3264,7 +3477,7 @@
 
         if (result.registered_to_sheets) {
           showToast(
-            `全 ${result.total_shifts} 日程の抽選が完了し、Planned_Shifts と Shift_Calendar（横並び表）へ出力しました！`,
+            `全 ${result.total_shifts} 日程の割当が完了し、Planned_Shifts と Shift_Calendar（横並び表）へ出力しました！`,
             'success'
           );
           // 業務完了報告タブの「業務日（シフト枠名）」プルダウン選択肢を最新に更新
@@ -3273,7 +3486,7 @@
           populateShiftSlotSelector();
           await handleShiftDateChange();
         } else {
-          showToast(`全 ${result.total_shifts} 日程の抽選シミュレーションが完了しました！`, 'success');
+          showToast(`全 ${result.total_shifts} 日程の割当シミュレーションが完了しました！`, 'success');
         }
       } catch (err) {
         showToast(err.message || '一括抽選処理に失敗しました。', 'error');
@@ -3296,9 +3509,9 @@
       const shifts = Array.isArray(result.shifts) ? result.shifts : [];
 
       const regText = result.registered_to_sheets
-        ? ' / ✅ Planned_Shifts（縦積み）& Shift_Calendar（A列:シフト枠名 / B列以降:当選者名）へ出力済'
+        ? ' / ✅ Planned_Shifts（縦積み）& Shift_Calendar（A列:シフト枠名 / B列以降:確定メンバー名）へ出力済'
         : ' / ※シート未保存（プレビューのみ）';
-      meta.textContent = `抽選日程数: ${shifts.length} 日程 / 直近2カ月集計基準日: ${result.cutoff_date} 以降${regText}`;
+      meta.textContent = `対象日程数: ${shifts.length} 日程 / 直近2カ月集計基準日: ${result.cutoff_date} 以降${regText}`;
 
       // 1. Shift_Calendar 横並びマトリックスプレビューの構築（A列: シフト枠名、B列以降: 当選者の名前が横へ伸びる形式）
       const maxWinners = Math.max(
@@ -3308,7 +3521,7 @@
 
       let winnerHeadersHtml = '';
       for (let c = 1; c <= maxWinners; c++) {
-        winnerHeadersHtml += `<th class="py-2.5 px-3 border-r border-slate-700 last:border-r-0 whitespace-nowrap text-center">当選者 ${c}</th>`;
+        winnerHeadersHtml += `<th class="py-2.5 px-3 border-r border-slate-700 last:border-r-0 whitespace-nowrap text-center">メンバー ${c}</th>`;
       }
 
       let calendarTableHtml = `
@@ -3352,14 +3565,30 @@
         const rankedList = Array.isArray(s.all_ranked) ? s.all_ranked : [];
         const rowsHtml = rankedList
           .map(item => {
-            const rowStyle = item.is_winner ? 'bg-emerald-50/80 font-semibold' : 'bg-white text-slate-500';
-            const badge = item.is_winner
-              ? '<span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[11px]">当選</span>'
-              : '<span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 font-bold text-[11px]">補欠</span>';
+            const isVolunteer = item.selection_type === 'volunteer';
+            const rowStyle = item.is_winner
+              ? isVolunteer
+                ? 'bg-brand-50/80 font-semibold'
+                : 'bg-emerald-50/80 font-semibold'
+              : 'bg-white text-slate-500';
+
+            let badge = '';
+            if (item.is_winner) {
+              badge = isVolunteer
+                ? '<span class="px-2 py-0.5 rounded-full bg-brand-600 text-white font-extrabold text-[11px]">立候補(確定)</span>'
+                : '<span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[11px]">システム割当</span>';
+            } else {
+              badge = '<span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 font-bold text-[11px]">補欠</span>';
+            }
 
             const sb = item.score_breakdown || {};
-            const inBatchDed = sb.in_batch_deduction ? ` / バッチ内当選${sb.in_batch_deduction}` : '';
-            const breakdownStr = `基礎${sb.base || 100} / ペナルティ+${sb.penalty_bonus || 0} / 直近${sb.recent_2m_deduction || 0}${inBatchDed} / 累計${sb.cumulative_deduction || 0} / 乱数+${sb.random_tie_breaker || 0}`;
+            let breakdownStr = '';
+            if (isVolunteer || sb.note) {
+              breakdownStr = sb.note || '立候補により無条件確定';
+            } else {
+              const inBatchDed = sb.in_batch_deduction ? ` / バッチ内当選${sb.in_batch_deduction}` : '';
+              breakdownStr = `基礎${sb.base || 100} / ペナルティ+${sb.penalty_bonus || 0} / 直近${sb.recent_2m_deduction || 0}${inBatchDed} / 累計${sb.cumulative_deduction || 0} / 乱数+${sb.random_tie_breaker || 0}`;
+            }
 
             return `
               <tr class="${rowStyle}">
@@ -3376,7 +3605,7 @@
                 </td>
                 <td class="py-2 px-2 text-right whitespace-nowrap">${item.reward_points} 回</td>
                 <td class="py-2 px-2 text-right whitespace-nowrap">
-                  <span class="font-extrabold text-brand-700">${item.score} pt</span>
+                  <span class="font-extrabold text-brand-700">${isVolunteer ? '確定' : `${item.score} pt`}</span>
                   <div class="text-[10px] text-slate-400 font-normal">${escapeHtml(breakdownStr)}</div>
                 </td>
               </tr>
@@ -3384,24 +3613,29 @@
           })
           .join('');
 
+        const volCount = Number(s.volunteer_count !== undefined ? s.volunteer_count : 0);
+        const assignedCount = Number(s.assigned_count !== undefined ? s.assigned_count : 0);
+
         card.innerHTML = `
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="text-xs sm:text-sm font-extrabold text-slate-900">
               📌 日程 #${sIdx + 1}: ${escapeHtml(s.shift_date)}
-              <span class="ml-2 text-xs font-semibold text-slate-500">（当選 ${s.winner_count} 名 / 応募 ${s.total_candidates} 名）</span>
+              <span class="ml-2 text-xs font-semibold text-slate-500">
+                （確定 ${s.winner_count} 名 ＝ 立候補 ${volCount} 名 ＋ システム自動割当 ${assignedCount} 名）
+              </span>
             </div>
           </div>
           <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
             <table class="w-full text-left border-collapse text-xs">
               <thead>
                 <tr class="border-b border-slate-200 bg-slate-100/70 text-slate-600">
-                  <th class="py-2 px-2">結果</th>
+                  <th class="py-2 px-2">区分</th>
                   <th class="py-2 px-2">順位</th>
                   <th class="py-2 px-2">氏名 (学年)</th>
                   <th class="py-2 px-2 text-right">ペナルティ</th>
                   <th class="py-2 px-2 text-right">直近2カ月参加</th>
                   <th class="py-2 px-2 text-right">累計参加</th>
-                  <th class="py-2 px-2 text-right">合計スコア (内訳)</th>
+                  <th class="py-2 px-2 text-right">優先度スコア (内訳)</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
@@ -3424,7 +3658,7 @@
         const winners = (s.winners || []).map(w => `・${w.name} (${w.grade})`);
         const waitlist = (s.waitlist || []).map((w, i) => `${i + 1}. ${w.name}`);
         const lines = [
-          `📅 【${s.shift_date}】 (当選 ${winners.length}名)`,
+          `📅 【${s.shift_date}】 (確定 ${winners.length}名)`,
           winners.join('\n') || '・該当なし'
         ];
         if (waitlist.length > 0) {
@@ -3433,17 +3667,17 @@
         return lines.join('\n');
       });
 
-      const fullText = `【DWC シフト抽選結果】\n\n${blocksText.join('\n\n')}`;
+      const fullText = `【DWC シフト割当結果】\n\n${blocksText.join('\n\n')}`;
       try {
         await navigator.clipboard.writeText(fullText);
-        showToast('全日程の当選者リストをクリップボードにコピーしました！', 'success');
+        showToast('全日程の確定メンバーリストをクリップボードにコピーしました！', 'success');
       } catch (_) {
         showToast('コピーに失敗しました。', 'error');
       }
     }
 
     // -------------------------------------------------------------------------
-    // 7-4. Adminコントロールパネル (権限変更・LINE URL設定・学年一括繰り上げ・全セッション強制切断)
+    // 7-4. Adminコントロールパネル (権限変更・LINE URL設定・ペナルティ手動調整・学年一括繰り上げ・全セッション強制切断)
     // -------------------------------------------------------------------------
 
     window.loadAdminControlPanel = async function() {
@@ -3499,16 +3733,42 @@
 
     function renderControlPanelMembers() {
       const selectEl = document.getElementById('ctrl-user-select');
+      const penaltySelectEl = document.getElementById('ctrl-penalty-user-select');
       const specialBox = document.getElementById('ctrl-special-members-box');
       if (!selectEl || !specialBox) return;
 
+      const prevRoleVal = selectEl.value;
+      const prevPenaltyVal = penaltySelectEl ? penaltySelectEl.value : '';
+
       selectEl.innerHTML = '<option value="">-- 名簿からメンバーを選択 --</option>';
+      if (penaltySelectEl) {
+        penaltySelectEl.innerHTML = '<option value="">-- 名簿からメンバーを選択 --</option>';
+      }
+
       APP_STATE.usersList.forEach((u, idx) => {
         const opt = document.createElement('option');
         opt.value = String(idx);
         opt.textContent = `[${u.role}] ${u.name} (${u.grade || '未設定'}) ${u.email ? '- ' + u.email : ''}`;
         selectEl.appendChild(opt);
+
+        if (penaltySelectEl) {
+          const pOpt = document.createElement('option');
+          pOpt.value = String(idx);
+          const pCount = Number(u.penalty_points || 0);
+          pOpt.textContent = `${u.name} (${u.grade || '未設定'}) — 現在ペナルティ: ${pCount} 回`;
+          penaltySelectEl.appendChild(pOpt);
+        }
       });
+
+      if (prevRoleVal !== '' && APP_STATE.usersList[Number(prevRoleVal)]) {
+        selectEl.value = prevRoleVal;
+      }
+      if (penaltySelectEl) {
+        if (prevPenaltyVal !== '' && APP_STATE.usersList[Number(prevPenaltyVal)]) {
+          penaltySelectEl.value = prevPenaltyVal;
+        }
+        handlePenaltyUserSelectChange();
+      }
 
       // Member (要確認) と Admin のメンバーをピックアップ表示
       const pendingUsers = APP_STATE.usersList.filter(u => u.role === 'Member (要確認)');
@@ -3558,6 +3818,67 @@
       }
 
       specialBox.innerHTML = html;
+    }
+
+    /**
+     * ペナルティ手動調整用プルダウンの選択変更時に現在のペナルティ回数を表示する (V5 要件3)
+     */
+    function handlePenaltyUserSelectChange() {
+      const selectEl = document.getElementById('ctrl-penalty-user-select');
+      const displayEl = document.getElementById('ctrl-current-penalty-display');
+      if (!selectEl || !displayEl) return;
+
+      const idx = selectEl.value;
+      if (idx === '' || !APP_STATE.usersList[Number(idx)]) {
+        displayEl.textContent = '- 回';
+        displayEl.className = 'text-base font-extrabold text-slate-500';
+        return;
+      }
+
+      const user = APP_STATE.usersList[Number(idx)];
+      const pCount = Number(user.penalty_points || 0);
+      displayEl.textContent = `${pCount} 回`;
+      displayEl.className =
+        pCount > 0 ? 'text-base font-extrabold text-rose-600' : 'text-base font-extrabold text-slate-900';
+    }
+
+    /**
+     * メンバーのペナルティ回数を手動調整する（+1 追加 / -1 減算 / 0 にリセット） (V5 要件3: adjustUserPenalty)
+     * @param {'increment'|'decrement'|'reset'} operation
+     */
+    async function handleAdjustUserPenalty(operation) {
+      const selectEl = document.getElementById('ctrl-penalty-user-select');
+      if (!selectEl || selectEl.value === '') {
+        showToast('ペナルティを調整する対象メンバーを選択してください。', 'error');
+        return;
+      }
+
+      const user = APP_STATE.usersList[Number(selectEl.value)];
+      if (!user) return;
+
+      if (operation === 'reset') {
+        const ok = window.confirm(`「${user.name}」のペナルティ回数（現在 ${Number(user.penalty_points || 0)} 回）を 0 回にリセットしますか？`);
+        if (!ok) return;
+      }
+
+      showLoader(`「${user.name}」のペナルティ回数を更新しています...`);
+      try {
+        const res = await callGasRpc('adjustUserPenalty', {
+          row_index: user.row_index,
+          target_name: user.name,
+          operation: operation
+        });
+
+        showToast(
+          `「${res.name}」のペナルティ回数を ${res.old_penalty} 回 → ${res.new_penalty} 回に更新しました。`,
+          'success'
+        );
+        await loadAdminControlPanel();
+      } catch (err) {
+        showToast(err.message || 'ペナルティ回数の更新に失敗しました。', 'error');
+      } finally {
+        hideLoader();
+      }
     }
 
     function handleControlUserSelectChange() {
