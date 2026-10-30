@@ -81,22 +81,17 @@
   <!-- ===================================================================== -->
   <div id="line-modal" class="hidden fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
-      <div class="flex items-center justify-between mb-3">
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-          報告完了・未決済起票済
+      <div class="flex items-start justify-between mb-3 gap-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-500">
+          管理番号: <span id="modal-payment-id" class="ml-1 font-mono">0000</span>
         </span>
         <button type="button" onclick="closeLineModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold leading-none">&times;</button>
       </div>
-      <h3 class="text-lg font-bold text-slate-900 mb-1">照合番号が発行されました</h3>
+      <h3 class="text-lg font-bold text-slate-900 mb-1">✅ 会計への請求データを作成しました</h3>
+      <p id="modal-total-amount" class="text-sm font-semibold text-slate-600 mb-2">合計請求額: ¥0</p>
       <p class="text-xs text-slate-500 mb-4">
         下のボタンで報告テキストをコピーし、会計担当の公式LINE等へそのまま貼り付けて送信してください。
       </p>
-
-      <div class="bg-brand-50 border border-brand-200 rounded-xl p-3 mb-4 text-center">
-        <div class="text-xs text-brand-700 font-semibold">4桁の照合番号 (payment_id)</div>
-        <div id="modal-payment-id" class="text-3xl font-extrabold tracking-widest text-brand-800 mt-0.5">0000</div>
-        <div id="modal-total-amount" class="text-xs font-bold text-slate-600 mt-1">合計請求額: ¥0</div>
-      </div>
 
       <label class="block text-xs font-semibold text-slate-600 mb-1">LINE送信メッセージ（自動生成）</label>
       <textarea id="modal-line-text" readonly rows="8" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700 font-mono focus:outline-none mb-4"></textarea>
@@ -132,50 +127,12 @@
       </div>
     </div>
 
-    <!-- ナビゲーションタブ (スマホ対応・横スクロールなし3タブ構成 + Admin統合メニュー) -->
-    <nav id="main-nav" class="hidden max-w-4xl mx-auto px-3 sm:px-4 border-t border-slate-100 bg-slate-50/80">
-      <div class="grid grid-cols-2 sm:flex sm:items-center gap-1.5 py-2" id="main-nav-bar">
-        <button type="button" id="tab-btn-shift" onclick="switchTab('shift')" class="tab-btn flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition">
-          <span>📝 業務完了報告</span>
-        </button>
-        <button type="button" id="tab-btn-leaderboard" onclick="switchTab('leaderboard')" class="tab-btn flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition">
-          <span>🏆 ランキング</span>
-        </button>
-
-        <!-- Admin専用統合メニュー（Adminログイン時のみ表示・スマホでも横スクロール不要） -->
-        <div id="admin-nav-wrapper" class="hidden relative col-span-2 sm:col-span-1 sm:ml-auto">
-          <button type="button" id="tab-btn-admin-menu" onclick="toggleAdminNavMenu(event)"
-            class="w-full sm:w-auto flex items-center justify-center sm:justify-between gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition border border-slate-200/80 bg-white text-slate-700 hover:bg-slate-100 shadow-2xs">
-            <span id="admin-menu-current-label">⚙️ 幹部メニュー</span>
-            <svg id="admin-menu-chevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          <!-- Admin機能ドロップダウンパネル -->
-          <div id="admin-nav-dropdown" class="hidden absolute right-0 left-0 sm:left-auto sm:w-60 mt-1.5 bg-white rounded-2xl shadow-xl ring-1 ring-slate-200 p-1.5 z-40 space-y-1">
-            <button type="button" id="tab-btn-admin-dashboard" onclick="switchTab('admin-dashboard')" class="tab-btn hidden w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition">
-              <span>📊 会計・予実ダッシュボード</span>
-            </button>
-            <button type="button" id="tab-btn-admin-direct" onclick="switchTab('admin-direct')" class="tab-btn hidden w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition">
-              <span>✍️ 直接記帳（経費・収入）</span>
-            </button>
-            <button type="button" id="tab-btn-admin-lottery" onclick="switchTab('admin-lottery')" class="tab-btn hidden w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition">
-              <span>🎲 シフト一括抽選</span>
-            </button>
-            <button type="button" id="tab-btn-admin-control" onclick="switchTab('admin-control')" class="tab-btn hidden w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition">
-              <span>🛠️ 管理パネル</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </nav>
   </header>
 
   <!-- ===================================================================== -->
   <!-- メインコンテンツ領域 -->
   <!-- ===================================================================== -->
-  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-6">
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 pt-5 pb-28">
 
     <!-- GAS API URL 未設定時の案内バナー -->
     <div id="gas-url-warning" class="hidden mb-5 bg-amber-50 border border-amber-300 rounded-2xl p-4 text-xs text-amber-900">
@@ -321,9 +278,79 @@
         現在 <strong>Member (要確認)</strong> として登録されています。通常の業務完了報告やランキング閲覧はそのままご利用いただけます。
       </div>
 
+      <!-- 管理タブ用サブナビ（幹部以上のみ・管理タブ表示中のみ表示） -->
+      <div id="admin-subnav" class="hidden -mt-2">
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar bg-white ring-1 ring-slate-200/80 rounded-2xl p-1.5 shadow-xs">
+          <button type="button" id="tab-btn-admin-dashboard" onclick="switchTab('admin-dashboard')" class="tab-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition">📊 会計</button>
+          <button type="button" id="tab-btn-admin-direct" onclick="switchTab('admin-direct')" class="tab-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition">✍️ 直接起票</button>
+          <button type="button" id="tab-btn-admin-lottery" onclick="switchTab('admin-lottery')" class="tab-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition">🎲 シフト抽選</button>
+          <button type="button" id="tab-btn-admin-control" onclick="switchTab('admin-control')" class="tab-btn hidden shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition">🛠️ システム管理</button>
+        </div>
+      </div>
+
       <!-- ================================================================= -->
-      <!-- TAB 1: 業務完了報告 & ルート別交通費請求 (学年別アコーディオンUI) -->
+      <!-- TAB 0: 🏠 ホーム（マイページ） -->
       <!-- ================================================================= -->
+      <section id="tab-home" class="tab-panel space-y-4">
+        <div class="bg-gradient-to-br from-brand-600 to-brand-800 text-white rounded-3xl p-5 shadow-md">
+          <div class="text-[11px] font-semibold text-white/70">ようこそ</div>
+          <div id="home-user-name" class="text-xl font-extrabold mt-0.5">-</div>
+          <div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
+            <span id="home-user-grade" class="px-2 py-0.5 rounded-full bg-white/20 font-bold">-</span>
+            <span id="home-user-role" class="px-2 py-0.5 rounded-full bg-white/15 font-semibold">-</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-white ring-1 ring-slate-200/80 rounded-2xl p-4 shadow-xs">
+            <div class="text-[11px] font-bold text-slate-500">業務参加回数</div>
+            <div class="mt-1 flex items-baseline gap-1">
+              <span id="home-reward-points" class="text-3xl font-extrabold text-brand-700">0</span>
+              <span class="text-xs font-semibold text-slate-400">回</span>
+            </div>
+          </div>
+          <div class="bg-white ring-1 ring-slate-200/80 rounded-2xl p-4 shadow-xs">
+            <div class="text-[11px] font-bold text-slate-500">ペナルティ回数</div>
+            <div class="mt-1 flex items-baseline gap-1">
+              <span id="home-penalty-points" class="text-3xl font-extrabold text-slate-900">0</span>
+              <span class="text-xs font-semibold text-slate-400">回</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white ring-1 ring-slate-200/80 rounded-2xl p-5 shadow-xs space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="text-sm font-bold text-slate-900">📅 あなたの次回のシフト予定</h3>
+            <button type="button" onclick="loadHome()" class="text-[11px] font-semibold text-brand-600 hover:underline">↻ 更新</button>
+          </div>
+          <div id="home-next-shifts" class="space-y-2">
+            <div class="text-xs text-slate-400">現在予定されているシフトはありません</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <button type="button" onclick="switchTab('shift')" class="py-3 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-xs transition active:scale-[0.99]">📝 業務を報告する</button>
+          <button type="button" onclick="switchTab('calendar')" class="py-3 rounded-2xl bg-white ring-1 ring-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-bold shadow-xs transition active:scale-[0.99]">📅 シフト表を見る</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB: 📅 シフト表（Shift_Calendar 閲覧・全メンバー） -->
+      <!-- ================================================================= -->
+      <section id="tab-calendar" class="tab-panel hidden space-y-4">
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">📅 シフト表</h2>
+              <p id="calendar-meta" class="text-[11px] text-slate-400 mt-0.5"></p>
+            </div>
+            <button type="button" onclick="loadShiftCalendarView()" class="shrink-0 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50">↻ 更新</button>
+          </div>
+          <div id="calendar-table-container" class="overflow-x-auto border border-slate-200 rounded-xl">
+            <div class="p-6 text-center text-xs text-slate-400">読み込み中...</div>
+          </div>
+        </div>
+      </section>
       <section id="tab-shift" class="tab-panel space-y-5">
         <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 sm:p-6 shadow-xs">
           <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
@@ -408,8 +435,17 @@
                   class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-xs focus:bg-white focus:border-brand-500 focus:outline-none" />
               </div>
 
-              <!-- 学年別アコーディオン描画コンテナ -->
-              <div id="participants-accordion-container" class="space-y-2">
+            <!-- 選択中のメンバー（チップ表示・✖で選択解除） -->
+            <div id="selected-members-box" class="hidden bg-brand-50/50 ring-1 ring-brand-200/70 rounded-2xl p-3 space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[11px] font-bold text-brand-900">選択中のメンバー <span id="selected-chips-count" class="font-extrabold">0</span> 名</span>
+              </div>
+              <div id="selected-chips-container" class="flex flex-wrap gap-1.5"></div>
+              <div id="absent-chips-container" class="flex flex-wrap gap-1.5"></div>
+            </div>
+
+            <!-- 学年別アコーディオン描画コンテナ -->
+            <div id="participants-accordion-container" class="space-y-2">
                 <!-- JSで grade ごとのアコーディオンを動的生成 -->
               </div>
             </div>
@@ -923,7 +959,7 @@
                 <span>ℹ️ 権限について</span>
               </summary>
               <div class="mt-1.5 text-xs text-slate-500 bg-slate-50 rounded-xl p-2.5">
-                名簿外から自動登録された「Member (要確認)」の正式承認や、次期幹部への「幹部」権限の付与・解除を行います。
+                名簿外から自動登録された「Member (要確認)」の正式承認や、次期幹部への「幹部」権限、または「システム管理者」権限の付与・解除を行います。
               </div>
             </details>
           </div>
@@ -943,7 +979,8 @@
                 <select id="ctrl-new-role" required
                   class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-bold focus:border-brand-600 focus:outline-none">
                   <option value="Member">Member (一般メンバー・正式承認)</option>
-                  <option value="Admin">幹部</option>
+                  <option value="Manager">幹部 (Manager)</option>
+                  <option value="System Admin">システム管理者 (System Admin)</option>
                   <option value="Member (要確認)">Member (要確認)</option>
                 </select>
               </div>
@@ -1086,6 +1123,29 @@
   </main>
 
   <!-- ===================================================================== -->
+  <!-- ボトムナビゲーション（スマホアプリ風・画面下部固定） -->
+  <!-- ===================================================================== -->
+  <nav id="main-nav" class="hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 shadow-[0_-4px_16px_rgba(15,23,42,0.06)]" style="padding-bottom: env(safe-area-inset-bottom);">
+    <div id="main-nav-bar" class="max-w-4xl mx-auto grid grid-flow-col auto-cols-fr">
+      <button type="button" id="tab-btn-home" onclick="switchTab('home')" class="tab-btn flex flex-col items-center justify-center gap-0.5 py-2 transition">
+        <span class="text-xl leading-none">🏠</span><span class="text-[10px] font-bold">ホーム</span>
+      </button>
+      <button type="button" id="tab-btn-calendar" onclick="switchTab('calendar')" class="tab-btn flex flex-col items-center justify-center gap-0.5 py-2 transition">
+        <span class="text-xl leading-none">📅</span><span class="text-[10px] font-bold">シフト表</span>
+      </button>
+      <button type="button" id="tab-btn-shift" onclick="switchTab('shift')" class="tab-btn flex flex-col items-center justify-center gap-0.5 py-2 transition">
+        <span class="text-xl leading-none">📝</span><span class="text-[10px] font-bold">報告</span>
+      </button>
+      <button type="button" id="tab-btn-leaderboard" onclick="switchTab('leaderboard')" class="tab-btn flex flex-col items-center justify-center gap-0.5 py-2 transition">
+        <span class="text-xl leading-none">🏆</span><span class="text-[10px] font-bold">ランキング</span>
+      </button>
+      <button type="button" id="tab-btn-admin-menu" onclick="switchTab(APP_STATE.lastAdminTab || 'admin-dashboard')" class="tab-btn hidden flex flex-col items-center justify-center gap-0.5 py-2 transition">
+        <span class="text-xl leading-none">⚙️</span><span class="text-[10px] font-bold">管理</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===================================================================== -->
   <!-- フロントエンド SPA ロジック (Headless GAS fetch 通信 & V4 Step 3 一般機能) -->
   <!-- ===================================================================== -->
   <script>
@@ -1111,8 +1171,31 @@
       ],
       adminLineUrl: 'https://line.me/ti/p/',
       plannedMembersForDate: [],
-      pendingLoginEmail: ''
+      pendingLoginEmail: '',
+      lastAdminTab: ''
     };
+
+    // =========================================================================
+    // 権限(Role) 3層ヘルパー: System Admin / Manager / Member (+ Member (要確認))
+    // ※値(role文字列)はバックエンドと同一。画面表示名のみ日本語化する。
+    // =========================================================================
+    function isSystemAdminRole(role) {
+      return role === 'System Admin';
+    }
+    function isManagerOrAboveRole(role) {
+      return role === 'System Admin' || role === 'Manager';
+    }
+    function currentUserIsSystemAdmin() {
+      return Boolean(APP_STATE.user && isSystemAdminRole(APP_STATE.user.role));
+    }
+    function currentUserIsManagerOrAbove() {
+      return Boolean(APP_STATE.user && isManagerOrAboveRole(APP_STATE.user.role));
+    }
+    function roleDisplayName(role) {
+      if (role === 'System Admin') return 'システム管理者';
+      if (role === 'Manager') return '幹部';
+      return role || '';
+    }
 
     /**
      * 実際に通信するGASエンドポイントURLを取得するヘルパー
@@ -1516,7 +1599,10 @@
 
       const badge = document.getElementById('header-role-badge');
       badge.classList.remove('hidden');
-      if (authContext.role === 'Admin') {
+      if (authContext.role === 'System Admin') {
+        badge.textContent = 'システム管理者';
+        badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800';
+      } else if (authContext.role === 'Manager') {
         badge.textContent = '幹部';
         badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
       } else if (authContext.role === 'Member (要確認)') {
@@ -1535,39 +1621,38 @@
         pendingBanner.classList.add('hidden');
       }
 
-      // Admin専用メニューラッパーとサブタブの表示切り替え
-      const adminWrapper = document.getElementById('admin-nav-wrapper');
-      if (adminWrapper) {
-        if (authContext.role === 'Admin') {
-          adminWrapper.classList.remove('hidden');
-        } else {
-          adminWrapper.classList.add('hidden');
-        }
+      // ボトムナビ「管理」タブ（Manager以上のみ）とサブナビの表示切り替え
+      const isManagerPlus = isManagerOrAboveRole(authContext.role);
+      const isSysAdmin = isSystemAdminRole(authContext.role);
+
+      const adminMenuBtnEl = document.getElementById('tab-btn-admin-menu');
+      if (adminMenuBtnEl) {
+        adminMenuBtnEl.classList.toggle('hidden', !isManagerPlus);
       }
 
-      const adminTabIds = [
-        'tab-btn-admin-dashboard',
-        'tab-btn-admin-direct',
-        'tab-btn-admin-lottery',
-        'tab-btn-admin-control'
-      ];
-      adminTabIds.forEach(id => {
+      const adminTabVisibility = {
+        'tab-btn-admin-dashboard': isManagerPlus,
+        'tab-btn-admin-direct': isManagerPlus,
+        'tab-btn-admin-lottery': isManagerPlus,
+        // システム管理パネルは System Admin のみ
+        'tab-btn-admin-control': isSysAdmin
+      };
+      Object.keys(adminTabVisibility).forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
-        if (authContext.role === 'Admin') {
-          el.classList.remove('hidden');
-        } else {
-          el.classList.add('hidden');
-        }
+        el.classList.toggle('hidden', !adminTabVisibility[id]);
       });
 
-      // Admin専用のスプレッドシート直接リンク設定 (V5追加)
-      if (authContext.role === 'Admin') {
+      // スプレッドシート直接リンク設定 (Manager以上)
+      if (isManagerPlus) {
         const ssUrl = authContext.spreadsheetUrl || (authContext.config && authContext.config.spreadsheetUrl) || '';
         syncAdminSpreadsheetLinks(ssUrl);
       } else {
         syncAdminSpreadsheetLinks('');
       }
+
+      // ホーム（マイページ）の初期描画
+      renderHomeView(authContext);
 
       // 代表受取人の初期値に自分の氏名をセット
       const targetPersonInput = document.getElementById('shift-target-person');
@@ -1590,12 +1675,121 @@
       populateShiftSlotSelector();
       await handleShiftDateChange();
 
-      // Step 4 で定義される Admin 初期化フックがあれば呼び出す
-      if (typeof window.onAdminAuthReady === 'function' && authContext.role === 'Admin') {
+      // Manager以上向けの初期化フックがあれば呼び出す
+      if (typeof window.onAdminAuthReady === 'function' && isManagerPlus) {
         window.onAdminAuthReady();
       }
 
-      switchTab('shift');
+      switchTab('home');
+    }
+
+    // =========================================================================
+    // 3-2. 🏠 ホーム（マイページ）: 氏名・学年・参加回数・ペナルティ・次回シフト予定
+    // =========================================================================
+
+    function renderHomeView(ctx) {
+      if (!ctx) return;
+      const setText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
+
+      setText('home-user-name', ctx.name || '-');
+      setText('home-user-grade', ctx.grade || '学年未設定');
+      setText('home-user-role', roleDisplayName(ctx.role) || 'Member');
+      setText('home-reward-points', String(Number(ctx.reward_points || 0)));
+
+      const penaltyCount = Number(ctx.penalty_points || 0);
+      const penaltyEl = document.getElementById('home-penalty-points');
+      if (penaltyEl) {
+        penaltyEl.textContent = String(penaltyCount);
+        penaltyEl.className = penaltyCount > 0
+          ? 'text-3xl font-extrabold text-rose-600'
+          : 'text-3xl font-extrabold text-slate-900';
+      }
+
+      const shiftsBox = document.getElementById('home-next-shifts');
+      if (shiftsBox) {
+        const shifts = Array.isArray(ctx.upcoming_shifts) ? ctx.upcoming_shifts : (ctx.next_shift ? [ctx.next_shift] : []);
+        if (shifts.length === 0) {
+          shiftsBox.innerHTML = '<div class="text-xs text-slate-400">現在予定されているシフトはありません</div>';
+        } else {
+          shiftsBox.innerHTML = shifts.map((s, i) => `
+            <div class="flex items-center gap-2.5 ${i === 0 ? 'bg-brand-50 ring-1 ring-brand-200' : 'bg-slate-50'} rounded-xl px-3.5 py-2.5">
+              <span class="text-base">${i === 0 ? '⭐' : '📌'}</span>
+              <span class="text-sm font-bold text-slate-800">${escapeHtml(s)}</span>
+              ${i === 0 ? '<span class="ml-auto text-[10px] font-bold text-brand-700">次回</span>' : ''}
+            </div>
+          `).join('');
+        }
+      }
+    }
+
+    /**
+     * ホームタブ表示時に getAuthContext を再取得して最新の参加回数・ペナルティ・次回シフトを反映する
+     */
+    async function loadHome() {
+      try {
+        const ctx = await callGasRpc('getAuthContext', {});
+        if (ctx && ctx.tokenValid && ctx.authenticated) {
+          APP_STATE.user = Object.assign({}, APP_STATE.user || {}, ctx);
+          renderHomeView(ctx);
+        }
+      } catch (err) {
+        showToast(err.message || 'マイページの更新に失敗しました。', 'error');
+      }
+    }
+
+    // =========================================================================
+    // 3-3. 📅 シフト表（Shift_Calendar 横並びマトリックス・全メンバー閲覧可）
+    // =========================================================================
+
+    async function loadShiftCalendarView() {
+      const container = document.getElementById('calendar-table-container');
+      const meta = document.getElementById('calendar-meta');
+      if (!container) return;
+      container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">読み込み中...</div>';
+
+      try {
+        const data = await callGasRpc('getShiftCalendar', {});
+        const rows = data && Array.isArray(data.rows) ? data.rows : [];
+        if (rows.length === 0) {
+          container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">確定済みのシフトはまだ登録されていません。</div>';
+          if (meta) meta.textContent = '';
+          return;
+        }
+
+        const maxMembers = Math.max(1, Number(data.max_members) || 1);
+        const myNorm = normalizeNameClient(APP_STATE.user ? APP_STATE.user.name : '');
+
+        let headHtml = '<th class="sticky left-0 z-10 bg-slate-900 py-2.5 px-3 whitespace-nowrap">シフト枠</th>';
+        for (let c = 1; c <= maxMembers; c++) {
+          headHtml += `<th class="py-2.5 px-3 whitespace-nowrap text-center">メンバー ${c}</th>`;
+        }
+
+        const bodyHtml = rows.map(r => {
+          const slot = r[0] || '';
+          let cells = '';
+          for (let c = 1; c <= maxMembers; c++) {
+            const name = r[c] || '';
+            const isMe = name && myNorm && normalizeNameClient(name) === myNorm;
+            cells += name
+              ? `<td class="py-2.5 px-3 whitespace-nowrap text-center ${isMe ? 'bg-brand-100 text-brand-800 font-extrabold' : 'text-slate-800 font-semibold'}">${escapeHtml(name)}${isMe ? ' ⭐' : ''}</td>`
+              : '<td class="py-2.5 px-3 text-center text-slate-300">-</td>';
+          }
+          return `<tr class="border-t border-slate-100"><td class="sticky left-0 z-10 bg-slate-100 py-2.5 px-3 whitespace-nowrap font-extrabold text-slate-900">${escapeHtml(slot)}</td>${cells}</tr>`;
+        }).join('');
+
+        container.innerHTML = `
+          <table class="w-full text-left border-collapse text-xs">
+            <thead><tr class="bg-slate-900 text-white font-bold">${headHtml}</tr></thead>
+            <tbody class="bg-white">${bodyHtml}</tbody>
+          </table>
+        `;
+        if (meta) meta.textContent = `全 ${rows.length} 日程 / ⭐ はあなたの担当です`;
+      } catch (err) {
+        container.innerHTML = `<div class="p-6 text-center text-xs text-rose-500">シフト表の取得に失敗しました: ${escapeHtml(err.message)}</div>`;
+      }
     }
 
     /**
@@ -1664,108 +1858,85 @@
     }
 
     // =========================================================================
-    // 4. タブ切り替え制御 & Admin統合メニュードロップダウン
+    // 4. ボトムナビゲーション タブ切り替え制御（3層権限ガード付き）
     // =========================================================================
 
-    const ADMIN_TAB_LABELS = {
-      'admin-dashboard': '📊 会計・予実',
-      'admin-direct': '✍️ 直接記帳',
-      'admin-lottery': '🎲 シフト抽選',
-      'admin-control': '🛠️ 管理パネル'
+    const NAV_TAB_KEYS = ['home', 'calendar', 'shift', 'leaderboard'];
+    const ADMIN_TAB_KEYS = ['admin-dashboard', 'admin-direct', 'admin-lottery', 'admin-control'];
+
+    const TAB_PANEL_IDS = {
+      'home': 'tab-home',
+      'calendar': 'tab-calendar',
+      'shift': 'tab-shift',
+      'leaderboard': 'tab-leaderboard',
+      'admin-dashboard': 'tab-admin-dashboard',
+      'admin-direct': 'tab-admin-direct',
+      'admin-lottery': 'tab-admin-lottery',
+      'admin-control': 'tab-admin-control'
     };
 
-    function toggleAdminNavMenu(event) {
-      if (event) event.stopPropagation();
-      const dropdown = document.getElementById('admin-nav-dropdown');
-      const chevron = document.getElementById('admin-menu-chevron');
-      if (!dropdown) return;
-      const isHidden = dropdown.classList.contains('hidden');
-      if (isHidden) {
-        dropdown.classList.remove('hidden');
-        if (chevron) chevron.classList.add('rotate-180');
-      } else {
-        closeAdminNavMenu();
-      }
-    }
-
-    function closeAdminNavMenu() {
-      const dropdown = document.getElementById('admin-nav-dropdown');
-      const chevron = document.getElementById('admin-menu-chevron');
-      if (dropdown) dropdown.classList.add('hidden');
-      if (chevron) chevron.classList.remove('rotate-180');
-    }
-
-    document.addEventListener('click', function (e) {
-      const wrapper = document.getElementById('admin-nav-wrapper');
-      if (wrapper && !wrapper.contains(e.target)) {
-        closeAdminNavMenu();
-      }
-    });
+    const NAV_BTN_ACTIVE = 'tab-btn flex flex-col items-center justify-center gap-0.5 py-2 transition text-brand-700 bg-brand-50';
+    const NAV_BTN_IDLE = 'tab-btn flex flex-col items-center justify-center gap-0.5 py-2 transition text-slate-400 hover:text-slate-600';
+    const SUBNAV_ACTIVE = 'tab-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition bg-brand-600 text-white shadow-xs';
+    const SUBNAV_IDLE = 'tab-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition text-slate-600 hover:bg-slate-100';
 
     function switchTab(tabName) {
-      closeAdminNavMenu();
-
-      const panels = {
-        'shift': document.getElementById('tab-shift'),
-        'leaderboard': document.getElementById('tab-leaderboard'),
-        'admin-dashboard': document.getElementById('tab-admin-dashboard'),
-        'admin-direct': document.getElementById('tab-admin-direct'),
-        'admin-lottery': document.getElementById('tab-admin-lottery'),
-        'admin-control': document.getElementById('tab-admin-control')
-      };
-
-      const buttons = {
-        'shift': document.getElementById('tab-btn-shift'),
-        'leaderboard': document.getElementById('tab-btn-leaderboard'),
-        'admin-dashboard': document.getElementById('tab-btn-admin-dashboard'),
-        'admin-direct': document.getElementById('tab-btn-admin-direct'),
-        'admin-lottery': document.getElementById('tab-btn-admin-lottery'),
-        'admin-control': document.getElementById('tab-btn-admin-control')
-      };
-
-      const isAdminRole = Boolean(APP_STATE.user && APP_STATE.user.role === 'Admin');
-
-      Object.keys(panels).forEach(key => {
-        if (!panels[key] || !buttons[key]) return;
-        const isSubAdmin = key.startsWith('admin-');
-
-        if (key === tabName) {
-          panels[key].classList.remove('hidden');
-          if (isSubAdmin) {
-            buttons[key].className = 'tab-btn w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition bg-brand-50 text-brand-700';
-          } else {
-            buttons[key].className = 'tab-btn flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-brand-600 text-white shadow-xs';
-          }
-        } else {
-          panels[key].classList.add('hidden');
-          if (isSubAdmin) {
-            buttons[key].className = 'tab-btn w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition text-slate-700 hover:bg-slate-100';
-            if (!isAdminRole) {
-              buttons[key].classList.add('hidden');
-            }
-          } else {
-            buttons[key].className = 'tab-btn flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-200/70';
-          }
-        }
-      });
-
-      // Admin統合メニュー親ボタンのアクティブ状態・ラベル更新
-      const adminMenuBtn = document.getElementById('tab-btn-admin-menu');
-      const adminMenuLabel = document.getElementById('admin-menu-current-label');
-      const adminMenuChevron = document.getElementById('admin-menu-chevron');
-      if (adminMenuBtn && adminMenuLabel) {
-        if (tabName.startsWith('admin-')) {
-          adminMenuLabel.textContent = `⚙️ ${ADMIN_TAB_LABELS[tabName] || '幹部メニュー'}`;
-          adminMenuBtn.className = 'w-full sm:w-auto flex items-center justify-center sm:justify-between gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-brand-600 text-white shadow-xs';
-          if (adminMenuChevron) adminMenuChevron.className = 'w-3.5 h-3.5 text-white/90 transition-transform duration-150';
-        } else {
-          adminMenuLabel.textContent = '⚙️ 幹部メニュー';
-          adminMenuBtn.className = 'w-full sm:w-auto flex items-center justify-center sm:justify-between gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition border border-slate-200/80 bg-white text-slate-700 hover:bg-slate-100 shadow-2xs';
-          if (adminMenuChevron) adminMenuChevron.className = 'w-3.5 h-3.5 text-slate-400 transition-transform duration-150';
+      // --- 権限ガード: 管理系タブは Manager 以上、システム管理パネルは System Admin のみ ---
+      if (ADMIN_TAB_KEYS.includes(tabName)) {
+        if (!currentUserIsManagerOrAbove()) {
+          showToast('この画面を表示する権限がありません。', 'error');
+          tabName = 'home';
+        } else if (tabName === 'admin-control' && !currentUserIsSystemAdmin()) {
+          showToast('システム管理パネルはシステム管理者のみ利用できます。', 'error');
+          tabName = 'admin-dashboard';
         }
       }
 
-      if (tabName === 'leaderboard') {
+      const isAdminTab = ADMIN_TAB_KEYS.includes(tabName);
+      if (isAdminTab) {
+        APP_STATE.lastAdminTab = tabName;
+      }
+
+      // パネルの表示切り替え
+      Object.keys(TAB_PANEL_IDS).forEach(key => {
+        const panel = document.getElementById(TAB_PANEL_IDS[key]);
+        if (!panel) return;
+        panel.classList.toggle('hidden', key !== tabName);
+      });
+
+      // ボトムナビ（下部固定）のアクティブ状態
+      NAV_TAB_KEYS.forEach(key => {
+        const btn = document.getElementById(`tab-btn-${key}`);
+        if (!btn) return;
+        btn.className = key === tabName ? NAV_BTN_ACTIVE : NAV_BTN_IDLE;
+      });
+
+      const adminMenuBtn = document.getElementById('tab-btn-admin-menu');
+      if (adminMenuBtn) {
+        const wasHidden = adminMenuBtn.classList.contains('hidden');
+        adminMenuBtn.className = (isAdminTab ? NAV_BTN_ACTIVE : NAV_BTN_IDLE) + (wasHidden ? ' hidden' : '');
+      }
+
+      // 管理サブナビ（幹部以上かつ管理タブ表示中のみ）
+      const subnav = document.getElementById('admin-subnav');
+      if (subnav) {
+        subnav.classList.toggle('hidden', !(isAdminTab && currentUserIsManagerOrAbove()));
+      }
+      ADMIN_TAB_KEYS.forEach(key => {
+        const btn = document.getElementById(`tab-btn-${key}`);
+        if (!btn) return;
+        const wasHidden = btn.classList.contains('hidden');
+        btn.className = (key === tabName ? SUBNAV_ACTIVE : SUBNAV_IDLE) + (wasHidden ? ' hidden' : '');
+      });
+
+      window.scrollTo({ top: 0, behavior: 'auto' });
+
+      // タブ別データ読み込み
+      if (tabName === 'home') {
+        loadHome();
+      } else if (tabName === 'calendar') {
+        loadShiftCalendarView();
+      } else if (tabName === 'leaderboard') {
         loadLeaderboard();
       } else if (tabName === 'admin-dashboard' && typeof window.loadAdminDashboard === 'function') {
         window.loadAdminDashboard();
@@ -1800,6 +1971,11 @@
      */
     function renderGradeAccordionParticipants() {
       const container = document.getElementById('participants-accordion-container');
+
+      // 再描画前にユーザーが手動で開いていた学年アコーディオンを記憶（自動展開はしない）
+      const previouslyOpenGrades = new Set(
+        Array.from(container.querySelectorAll('details.grade-accordion[open]')).map(d => d.dataset.gradeGroup)
+      );
       container.innerHTML = '';
 
       if (APP_STATE.usersList.length === 0) {
@@ -1838,11 +2014,12 @@
           plannedNormSet.has(normalizeNameClient(item.user.name))
         );
 
-        // <details> によるネイティブかつ高速なアコーディオン（予定シフト対象者がいる学年は初期展開）
+        // <details> によるネイティブかつ高速なアコーディオン
+        // ※スクロール地獄防止のため、予定シフト対象者がいても自動展開しない（ユーザーが手動で開いた状態のみ維持）
         const detailsEl = document.createElement('details');
         detailsEl.className = 'grade-accordion group bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs';
         detailsEl.dataset.gradeGroup = gradeKey;
-        if (hasPlannedInGroup || sortedGrades.length === 1) {
+        if (previouslyOpenGrades.has(gradeKey)) {
           detailsEl.open = true;
         }
 
@@ -2269,6 +2446,82 @@
       const grandTotal = regularAmount + irregularVal;
       document.getElementById('preview-participant-count').textContent = String(totalCount);
       document.getElementById('preview-total-amount').textContent = `¥${grandTotal.toLocaleString()}`;
+
+      renderSelectedMemberChips();
+    }
+
+    /**
+     * 「選択中のメンバー」チップ一覧を描画する（アコーディオン上部に常時表示）
+     * - 通常チップ: チェック済みメンバー（✖で選択解除）
+     * - 琥珀色チップ: 予定シフトだが未チェック（欠席理由の入力が必要）メンバー（タップで該当行を表示）
+     */
+    function renderSelectedMemberChips() {
+      const box = document.getElementById('selected-members-box');
+      const chipsEl = document.getElementById('selected-chips-container');
+      const absentEl = document.getElementById('absent-chips-container');
+      const countEl = document.getElementById('selected-chips-count');
+      if (!box || !chipsEl || !absentEl) return;
+
+      const checkboxes = Array.from(document.querySelectorAll('.participant-checkbox'));
+      const checked = checkboxes.filter(c => c.checked);
+      const absentPlanned = checkboxes.filter(c => !c.checked && c.dataset.planned === 'true');
+
+      if (countEl) countEl.textContent = String(checked.length);
+
+      if (checked.length === 0 && absentPlanned.length === 0) {
+        box.classList.add('hidden');
+        chipsEl.innerHTML = '';
+        absentEl.innerHTML = '';
+        return;
+      }
+      box.classList.remove('hidden');
+
+      chipsEl.innerHTML = checked.length === 0
+        ? '<span class="text-[11px] text-slate-400">選択中のメンバーはいません</span>'
+        : checked.map(c => `
+            <span class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full bg-white ring-1 ring-brand-300 text-xs font-bold text-brand-900 shadow-2xs">
+              ${escapeHtml(c.dataset.name)}
+              <button type="button" onclick="removeParticipantChip(${Number(c.dataset.idx)})"
+                title="選択を解除"
+                class="w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:bg-rose-100 hover:text-rose-600 transition">✖</button>
+            </span>
+          `).join('');
+
+      absentEl.innerHTML = absentPlanned.map(c => `
+        <button type="button" onclick="revealParticipantRow(${Number(c.dataset.idx)})"
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 ring-1 ring-amber-300 text-xs font-bold text-amber-900 hover:bg-amber-100 transition">
+          ${escapeHtml(c.dataset.name)} <span class="text-[10px] font-semibold text-amber-700">欠席理由を入力 ›</span>
+        </button>
+      `).join('');
+    }
+
+    /**
+     * チップの「✖」押下: チェックを外す（欠席理由プルダウン等の処理も handleParticipantToggle 経由で発火）
+     * 予定シフトメンバーの場合は、理由入力欄が見えるよう該当アコーディオンを開いて行までスクロールする
+     */
+    function removeParticipantChip(idx) {
+      const chk = document.getElementById(`chk-member-${idx}`);
+      if (!chk) return;
+      chk.checked = false;
+      handleParticipantToggle(idx);
+      if (chk.dataset.planned === 'true') {
+        revealParticipantRow(idx);
+      }
+    }
+
+    /**
+     * 指定メンバー行を含む学年アコーディオンを開き、行を画面中央へスクロールする
+     */
+    function revealParticipantRow(idx) {
+      const chk = document.getElementById(`chk-member-${idx}`);
+      if (!chk) return;
+      const detailsEl = chk.closest('details.grade-accordion');
+      if (detailsEl) detailsEl.open = true;
+      const row = chk.closest('.participant-row');
+      if (row) {
+        row.classList.remove('hidden');
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
 
     /**
@@ -2358,10 +2611,12 @@
           const otherText = String(otherInput ? otherInput.value : '').trim();
 
           if (!reasonCode) {
+            revealParticipantRow(idx);
             showToast(`予定シフトメンバー「${memberName}」の欠席理由を選択してください。`, 'error');
             return;
           }
           if (reasonCode === '4' && !otherText) {
+            revealParticipantRow(idx);
             showToast(`予定シフトメンバー「${memberName}」の欠席理由（その他）を入力してください。`, 'error');
             return;
           }
@@ -2483,7 +2738,7 @@
 
       try {
         const data = await callGasRpc('getLeaderboard');
-        const isAdminView = Boolean(data && data.is_admin_view && APP_STATE.user && APP_STATE.user.role === 'Admin');
+        const isAdminView = Boolean(data && data.is_admin_view && currentUserIsManagerOrAbove());
         const members = (data && Array.isArray(data.members)) ? data.members : [];
 
         // ヘッダー列の構築: 一般メンバーには「ペナルティ回数」の <th> を一切DOMに出力しない
@@ -2593,7 +2848,7 @@
     // -------------------------------------------------------------------------
 
     window.loadAdminDashboard = async function() {
-      if (!APP_STATE.user || APP_STATE.user.role !== 'Admin') return;
+      if (!currentUserIsManagerOrAbove()) return;
 
       const pendingContainer = document.getElementById('pending-list-container');
       const recentTbody = document.getElementById('recent-tx-tbody');
@@ -3681,7 +3936,7 @@
     // -------------------------------------------------------------------------
 
     window.loadAdminControlPanel = async function() {
-      if (!APP_STATE.user || APP_STATE.user.role !== 'Admin') return;
+      if (!currentUserIsSystemAdmin()) return;
 
       const adminLineInput = document.getElementById('ctrl-admin-line-url');
       if (adminLineInput) {
@@ -3748,7 +4003,7 @@
       APP_STATE.usersList.forEach((u, idx) => {
         const opt = document.createElement('option');
         opt.value = String(idx);
-        const roleLabel = u.role === 'Admin' ? '幹部' : u.role;
+        const roleLabel = roleDisplayName(u.role);
         opt.textContent = `[${roleLabel}] ${u.name} (${u.grade || '未設定'}) ${u.email ? '- ' + u.email : ''}`;
         selectEl.appendChild(opt);
 
@@ -3773,7 +4028,7 @@
 
       // Member (要確認) と Admin のメンバーをピックアップ表示
       const pendingUsers = APP_STATE.usersList.filter(u => u.role === 'Member (要確認)');
-      const adminUsers = APP_STATE.usersList.filter(u => u.role === 'Admin');
+      const adminUsers = APP_STATE.usersList.filter(u => isManagerOrAboveRole(u.role));
 
       let html = '';
       if (pendingUsers.length > 0) {
@@ -3938,8 +4193,8 @@
           new_role: newRole
         });
 
-        const oldRoleLabel = res.old_role === 'Admin' ? '幹部' : res.old_role;
-        const newRoleLabel = res.new_role === 'Admin' ? '幹部' : res.new_role;
+        const oldRoleLabel = roleDisplayName(res.old_role);
+        const newRoleLabel = roleDisplayName(res.new_role);
         showToast(`「${res.name}」の権限を ${oldRoleLabel} → ${newRoleLabel} に更新しました！`, 'success');
         await window.loadAdminControlPanel();
       } catch (err) {
