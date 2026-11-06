@@ -283,15 +283,16 @@
         現在 <strong>Member (要確認)</strong> として登録されています。通常の業務完了報告やランキング閲覧はそのままご利用いただけます。
       </div>
 
-      <!-- 管理タブ用サブナビ（幹部以上のみ・管理タブ表示中のみ表示） -->
+      <!-- 管理タブ用サブナビ（幹部以上のみ・管理タブ表示中のみ表示・折り返しタイル型グリッドメニュー） -->
       <div id="admin-subnav" class="hidden -mt-2">
-        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar bg-white ring-1 ring-slate-200/80 rounded-2xl p-1.5 shadow-xs">
-          <button type="button" id="tab-btn-admin-dashboard" onclick="switchTab('admin-dashboard')" class="tab-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition">📊 会計</button>
-          <button type="button" id="tab-btn-admin-budget" onclick="switchTab('admin-budget')" class="tab-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition">📋 イベント予算</button>
-          <button type="button" id="tab-btn-admin-direct" onclick="switchTab('admin-direct')" class="tab-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition">✍️ 直接起票</button>
-          <button type="button" id="tab-btn-admin-lottery" onclick="switchTab('admin-lottery')" class="tab-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition">🎲 シフト抽選</button>
-          <button type="button" id="tab-btn-admin-shift-edit" onclick="switchTab('admin-shift-edit')" class="tab-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition">✏️ シフト編集</button>
-          <button type="button" id="tab-btn-admin-control" onclick="switchTab('admin-control')" class="tab-btn hidden shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition">🛠️ システム管理</button>
+        <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-1.5 bg-white ring-1 ring-slate-200/80 rounded-2xl p-2 shadow-xs">
+          <button type="button" id="tab-btn-admin-dashboard" onclick="switchTab('admin-dashboard')" class="tab-btn flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">📊 会計</button>
+          <button type="button" id="tab-btn-admin-budget" onclick="switchTab('admin-budget')" class="tab-btn flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">📋 イベント予算</button>
+          <button type="button" id="tab-btn-admin-direct" onclick="switchTab('admin-direct')" class="tab-btn flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">✍️ 直接起票</button>
+          <button type="button" id="tab-btn-admin-lottery" onclick="switchTab('admin-lottery')" class="tab-btn flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">🎲 シフト抽選</button>
+          <button type="button" id="tab-btn-admin-shift-edit" onclick="switchTab('admin-shift-edit')" class="tab-btn flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">✏️ シフト編集</button>
+          <button type="button" id="tab-btn-admin-members" onclick="switchTab('admin-members')" class="tab-btn flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">👥 メンバー・バッジ</button>
+          <button type="button" id="tab-btn-admin-control" onclick="switchTab('admin-control')" class="tab-btn hidden flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">🛠️ システム管理</button>
         </div>
       </div>
 
@@ -383,7 +384,7 @@
               <p class="text-[11px] text-slate-400 mt-0.5">獲得済みのバッジをタップすると、あなたのメイン称号として設定できます</p>
             </div>
             <div class="flex items-center gap-2">
-              <span id="home-badges-count" class="px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 text-xs font-extrabold">0 / 0 獲得</span>
+              <span id="home-badges-count" class="px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 text-xs font-extrabold">0 個獲得中</span>
               <button id="btn-clear-selected-title" type="button" onclick="handleSelectMyTitle('')" class="hidden text-[11px] font-semibold text-slate-400 hover:text-rose-600 underline">称号を外す</button>
             </div>
           </div>
@@ -509,11 +510,17 @@
                 </div>
               </div>
 
-              <!-- 200名対応クイック検索フィルタ -->
-              <div class="mb-3">
-                <input id="participant-search" type="search" oninput="filterParticipantRows()"
-                  placeholder="🔍 氏名や学年でメンバーを検索..."
-                  class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-xs focus:bg-white focus:border-brand-500 focus:outline-none" />
+              <!-- 200名対応クイック検索 ＆ インタラクティブ・サジェスト即追加UI -->
+              <div class="relative mb-3">
+                <input id="participant-search" type="search" autocomplete="off"
+                  oninput="handleParticipantSearchInput()"
+                  onfocus="handleParticipantSearchInput()"
+                  onblur="hideSuggestListDelayed('participant-suggest-list')"
+                  placeholder="🔍 氏名や学年を入力してタップで即参加追加（例: 同志社 / 2回生）..."
+                  class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs sm:text-sm focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+                <div id="participant-suggest-list"
+                  class="hidden absolute left-0 right-0 z-30 mt-1 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
+                </div>
               </div>
 
             <!-- 選択中のメンバー（上部完結型：ルート変更・自由入力・✖欠席理由入力がここで完結） -->
@@ -1095,15 +1102,20 @@
             <!-- ② シフト枠の日程・名称変更 -->
             <div class="bg-white ring-1 ring-slate-200/80 rounded-2xl p-4 space-y-3">
               <div class="text-xs font-extrabold text-slate-800">2. シフト枠の日程・名称を変更</div>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
+              <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5 items-end">
                 <div class="min-w-0">
-                  <label class="block text-[11px] font-bold text-slate-600 mb-1">新しい日付 <span class="text-rose-500">*</span></label>
+                  <label class="block text-[11px] font-bold text-slate-600 mb-1">開始日 <span class="text-rose-500">*</span></label>
                   <input id="shift-edit-rename-date" type="date"
                     class="w-full box-border max-w-[100%] rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold focus:border-brand-600 focus:outline-none" />
                 </div>
                 <div class="min-w-0">
+                  <label class="block text-[11px] font-bold text-slate-600 mb-1">終了日（任意：宿泊時のみ選択）</label>
+                  <input id="shift-edit-rename-end-date" type="date"
+                    class="w-full box-border max-w-[100%] rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold focus:border-brand-600 focus:outline-none" />
+                </div>
+                <div class="min-w-0">
                   <label class="block text-[11px] font-bold text-slate-600 mb-1">補足ラベル（任意）</label>
-                  <input id="shift-edit-rename-label" type="text" placeholder="例: (宿泊) / 午後枠"
+                  <input id="shift-edit-rename-label" type="text" placeholder="例: 宿泊 / 午後枠"
                     class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-brand-600 focus:outline-none" />
                 </div>
                 <button type="button" onclick="handleRenameShiftSlot()"
@@ -1127,13 +1139,21 @@
               </div>
             </div>
 
-            <!-- ④ メンバーの手動追加（200名検索フィルタ付き） -->
+            <!-- ④ メンバーの手動追加（200名サジェスト検索フィルタ付き） -->
             <div class="bg-white ring-1 ring-slate-200/80 rounded-2xl p-4 space-y-3">
               <div class="text-xs font-extrabold text-slate-800">4. 代打・追加メンバーをこのシフト枠に入れる</div>
               <div class="space-y-2">
-                <input id="shift-edit-member-search" type="search" oninput="filterShiftEditMemberSelect()"
-                  placeholder="🔍 氏名・学年で追加メンバーを絞り込み検索..."
-                  class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-xs focus:bg-white focus:border-brand-500 focus:outline-none" />
+                <div class="relative">
+                  <input id="shift-edit-member-search" type="search" autocomplete="off"
+                    oninput="handleShiftEditSearchInput()"
+                    onfocus="handleShiftEditSearchInput()"
+                    onblur="hideSuggestListDelayed('shift-edit-suggest-list')"
+                    placeholder="🔍 氏名・学年を入力してタップで選択..."
+                    class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-xs focus:bg-white focus:border-brand-500 focus:outline-none" />
+                  <div id="shift-edit-suggest-list"
+                    class="hidden absolute left-0 right-0 z-30 mt-1 max-h-56 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
+                  </div>
+                </div>
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <select id="shift-edit-add-member-select"
                     class="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs sm:text-sm focus:border-brand-600 focus:outline-none">
@@ -1163,7 +1183,204 @@
       </section>
 
       <!-- ================================================================= -->
-      <!-- TAB 6: システム管理者専用 - コントロールパネル (権限・バッジ・進級・LINE URL・キルスイッチ) -->
+      <!-- TAB 6: 幹部・システム管理者用 - メンバー・バッジ管理 (次回優先カウント調整・バッジ作成/授与) -->
+      <!-- ================================================================= -->
+      <section id="tab-admin-members" class="tab-panel hidden space-y-5">
+
+        <!-- 管理パネル共通ヘッダー -->
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 px-5 py-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-slate-900">👥 メンバー・バッジ管理</h2>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="#" target="_blank" rel="noopener noreferrer"
+              class="admin-spreadsheet-link hidden inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold text-xs transition">
+              <span>📊 データベース（シート）を直接開く</span>
+              <span class="text-slate-400">↗</span>
+            </a>
+            <button type="button" onclick="loadAdminMembersTab()" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50">
+              ↻ 再読込
+            </button>
+          </div>
+        </div>
+
+        <!-- カード1: メンバーの次回優先カウント手動調整 -->
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs space-y-4">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <h3 class="text-sm sm:text-base font-bold text-slate-900">1. メンバーの次回優先カウント手動調整</h3>
+            <details>
+              <summary class="list-none inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer select-none">
+                <span>ℹ️ 使い方を見る</span>
+              </summary>
+              <div class="mt-1.5 text-xs text-slate-500 bg-slate-50 rounded-xl p-2.5">
+                名簿からメンバーを選択し、現在の次回優先カウントを確認した上で「+1 追加」「-1 減算」「0 にリセット」を手動で行えます。
+              </div>
+            </details>
+          </div>
+
+          <div class="bg-slate-50/70 ring-1 ring-slate-200/60 rounded-xl p-4 space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <div class="sm:col-span-2 min-w-0 space-y-1.5">
+                <label class="block text-xs font-bold text-slate-700">対象メンバーを選択</label>
+                <div class="relative">
+                  <input id="ctrl-penalty-user-search" type="search" autocomplete="off"
+                    oninput="handlePenaltyUserSearchInput()"
+                    onfocus="handlePenaltyUserSearchInput()"
+                    onblur="hideSuggestListDelayed('ctrl-penalty-suggest-list')"
+                    placeholder="🔍 氏名・学年を入力してタップで選択..."
+                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-brand-500 focus:outline-none" />
+                  <div id="ctrl-penalty-suggest-list"
+                    class="hidden absolute left-0 right-0 z-30 mt-1 max-h-56 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
+                  </div>
+                </div>
+                <select id="ctrl-penalty-user-select" onchange="handlePenaltyUserSelectChange()"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:outline-none">
+                  <option value="">-- 名簿からメンバーを選択 --</option>
+                </select>
+              </div>
+
+              <div class="bg-white ring-1 ring-slate-200/80 rounded-xl px-4 py-2.5 flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-500">現在の次回優先カウント</span>
+                <span id="ctrl-current-penalty-display" class="text-lg font-extrabold text-slate-900">-</span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <button type="button" id="btn-penalty-inc" onclick="handleAdjustUserPenalty('increment')"
+                class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-2xs transition active:scale-[0.99]">
+                ＋1 追加
+              </button>
+              <button type="button" id="btn-penalty-dec" onclick="handleAdjustUserPenalty('decrement')"
+                class="flex-1 sm:flex-none px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-[0.99]">
+                －1 減算
+              </button>
+              <button type="button" id="btn-penalty-reset" onclick="handleAdjustUserPenalty('reset')"
+                class="flex-1 sm:flex-none px-4 py-2 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs shadow-2xs transition active:scale-[0.99]">
+                0 にリセット
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- カード2: 🎖️ バッジ・称号の新規作成 ＆ 手動授与 / 剥奪 -->
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs space-y-5">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-slate-900">2. 🎖️ バッジ・称号の新規作成 ＆ 手動授与 / 剥奪</h3>
+              <p class="text-xs text-slate-500 mt-0.5">新しいバッジ（自動獲得または手動授与）の作成・編集と、特定メンバーへの特別称号の手動授与・剥奪を行います。</p>
+            </div>
+          </div>
+
+          <!-- (A) バッジマスタ新規作成 / 編集フォーム -->
+          <form id="badge-master-form" onsubmit="handleUpsertBadgeMaster(event)" class="bg-slate-50/70 ring-1 ring-slate-200/60 rounded-xl p-4 space-y-3">
+            <div class="text-xs font-extrabold text-slate-800">✨ 新規バッジ・称号の登録 / 更新</div>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">バッジID（空欄で自動採番）</label>
+                <input id="bm-badge-id" type="text" placeholder="例: summer_mvp_2026"
+                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-mono" />
+              </div>
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">絵文字アイコン <span class="text-rose-500">*</span></label>
+                <input id="bm-icon" type="text" required value="🏅" placeholder="例: 🏅 / 🔥 / 🏕️"
+                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-center" />
+              </div>
+              <div class="sm:col-span-2 min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">バッジ・称号名 <span class="text-rose-500">*</span></label>
+                <input id="bm-badge-name" type="text" required placeholder="例: 2026夏合宿MVP / 機材マスター"
+                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold" />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div class="sm:col-span-2 min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">獲得条件の説明テキスト</label>
+                <input id="bm-description" type="text" placeholder="例: 夏合宿で最も活躍したメンバーに授与"
+                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs" />
+              </div>
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">判定種別 (condition_type)</label>
+                <select id="bm-condition-type"
+                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold">
+                  <option value="manual">手動授与のみ (manual)</option>
+                  <option value="reward_count">累計参加回数 (reward_count)</option>
+                  <option value="game_score">焚き火最高スコア (game_score)</option>
+                  <option value="early_adopter">初期登録 (early_adopter)</option>
+                  <option value="grade">学年 (grade)</option>
+                </select>
+              </div>
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">条件値 (threshold)</label>
+                <input id="bm-threshold" type="text" value="0" placeholder="数値 または 4回生"
+                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-right font-bold" />
+              </div>
+            </div>
+            <div class="flex items-center justify-between gap-2 pt-1">
+              <span class="text-[11px] text-slate-400">※下の一覧をタップすると既存バッジを編集できます</span>
+              <button id="btn-save-badge-master" type="submit"
+                class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-xs transition">
+                バッジ定義を保存する
+              </button>
+            </div>
+          </form>
+
+          <!-- 登録済みバッジ一覧 -->
+          <div class="space-y-1.5">
+            <div class="text-xs font-bold text-slate-700">登録済みバッジマスタ一覧</div>
+            <div id="ctrl-badges-master-list" class="flex flex-wrap gap-2">
+              <!-- JSで描画 -->
+            </div>
+          </div>
+
+          <!-- (B) 特定メンバーへの手動バッジ授与・剥奪 -->
+          <div class="bg-amber-50/60 ring-1 ring-amber-200/80 rounded-xl p-4 space-y-3">
+            <div class="text-xs font-extrabold text-amber-900">🎁 メンバーへ手動バッジを授与 / 剥奪する</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="min-w-0 space-y-1.5">
+                <label class="block text-[11px] font-bold text-slate-700">対象メンバーを選択</label>
+                <div class="relative">
+                  <input id="ctrl-badge-user-search" type="search" autocomplete="off"
+                    oninput="handleBadgeUserSearchInput()"
+                    onfocus="handleBadgeUserSearchInput()"
+                    onblur="hideSuggestListDelayed('ctrl-badge-suggest-list')"
+                    placeholder="🔍 氏名・学年を入力してタップで選択..."
+                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-brand-500 focus:outline-none" />
+                  <div id="ctrl-badge-suggest-list"
+                    class="hidden absolute left-0 right-0 z-30 mt-1 max-h-56 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
+                  </div>
+                </div>
+                <select id="ctrl-badge-user-select" onchange="handleBadgeUserSelectChange()"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:outline-none">
+                  <option value="">-- メンバーを選択 --</option>
+                </select>
+              </div>
+              <div class="min-w-0 space-y-1.5">
+                <label class="block text-[11px] font-bold text-slate-700">授与・剥奪するバッジを選択</label>
+                <select id="ctrl-manual-badge-select"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-bold focus:border-brand-600 focus:outline-none">
+                  <option value="">-- バッジを選択 --</option>
+                </select>
+                <div id="ctrl-user-current-badges" class="text-[11px] text-slate-600 pt-1">
+                  選択メンバーの保有手動バッジ: -
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <button type="button" onclick="handleGrantManualBadge(false)"
+                class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs transition">
+                🎖️ このバッジを授与する
+              </button>
+              <button type="button" onclick="handleGrantManualBadge(true)"
+                class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition">
+                バッジを剥奪（解除）する
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 7: システム管理者専用 - コントロールパネル (権限・LINE URL・進級・キルスイッチ) -->
       <!-- ================================================================= -->
       <section id="tab-admin-control" class="tab-panel hidden space-y-5">
 
@@ -1202,9 +1419,17 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div class="sm:col-span-2 min-w-0 space-y-1.5">
                 <label class="block text-xs font-bold text-slate-700">対象メンバーを選択</label>
-                <input id="ctrl-role-user-search" type="search" oninput="filterControlRoleUserSelect()"
-                  placeholder="🔍 氏名・学年で絞り込む..."
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-brand-500 focus:outline-none" />
+                <div class="relative">
+                  <input id="ctrl-role-user-search" type="search" autocomplete="off"
+                    oninput="handleRoleUserSearchInput()"
+                    onfocus="handleRoleUserSearchInput()"
+                    onblur="hideSuggestListDelayed('ctrl-role-suggest-list')"
+                    placeholder="🔍 氏名・学年を入力してタップで選択..."
+                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-brand-500 focus:outline-none" />
+                  <div id="ctrl-role-suggest-list"
+                    class="hidden absolute left-0 right-0 z-30 mt-1 max-h-56 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
+                  </div>
+                </div>
                 <select id="ctrl-user-select" onchange="handleControlUserSelectChange()"
                   class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:outline-none">
                   <option value="">-- 名簿からメンバーを選択 --</option>
@@ -1273,169 +1498,14 @@
           </form>
         </div>
 
-        <!-- カード3: メンバーの次回優先カウント手動調整 -->
-        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs space-y-4">
-          <div class="flex items-center justify-between gap-2 flex-wrap">
-            <h3 class="text-sm sm:text-base font-bold text-slate-900">3. メンバーの次回優先カウント手動調整</h3>
-            <details>
-              <summary class="list-none inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer select-none">
-                <span>ℹ️ 使い方を見る</span>
-              </summary>
-              <div class="mt-1.5 text-xs text-slate-500 bg-slate-50 rounded-xl p-2.5">
-                名簿からメンバーを選択し、現在の次回優先カウントを確認した上で「+1 追加」「-1 減算」「0 にリセット」を手動で行えます。
-              </div>
-            </details>
-          </div>
-
-          <div class="bg-slate-50/70 ring-1 ring-slate-200/60 rounded-xl p-4 space-y-3">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-              <div class="sm:col-span-2 min-w-0 space-y-1.5">
-                <label class="block text-xs font-bold text-slate-700">対象メンバーを選択</label>
-                <input id="ctrl-penalty-user-search" type="search" oninput="filterControlPenaltyUserSelect()"
-                  placeholder="🔍 氏名・学年で絞り込む..."
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-brand-500 focus:outline-none" />
-                <select id="ctrl-penalty-user-select" onchange="handlePenaltyUserSelectChange()"
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:outline-none">
-                  <option value="">-- 名簿からメンバーを選択 --</option>
-                </select>
-              </div>
-
-              <div class="bg-white ring-1 ring-slate-200/80 rounded-xl px-4 py-2.5 flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-500">現在の次回優先カウント</span>
-                <span id="ctrl-current-penalty-display" class="text-lg font-extrabold text-slate-900">-</span>
-              </div>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2 pt-1">
-              <button type="button" id="btn-penalty-inc" onclick="handleAdjustUserPenalty('increment')"
-                class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-2xs transition active:scale-[0.99]">
-                ＋1 追加
-              </button>
-              <button type="button" id="btn-penalty-dec" onclick="handleAdjustUserPenalty('decrement')"
-                class="flex-1 sm:flex-none px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-[0.99]">
-                －1 減算
-              </button>
-              <button type="button" id="btn-penalty-reset" onclick="handleAdjustUserPenalty('reset')"
-                class="flex-1 sm:flex-none px-4 py-2 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs shadow-2xs transition active:scale-[0.99]">
-                0 にリセット
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- カード4: 🎖️ バッジ・称号の新規作成 ＆ 手動授与 -->
-        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs space-y-5">
-          <div class="flex items-center justify-between gap-2 flex-wrap">
-            <div>
-              <h3 class="text-sm sm:text-base font-bold text-slate-900">4. 🎖️ バッジ・称号の新規作成 ＆ 手動授与</h3>
-              <p class="text-xs text-slate-500 mt-0.5">新しいバッジ（自動獲得または手動授与）の作成・編集と、特定メンバーへの特別称号の手動授与・剥奪を行います。</p>
-            </div>
-          </div>
-
-          <!-- (A) バッジマスタ新規作成 / 編集フォーム -->
-          <form id="badge-master-form" onsubmit="handleUpsertBadgeMaster(event)" class="bg-slate-50/70 ring-1 ring-slate-200/60 rounded-xl p-4 space-y-3">
-            <div class="text-xs font-extrabold text-slate-800">✨ 新規バッジ・称号の登録 / 更新</div>
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              <div class="min-w-0">
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">バッジID（空欄で自動採番）</label>
-                <input id="bm-badge-id" type="text" placeholder="例: summer_mvp_2026"
-                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-mono" />
-              </div>
-              <div class="min-w-0">
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">絵文字アイコン <span class="text-rose-500">*</span></label>
-                <input id="bm-icon" type="text" required value="🏅" placeholder="例: 🏅 / 🔥 / 🏕️"
-                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-center" />
-              </div>
-              <div class="sm:col-span-2 min-w-0">
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">バッジ・称号名 <span class="text-rose-500">*</span></label>
-                <input id="bm-badge-name" type="text" required placeholder="例: 2026夏合宿MVP / 機材マスター"
-                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold" />
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              <div class="sm:col-span-2 min-w-0">
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">獲得条件の説明テキスト</label>
-                <input id="bm-description" type="text" placeholder="例: 夏合宿で最も活躍したメンバーに授与"
-                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs" />
-              </div>
-              <div class="min-w-0">
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">判定種別 (condition_type)</label>
-                <select id="bm-condition-type"
-                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold">
-                  <option value="manual">手動授与のみ (manual)</option>
-                  <option value="attendance">累計参加回数 (attendance)</option>
-                  <option value="campfire_score">焚き火最高スコア (campfire_score)</option>
-                </select>
-              </div>
-              <div class="min-w-0">
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">必要数値 (threshold)</label>
-                <input id="bm-threshold" type="number" min="0" step="1" value="0"
-                  class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-right font-bold" />
-              </div>
-            </div>
-            <div class="flex items-center justify-between gap-2 pt-1">
-              <span class="text-[11px] text-slate-400">※下の一覧をタップすると既存バッジを編集できます</span>
-              <button id="btn-save-badge-master" type="submit"
-                class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-xs transition">
-                バッジ定義を保存する
-              </button>
-            </div>
-          </form>
-
-          <!-- 登録済みバッジ一覧 -->
-          <div class="space-y-1.5">
-            <div class="text-xs font-bold text-slate-700">登録済みバッジマスタ一覧</div>
-            <div id="ctrl-badges-master-list" class="flex flex-wrap gap-2">
-              <!-- JSで描画 -->
-            </div>
-          </div>
-
-          <!-- (B) 特定メンバーへの手動バッジ授与・剥奪 -->
-          <div class="bg-amber-50/60 ring-1 ring-amber-200/80 rounded-xl p-4 space-y-3">
-            <div class="text-xs font-extrabold text-amber-900">🎁 メンバーへ手動バッジを授与 / 剥奪する</div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="min-w-0 space-y-1.5">
-                <label class="block text-[11px] font-bold text-slate-700">対象メンバーを選択</label>
-                <input id="ctrl-badge-user-search" type="search" oninput="filterControlBadgeUserSelect()"
-                  placeholder="🔍 氏名・学年で絞り込む..."
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-brand-500 focus:outline-none" />
-                <select id="ctrl-badge-user-select" onchange="handleBadgeUserSelectChange()"
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:outline-none">
-                  <option value="">-- メンバーを選択 --</option>
-                </select>
-              </div>
-              <div class="min-w-0 space-y-1.5">
-                <label class="block text-[11px] font-bold text-slate-700">授与・剥奪するバッジを選択</label>
-                <select id="ctrl-manual-badge-select"
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-bold focus:border-brand-600 focus:outline-none">
-                  <option value="">-- バッジを選択 --</option>
-                </select>
-                <div id="ctrl-user-current-badges" class="text-[11px] text-slate-600 pt-1">
-                  選択メンバーの保有手動バッジ: -
-                </div>
-              </div>
-            </div>
-            <div class="flex flex-wrap items-center gap-2 pt-1">
-              <button type="button" onclick="handleGrantManualBadge(false)"
-                class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs transition">
-                🎖️ このバッジを授与する
-              </button>
-              <button type="button" onclick="handleGrantManualBadge(true)"
-                class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition">
-                バッジを剥奪（解除）する
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- カード5 & 6: 年次・緊急メンテナンス操作 -->
+        <!-- カード3 & 4: 年次・緊急メンテナンス操作 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- カード5: 新年度の「学年一括繰り上げ」実行ボタン -->
+          <!-- カード3: 新年度の「学年一括繰り上げ」実行ボタン -->
           <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs flex flex-col justify-between gap-4">
             <div class="space-y-1">
-              <h3 class="text-sm font-bold text-slate-900">5. 新年度の学年一括繰り上げ</h3>
+              <h3 class="text-sm font-bold text-slate-900">3. 新年度の学年一括繰り上げ</h3>
               <p class="text-xs text-slate-500 leading-relaxed">
-                全員の学年（1回生→2回生…4回生→卒業・OBOG）を一括更新します（年1回実行）。
+                全員の学年（1回生→2回生…4回生→卒業生）を一括更新します（年1回実行）。
               </p>
             </div>
             <div>
@@ -1447,10 +1517,10 @@
             </div>
           </div>
 
-          <!-- カード6: 緊急時の「全セッション強制切断（キルスイッチ）」ボタン -->
+          <!-- カード4: 緊急時の「全セッション強制切断（キルスイッチ）」ボタン -->
           <div class="bg-white rounded-2xl ring-1 ring-rose-200 p-5 shadow-xs flex flex-col justify-between gap-4">
             <div class="space-y-1">
-              <h3 class="text-sm font-bold text-rose-900">6. 全セッション強制切断（緊急用）</h3>
+              <h3 class="text-sm font-bold text-rose-900">4. 全セッション強制切断（緊急用）</h3>
               <p class="text-xs text-slate-500 leading-relaxed">
                 全端末のログイントークンを破棄し、全員を強制ログアウト状態にします。
               </p>
@@ -1930,9 +2000,9 @@
 
 
   <!-- ========================================================================
-       PWA統合ルート要素: <section id="tab-game" class="wc-game-root">
+       PWA統合ルート要素: <section id="tab-game" class="tab-panel wc-game-root hidden">
        ======================================================================== -->
-  <section id="tab-game" class="wc-game-root">
+  <section id="tab-game" class="tab-panel wc-game-root hidden">
 
     <!-- 画面外周ゴールド＆虹色集中線フラッシュ／暗転フラッシュ -->
     <div id="wc-screen-flash" class="hidden fixed inset-0 z-40 pointer-events-none" style="max-width:520px;margin:0 auto;"></div>
@@ -7593,9 +7663,6 @@
        }
        ========================================================================== */
   </script>
-      <section id="tab-game" class="tab-panel wc-game-root hidden">
-        <div class="p-8 text-center text-xs text-slate-400">ゲームモジュール読み込み待機中...</div>
-      </section>
       <!-- ★GAME_MOUNT_END★ -->
 
     </div>
@@ -7886,24 +7953,47 @@
       const subnavEl = document.getElementById('admin-subnav');
       const mainEl = document.getElementById('app-main');
       const navEl = document.getElementById('main-nav');
+      const pendingBanner = document.getElementById('pending-member-banner');
+      const themeMeta = document.querySelector('meta[name="theme-color"]');
+      const isGameTab = APP_STATE.currentTab === 'game';
 
       if (isFullscreen) {
         if (headerEl) headerEl.classList.add('hidden');
         if (subnavEl) subnavEl.classList.add('hidden');
         if (navEl) navEl.classList.add('hidden');
+        if (pendingBanner) pendingBanner.classList.add('hidden');
         if (mainEl) {
           mainEl.className = 'w-full h-[100dvh] overflow-hidden p-0 m-0 max-w-none';
         }
         document.body.classList.add('overflow-hidden');
+        document.body.style.backgroundColor = '#140805';
+        document.documentElement.style.backgroundColor = '#140805';
+        if (themeMeta) themeMeta.setAttribute('content', '#140805');
       } else {
         if (headerEl) headerEl.classList.remove('hidden');
         if (navEl && APP_STATE.user && APP_STATE.user.authenticated) {
           navEl.classList.remove('hidden');
         }
-        if (mainEl) {
-          mainEl.className = 'flex-1 max-w-4xl w-full mx-auto px-4 pt-5 pb-28';
-        }
         document.body.classList.remove('overflow-hidden');
+        if (isGameTab) {
+          if (mainEl) {
+            mainEl.className = 'flex-1 w-full max-w-none mx-auto p-0';
+          }
+          if (pendingBanner) pendingBanner.classList.add('hidden');
+          document.body.style.backgroundColor = '#140805';
+          document.documentElement.style.backgroundColor = '#140805';
+          if (themeMeta) themeMeta.setAttribute('content', '#140805');
+        } else {
+          if (mainEl) {
+            mainEl.className = 'flex-1 max-w-4xl w-full mx-auto px-4 pt-5 pb-28';
+          }
+          if (pendingBanner) {
+            pendingBanner.classList.toggle('hidden', !(APP_STATE.user && APP_STATE.user.role === 'Member (要確認)'));
+          }
+          document.body.style.backgroundColor = '#f8fafc';
+          document.documentElement.style.backgroundColor = '#f8fafc';
+          if (themeMeta) themeMeta.setAttribute('content', '#2563eb');
+        }
       }
     };
 
@@ -8286,6 +8376,7 @@
         'tab-btn-admin-direct': isManagerPlus,
         'tab-btn-admin-lottery': isManagerPlus,
         'tab-btn-admin-shift-edit': isManagerPlus,
+        'tab-btn-admin-members': isManagerPlus,
         // システム管理パネルは System Admin のみ
         'tab-btn-admin-control': isSysAdmin
       };
@@ -8386,8 +8477,9 @@
 
       // 選択中の称号バッジ表示
       const titleBadgeEl = document.getElementById('home-selected-title-badge');
+      const clearTitleBtn = document.getElementById('btn-clear-selected-title');
+      const selTitle = String(ctx.selected_title || '').trim();
       if (titleBadgeEl) {
-        const selTitle = String(ctx.selected_title || '').trim();
         if (selTitle) {
           titleBadgeEl.textContent = `🎖️ ${selTitle}`;
           titleBadgeEl.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-900 ring-1 ring-amber-300';
@@ -8395,6 +8487,9 @@
           titleBadgeEl.textContent = '🎖️ 称号未設定（下のバッジをタップして装着）';
           titleBadgeEl.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-500';
         }
+      }
+      if (clearTitleBtn) {
+        clearTitleBtn.classList.toggle('hidden', !selTitle);
       }
 
       // 次回優先カウント表示
@@ -8431,13 +8526,15 @@
 
     /**
      * バッジ獲得条件のフロントエンド判定
+     * condition_type: 'reward_count' | 'game_score' | 'early_adopter' | 'grade' | 'manual'
      */
     function evaluateUserBadgeEarned(badge, ctx) {
       if (!badge || !ctx) return false;
       const condType = String(badge.condition_type || 'manual').trim();
-      const threshold = Number(badge.threshold || 0);
+      const rawThreshold = badge.threshold;
+      const numThreshold = Number(rawThreshold || 0);
       const rewardPts = Number(ctx.reward_points || 0);
-      const campfireScore = Number(ctx.campfire_high_score || 0);
+      const gameScore = Number(ctx.high_score || ctx.campfire_high_score || 0);
       const manualList = Array.isArray(ctx.manual_badges_list)
         ? ctx.manual_badges_list
         : String(ctx.manual_badges || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -8445,86 +8542,95 @@
       if (manualList.includes(badge.badge_id)) {
         return true;
       }
-      if (condType === 'attendance') {
-        return rewardPts >= threshold;
+      if (condType === 'reward_count' || condType === 'attendance') {
+        return rewardPts >= numThreshold;
       }
-      if (condType === 'campfire_score') {
-        return campfireScore >= threshold;
+      if (condType === 'game_score' || condType === 'campfire_score') {
+        return gameScore >= numThreshold;
+      }
+      if (condType === 'early_adopter') {
+        const rowIdx = Number(ctx.row_index || 0);
+        return rowIdx >= 3 && (rowIdx - 2) <= (numThreshold || 30);
+      }
+      if (condType === 'grade') {
+        const userGrade = String(ctx.grade || '').trim();
+        const targetGrade = String(rawThreshold || '').trim();
+        return userGrade !== '' && userGrade === targetGrade;
       }
       return false;
     }
 
     /**
-     * マイページの「🎖️ 獲得バッジ・称号コレクション」を描画
+     * マイページの「🎖️ 獲得バッジ・称号コレクション」を描画（獲得済みバッジのみ表示）
      */
     function renderHomeBadgesCollection(ctx) {
       const gridEl = document.getElementById('home-badges-grid');
-      const countLabel = document.getElementById('home-badges-count-label');
+      const countLabel = document.getElementById('home-badges-count') || document.getElementById('home-badges-count-label');
       if (!gridEl) return;
 
       const badges = Array.isArray(APP_STATE.badgesMaster) && APP_STATE.badgesMaster.length > 0
         ? APP_STATE.badgesMaster
         : [
-            { badge_id: 'first_shift', icon: '🔰', badge_name: '初陣の薪割り', description: '花背業務に初参加（参加1回以上）', condition_type: 'attendance', threshold: 1 },
-            { badge_id: 'veteran_5', icon: '⛺', badge_name: '花背の常連', description: '累計参加5回以上を達成', condition_type: 'attendance', threshold: 5 },
-            { badge_id: 'master_10', icon: '👑', badge_name: '花背の主', description: '累計参加10回以上を達成', condition_type: 'attendance', threshold: 10 },
-            { badge_id: 'flame_keeper', icon: '🔥', badge_name: '炎の番人', description: '限界キャンプファイヤーでスコア3,000点以上', condition_type: 'campfire_score', threshold: 3000 },
-            { badge_id: 'special_mvp', icon: '🌟', badge_name: '特別功労賞', description: '幹部・システム管理者から手動授与される特別勲章', condition_type: 'manual', threshold: 0 }
+            { badge_id: 'founding_member', icon: '👑', name: '創設メンバー', badge_name: '創設メンバー', description: 'システム導入初期に登録したメンバー', condition_type: 'early_adopter', threshold: 30 },
+            { badge_id: 'work_1', icon: '🔰', name: '初陣の薪割り', badge_name: '初陣の薪割り', description: '花背業務に初参加（累計1回達成）', condition_type: 'reward_count', threshold: 1 },
+            { badge_id: 'work_5', icon: '⛺', name: '花背の常連', badge_name: '花背の常連', description: '花背業務に累計5回参加', condition_type: 'reward_count', threshold: 5 },
+            { badge_id: 'work_10', icon: '🔥', name: '炎の番人', badge_name: '炎の番人', description: '花背業務に累計10回参加', condition_type: 'reward_count', threshold: 10 },
+            { badge_id: 'work_20', icon: '🌲', name: '森の守護神', badge_name: '森の守護神', description: '花背業務に累計20回参加', condition_type: 'reward_count', threshold: 20 },
+            { badge_id: 'game_3000', icon: '✨', name: '焚き火職人', badge_name: '焚き火職人', description: '限界キャンプファイヤーでスコア3,000点突破', condition_type: 'game_score', threshold: 3000 },
+            { badge_id: 'game_5000', icon: '🌟', name: '紅蓮の火付け役', badge_name: '紅蓮の火付け役', description: '限界キャンプファイヤーでスコア5,000点突破', condition_type: 'game_score', threshold: 5000 },
+            { badge_id: 'game_8000', icon: '🐉', name: '伝説のキャンプマスター', badge_name: '伝説のキャンプマスター', description: '限界キャンプファイヤーでスコア8,000点突破', condition_type: 'game_score', threshold: 8000 },
+            { badge_id: 'grade_4', icon: '🎓', name: '最高学年の誇り', badge_name: '最高学年の誇り', description: '4回生としてDWCを牽引', condition_type: 'grade', threshold: '4回生' },
+            { badge_id: 'special_mvp', icon: '🏆', name: '特別功労賞', badge_name: '特別功労賞', description: '幹部から授与される特別表彰バッジ', condition_type: 'manual', threshold: 0 }
           ];
 
-      let earnedCount = 0;
+      const earnedBadges = badges.filter(b => evaluateUserBadgeEarned(b, ctx));
       const currentSelectedTitle = String(ctx && ctx.selected_title ? ctx.selected_title : '').trim();
 
-      const cardsHtml = badges.map(b => {
-        const isEarned = evaluateUserBadgeEarned(b, ctx);
-        if (isEarned) earnedCount++;
-        const fullTitle = `${b.icon || '🏅'} ${b.badge_name}`;
-        const isEquipped = isEarned && (currentSelectedTitle === b.badge_name || currentSelectedTitle === fullTitle);
-        const safeTitle = escapeHtml(String(b.badge_name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+      if (countLabel) {
+        countLabel.textContent = `${earnedBadges.length} 個獲得中`;
+      }
 
-        if (isEarned) {
-          return `
-            <button type="button"
-              onclick="handleSelectMyTitle('${safeTitle}')"
-              class="text-left rounded-xl p-3 transition flex items-start gap-2.5 ${
-                isEquipped
-                  ? 'bg-amber-50 ring-2 ring-amber-400 shadow-xs'
-                  : 'bg-white ring-1 ring-slate-200 hover:bg-brand-50/50 hover:ring-brand-300'
-              }">
-              <span class="text-2xl leading-none shrink-0 mt-0.5">${escapeHtml(b.icon || '🏅')}</span>
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center justify-between gap-1">
-                  <span class="text-xs font-extrabold text-slate-900 truncate">${escapeHtml(b.badge_name)}</span>
-                  ${
-                    isEquipped
-                      ? '<span class="shrink-0 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold">装着中</span>'
-                      : '<span class="shrink-0 text-[10px] font-bold text-brand-600">装着する</span>'
-                  }
-                </div>
-                <p class="text-[10px] text-slate-500 mt-0.5 leading-snug">${escapeHtml(b.description || '')}</p>
+      if (earnedBadges.length === 0) {
+        gridEl.innerHTML = `
+          <div class="col-span-full rounded-xl bg-slate-50 border border-slate-200/80 p-4 text-center text-xs text-slate-500">
+            まだ獲得したバッジはありません。業務参加やゲームでバッジを集めよう！
+          </div>
+        `;
+        return;
+      }
+
+      const cardsHtml = earnedBadges.map(b => {
+        const bName = String(b.name || b.badge_name || '').trim();
+        const bIcon = String(b.icon || '🏅').trim();
+        const fullTitle = `${bIcon} ${bName}`;
+        const isEquipped = Boolean(currentSelectedTitle) && (currentSelectedTitle === bName || currentSelectedTitle === fullTitle);
+        const safeTitle = escapeHtml(bName.replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+
+        return `
+          <button type="button"
+            onclick="handleSelectMyTitle('${safeTitle}')"
+            class="text-left rounded-xl p-3 transition flex items-start gap-2.5 ${
+              isEquipped
+                ? 'bg-amber-50 ring-2 ring-amber-400 shadow-xs'
+                : 'bg-white ring-1 ring-slate-200 hover:bg-brand-50/50 hover:ring-brand-300'
+            }">
+            <span class="text-2xl leading-none shrink-0 mt-0.5">${escapeHtml(bIcon)}</span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-xs font-extrabold text-slate-900 truncate">${escapeHtml(bName)}</span>
+                ${
+                  isEquipped
+                    ? '<span class="shrink-0 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold">装着中</span>'
+                    : '<span class="shrink-0 text-[10px] font-bold text-brand-600">装着する</span>'
+                }
               </div>
-            </button>
-          `;
-        } else {
-          return `
-            <div class="rounded-xl p-3 bg-slate-50/80 ring-1 ring-slate-200/60 opacity-60 flex items-start gap-2.5 select-none">
-              <span class="text-2xl leading-none shrink-0 mt-0.5 grayscale">🔒</span>
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center justify-between gap-1">
-                  <span class="text-xs font-bold text-slate-500 truncate">${escapeHtml(b.badge_name)}</span>
-                  <span class="shrink-0 text-[9px] font-semibold text-slate-400">未獲得</span>
-                </div>
-                <p class="text-[10px] text-slate-400 mt-0.5 leading-snug">${escapeHtml(b.description || '')}</p>
-              </div>
+              <p class="text-[10px] text-slate-500 mt-0.5 leading-snug">${escapeHtml(b.description || '')}</p>
             </div>
-          `;
-        }
+          </button>
+        `;
       }).join('');
 
       gridEl.innerHTML = cardsHtml;
-      if (countLabel) {
-        countLabel.textContent = `獲得数: ${earnedCount} / ${badges.length}`;
-      }
     }
 
     /**
@@ -8532,14 +8638,16 @@
      */
     async function handleSelectMyTitle(badgeName) {
       triggerHaptic(20);
+      const targetTitle = String(badgeName || '').trim();
       showLoader('称号を変更しています...');
       try {
-        const res = await callGasRpc('updateMySelectedTitle', { selected_title: badgeName });
+        const res = await callGasRpc('updateMySelectedTitle', { selected_title: targetTitle });
+        const savedTitle = (res && res.selected_title !== undefined) ? res.selected_title : targetTitle;
         if (APP_STATE.user) {
-          APP_STATE.user.selected_title = res.selected_title || badgeName;
+          APP_STATE.user.selected_title = savedTitle;
         }
         renderHomeView(APP_STATE.user);
-        showToast(`メイン称号を「${res.selected_title || badgeName}」に設定しました！`, 'success');
+        showToast(savedTitle ? `メイン称号を「${savedTitle}」に設定しました！` : 'メイン称号の装着を解除しました。', 'success');
       } catch (err) {
         showToast(err.message || '称号の変更に失敗しました。', 'error');
       } finally {
@@ -8839,7 +8947,7 @@
     // =========================================================================
 
     const NAV_TAB_KEYS = ['home', 'calendar', 'shift', 'leaderboard', 'game'];
-    const ADMIN_TAB_KEYS = ['admin-dashboard', 'admin-budget', 'admin-direct', 'admin-lottery', 'admin-shift-edit', 'admin-control'];
+    const ADMIN_TAB_KEYS = ['admin-dashboard', 'admin-budget', 'admin-direct', 'admin-lottery', 'admin-shift-edit', 'admin-members', 'admin-control'];
 
     const TAB_PANEL_IDS = {
       'home': 'tab-home',
@@ -8852,21 +8960,17 @@
       'admin-direct': 'tab-admin-direct',
       'admin-lottery': 'tab-admin-lottery',
       'admin-shift-edit': 'tab-admin-shift-edit',
+      'admin-members': 'tab-admin-members',
       'admin-control': 'tab-admin-control'
     };
 
     const NAV_BTN_ACTIVE = 'tab-btn flex flex-col items-center justify-center gap-0.5 py-2 transition text-brand-700 bg-brand-50';
     const NAV_BTN_IDLE = 'tab-btn flex flex-col items-center justify-center gap-0.5 py-2 transition text-slate-400 hover:text-slate-600';
-    const SUBNAV_ACTIVE = 'tab-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition bg-brand-600 text-white shadow-xs';
-    const SUBNAV_IDLE = 'tab-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition text-slate-600 hover:bg-slate-100';
+    const SUBNAV_ACTIVE = 'tab-btn flex items-center justify-center px-2 py-2 rounded-xl text-[11px] sm:text-xs font-bold text-center transition bg-brand-600 text-white shadow-xs';
+    const SUBNAV_IDLE = 'tab-btn flex items-center justify-center px-2 py-2 rounded-xl text-[11px] sm:text-xs font-bold text-center transition bg-slate-50 ring-1 ring-slate-200/70 text-slate-600 hover:bg-slate-100';
 
     function switchTab(tabName) {
       triggerHaptic(15);
-
-      // ゲーム以外のタブへ移動した場合は必ずフルスクリーンモードを解除する
-      if (tabName !== 'game' && typeof window.setDwcAppFullscreen === 'function') {
-        window.setDwcAppFullscreen(false);
-      }
 
       // --- 権限ガード: 管理系タブは Manager 以上、システム管理パネルは System Admin のみ ---
       if (ADMIN_TAB_KEYS.includes(tabName)) {
@@ -8876,6 +8980,30 @@
         } else if (tabName === 'admin-control' && !currentUserIsSystemAdmin()) {
           showToast('システム管理パネルはシステム管理者のみ利用できます。', 'error');
           tabName = 'admin-dashboard';
+        }
+      }
+
+      APP_STATE.currentTab = tabName;
+
+      // ゲーム以外のタブへ移動した場合は必ずフルスクリーンモードを解除し、ゲームタブ時は余白ゼロ＋背景色を適用する
+      if (tabName !== 'game') {
+        if (typeof window.setDwcAppFullscreen === 'function') {
+          window.setDwcAppFullscreen(false);
+        }
+      } else {
+        const mainEl = document.getElementById('app-main');
+        const pendingBanner = document.getElementById('pending-member-banner');
+        const themeMeta = document.querySelector('meta[name="theme-color"]');
+        if (mainEl && !document.body.classList.contains('overflow-hidden')) {
+          mainEl.className = 'flex-1 w-full max-w-none mx-auto p-0';
+        }
+        if (pendingBanner) {
+          pendingBanner.classList.add('hidden');
+        }
+        document.body.style.backgroundColor = '#140805';
+        document.documentElement.style.backgroundColor = '#140805';
+        if (themeMeta) {
+          themeMeta.setAttribute('content', '#140805');
         }
       }
 
@@ -8945,6 +9073,8 @@
         initShiftLotteryBlocks();
       } else if (tabName === 'admin-shift-edit' && typeof window.loadAdminShiftEditTab === 'function') {
         window.loadAdminShiftEditTab();
+      } else if (tabName === 'admin-members' && typeof window.loadAdminMembersTab === 'function') {
+        window.loadAdminMembersTab();
       } else if (tabName === 'admin-control' && typeof window.loadAdminControlPanel === 'function') {
         window.loadAdminControlPanel();
       }
@@ -8969,8 +9099,11 @@
       return 7;
     }
 
+    const ALLOWED_SHIFT_REPORT_GRADES = ['1回生', '2回生', '3回生', '4回生'];
+
     /**
      * 200人の名簿を学年 (grade) ごとにグループ化し、折りたたみアコーディオンとして描画する
+     * ※業務報告対象は「1回生、2回生、3回生、4回生」の4学年のみに限定
      */
     function renderGradeAccordionParticipants() {
       const container = document.getElementById('participants-accordion-container');
@@ -8992,20 +9125,18 @@
         APP_STATE.plannedMembersForDate.map(n => normalizeNameClient(n))
       );
 
-      // 学年ごとにグループ化
+      // 学年ごとにグループ化（1回生〜4回生のみ）
       const gradeGroupsMap = new Map();
       APP_STATE.usersList.forEach((u, globalIdx) => {
-        const gradeKey = String(u.grade || '未設定').trim() || '未設定';
+        const gradeKey = String(u.grade || '').trim();
+        if (!ALLOWED_SHIFT_REPORT_GRADES.includes(gradeKey)) return;
         if (!gradeGroupsMap.has(gradeKey)) {
           gradeGroupsMap.set(gradeKey, []);
         }
         gradeGroupsMap.get(gradeKey).push({ user: u, globalIdx: globalIdx });
       });
 
-      const sortedGrades = Array.from(gradeGroupsMap.keys()).sort((a, b) => {
-        const orderDiff = getGradeSortOrder(a) - getGradeSortOrder(b);
-        return orderDiff !== 0 ? orderDiff : a.localeCompare(b, 'ja');
-      });
+      const sortedGrades = ALLOWED_SHIFT_REPORT_GRADES.filter(g => gradeGroupsMap.has(g));
 
       const routeOptionsHtml = APP_STATE.transportRoutes
         .map(r => `<option value="${escapeHtml(r.id)}">${escapeHtml(r.label)}</option>`)
@@ -9268,6 +9399,102 @@
         customInput.value = '';
       }
       recalculateShiftPreview();
+    }
+
+    /**
+     * 共通: フォーカスが外れた際に指定IDのサジェストリストを遅延非表示にする
+     * @param {string} listId
+     */
+    function hideSuggestListDelayed(listId) {
+      setTimeout(() => {
+        const listEl = document.getElementById(listId);
+        if (listEl) {
+          listEl.classList.add('hidden');
+        }
+      }, 180);
+    }
+
+    /**
+     * 業務完了報告（tab-shift）の参加者サジェスト検索＆アコーディオン絞り込み
+     */
+    function handleParticipantSearchInput() {
+      filterParticipantRows();
+      const inputEl = document.getElementById('participant-search');
+      const listEl = document.getElementById('participant-suggest-list');
+      if (!inputEl || !listEl) return;
+
+      const rawKeyword = inputEl.value.trim().toLowerCase();
+      const normKeyword = normalizeNameClient(rawKeyword);
+      if (!rawKeyword) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+        return;
+      }
+
+      const matched = [];
+      APP_STATE.usersList.forEach((u, globalIdx) => {
+        const gradeKey = String(u.grade || '').trim();
+        if (!ALLOWED_SHIFT_REPORT_GRADES.includes(gradeKey)) return;
+        const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
+        const gradeNorm = normalizeNameClient(gradeKey.toLowerCase());
+        if (nameNorm.includes(normKeyword) || gradeNorm.includes(normKeyword)) {
+          matched.push({ user: u, globalIdx: globalIdx });
+        }
+      });
+
+      const topMatched = matched.slice(0, 25);
+      if (topMatched.length === 0) {
+        listEl.innerHTML = '<div class="px-3.5 py-2.5 text-xs text-slate-400">該当する1〜4回生メンバーが見つかりません。</div>';
+        listEl.classList.remove('hidden');
+        return;
+      }
+
+      listEl.innerHTML = topMatched.map(({ user, globalIdx }) => {
+        const chk = document.getElementById(`chk-member-${globalIdx}`);
+        const isChecked = Boolean(chk && chk.checked);
+        const statusBadge = isChecked
+          ? '<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold text-[10px]">✓ 参加選択済</span>'
+          : '<span class="px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-bold text-[10px]">＋ 参加に追加</span>';
+        return `
+          <button type="button"
+            onmousedown="event.preventDefault(); selectSuggestedParticipant(${globalIdx})"
+            class="w-full px-3.5 py-2.5 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
+            <div class="min-w-0 flex items-center gap-2 flex-wrap">
+              <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(user.name)}</span>
+              <span class="text-[11px] text-slate-500">(${escapeHtml(user.grade || '')})</span>
+            </div>
+            <div class="shrink-0">${statusBadge}</div>
+          </button>
+        `;
+      }).join('');
+      listEl.classList.remove('hidden');
+    }
+
+    /**
+     * 業務完了報告サジェスト候補をタップした際に即座に参加チェックをONにし、検索欄をクリアする
+     * @param {number} globalIdx
+     */
+    function selectSuggestedParticipant(globalIdx) {
+      const chk = document.getElementById(`chk-member-${globalIdx}`);
+      const inputEl = document.getElementById('participant-search');
+      const listEl = document.getElementById('participant-suggest-list');
+
+      if (chk) {
+        chk.checked = true;
+        handleParticipantToggle(globalIdx);
+        const u = APP_STATE.usersList[globalIdx];
+        if (u) {
+          showToast(`「${u.name}」を参加メンバーに追加しました。`, 'success');
+        }
+      }
+      if (inputEl) {
+        inputEl.value = '';
+      }
+      if (listEl) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+      }
+      filterParticipantRows();
     }
 
     /**
@@ -10661,6 +10888,60 @@
     let LOTTERY_BLOCK_SEQ = 0;
 
     /**
+     * シフト枠名の共通フォーマッタ（開始日・終了日・補足ラベルから枠名を生成）
+     * - 終了日あり（開始日と異なる）: `2026-11-05〜11/06 (宿泊)`
+     * - 終了日なし（日帰り等）: `2026-11-05 日帰り`
+     * ※先頭10文字は必ず `YYYY-MM-DD` を維持
+     */
+    function formatShiftSlotName(startDate, endDate, rawLabel) {
+      const sDate = String(startDate || '').trim();
+      const eDate = String(endDate || '').trim();
+      const label = String(rawLabel || '').trim();
+      if (!sDate) return '';
+
+      let datePart = sDate;
+      const hasRange = /^\d{4}-\d{2}-\d{2}$/.test(eDate) && eDate !== sDate;
+      if (hasRange) {
+        const mmdd = eDate.slice(5).replace('-', '/');
+        datePart = `${sDate}〜${mmdd}`;
+      }
+
+      if (!label) {
+        return datePart;
+      }
+      if (hasRange) {
+        const wrappedLabel = /^\(.*\)$/.test(label) ? label : `(${label})`;
+        return `${datePart} ${wrappedLabel}`;
+      }
+      return `${datePart} ${label}`;
+    }
+
+    /**
+     * シフト枠名から { startDate, endDate, label } を逆解析するヘルパー
+     */
+    function parseShiftSlotName(slotName) {
+      const raw = String(slotName || '').trim();
+      const m = raw.match(/^(\d{4}-\d{2}-\d{2})(?:[〜~](\d{2})\/(\d{2}))?\s*(.*)$/);
+      if (!m) {
+        return { startDate: getTodayDateString(), endDate: '', label: raw };
+      }
+      const startDate = m[1];
+      let endDate = '';
+      if (m[2] && m[3]) {
+        const startYear = Number(startDate.slice(0, 4));
+        const startMonth = Number(startDate.slice(5, 7));
+        const endMonth = Number(m[2]);
+        const endYear = endMonth < startMonth ? startYear + 1 : startYear;
+        endDate = `${endYear}-${m[2]}-${m[3]}`;
+      }
+      let label = String(m[4] || '').trim();
+      if (endDate && /^\((.*)\)$/.test(label)) {
+        label = label.replace(/^\((.*)\)$/, '$1').trim();
+      }
+      return { startDate, endDate, label };
+    }
+
+    /**
      * シフト抽選画面の初期日程ブロックを1件生成する
      */
     function initShiftLotteryBlocks() {
@@ -10670,24 +10951,26 @@
 
       container.innerHTML = '';
       LOTTERY_BLOCK_SEQ = 0;
-      addShiftLotteryBlock('', 4, '', '');
+      addShiftLotteryBlock('', 4, '', '', '');
     }
 
     /**
      * 「＋ 日程を追加」ボタン押下時に新しい日程ブロックを動的に追加する
-     * 日付入力を「カレンダー日付（input type="date" 必須）」＋「補足ラベル（input type="text" 任意）」に分離
+     * 日付入力を「開始日（必須）」「終了日（任意：宿泊時のみ選択）」「補足ラベル（任意）」に分離
      * @param {string=} initialDate
      * @param {number=} initialWinnerCount
      * @param {string=} initialCandidates
      * @param {string=} initialLabel
+     * @param {string=} initialEndDate
      */
-    function addShiftLotteryBlock(initialDate = '', initialWinnerCount = 4, initialCandidates = '', initialLabel = '') {
+    function addShiftLotteryBlock(initialDate = '', initialWinnerCount = 4, initialCandidates = '', initialLabel = '', initialEndDate = '') {
       const container = document.getElementById('lottery-blocks-container');
       if (!container) return;
 
       LOTTERY_BLOCK_SEQ++;
       const blockId = LOTTERY_BLOCK_SEQ;
       const defaultDate = String(initialDate || '').trim();
+      const defaultEndDate = String(initialEndDate || '').trim();
       const defaultLabel = String(initialLabel || '').trim();
 
       const blockEl = document.createElement('div');
@@ -10708,10 +10991,10 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           <div class="min-w-0">
             <label class="block text-xs font-bold text-slate-700 mb-1.5">
-              シフト実施日（カレンダー選択） <span class="text-rose-500">*</span>
+              開始日 <span class="text-rose-500">*</span>
             </label>
             <input type="date"
               id="lottery-date-${blockId}"
@@ -10722,12 +11005,22 @@
 
           <div class="min-w-0">
             <label class="block text-xs font-bold text-slate-700 mb-1.5">
+              終了日（任意：宿泊時のみ選択）
+            </label>
+            <input type="date"
+              id="lottery-end-date-${blockId}"
+              value="${escapeHtml(defaultEndDate)}"
+              class="lottery-block-end-date w-full box-border max-w-[100%] rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+          </div>
+
+          <div class="min-w-0">
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">
               補足ラベル（任意）
             </label>
             <input type="text"
               id="lottery-label-${blockId}"
               value="${escapeHtml(defaultLabel)}"
-              placeholder="例: (宿泊) / 午後枠"
+              placeholder="例: 宿泊 / 日帰り"
               class="lottery-block-label w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
           </div>
 
@@ -11015,21 +11308,23 @@
       for (let i = 0; i < blockEls.length; i++) {
         const blockEl = blockEls[i];
         const dateInput = blockEl.querySelector('.lottery-block-date');
+        const endDateInput = blockEl.querySelector('.lottery-block-end-date');
         const labelInput = blockEl.querySelector('.lottery-block-label');
         const countInput = blockEl.querySelector('.lottery-block-winner-count');
         const candidatesInput = blockEl.querySelector('.lottery-block-candidates');
 
         const rawDate = String(dateInput ? dateInput.value : '').trim();
+        const rawEndDate = String(endDateInput ? endDateInput.value : '').trim();
         const rawLabel = String(labelInput ? labelInput.value : '').trim();
         const winnerCount = Math.max(1, Math.round(Number(countInput ? countInput.value : 1) || 1));
         const rawCandidates = String(candidatesInput ? candidatesInput.value : '').trim();
 
         if (!rawDate) {
-          showToast(`日程 #${i + 1} のシフト実施日（カレンダー）を選択してください。`, 'error');
+          showToast(`日程 #${i + 1} の開始日（カレンダー）を選択してください。`, 'error');
           return;
         }
 
-        const combinedShiftDate = rawLabel ? `${rawDate} ${rawLabel}` : rawDate;
+        const combinedShiftDate = formatShiftSlotName(rawDate, rawEndDate, rawLabel);
 
         shiftsPayload.push({
           shift_date: combinedShiftDate,
@@ -11304,17 +11599,14 @@
       }
       workspaceEl.classList.remove('hidden');
 
-      // 現在のシフト枠名から YYYY-MM-DD と補足ラベルを分解して初期セット
+      // 現在のシフト枠名から 開始日・終了日・補足ラベル を分解して初期セット
       const dateInput = document.getElementById('shift-edit-rename-date');
+      const endDateInput = document.getElementById('shift-edit-rename-end-date');
       const labelInput = document.getElementById('shift-edit-rename-label');
-      const m = slotName.match(/^(\d{4}-\d{2}-\d{2})\s*(.*)$/);
-      if (m) {
-        if (dateInput) dateInput.value = m[1];
-        if (labelInput) labelInput.value = m[2] || '';
-      } else {
-        if (dateInput) dateInput.value = getTodayDateString();
-        if (labelInput) labelInput.value = slotName;
-      }
+      const parsed = parseShiftSlotName(slotName);
+      if (dateInput) dateInput.value = parsed.startDate;
+      if (endDateInput) endDateInput.value = parsed.endDate;
+      if (labelInput) labelInput.value = parsed.label;
 
       const listEl = document.getElementById('shift-edit-members-list');
       if (listEl) {
@@ -11376,6 +11668,7 @@
       const selectEl = document.getElementById('shift-edit-add-member-select');
       if (!selectEl) return;
 
+      const prevVal = selectEl.value;
       const keyword = normalizeNameClient(searchEl ? searchEl.value.toLowerCase() : '');
       const currentNormSet = new Set(SHIFT_EDIT_CURRENT_MEMBERS.map(n => normalizeNameClient(n)));
 
@@ -11392,21 +11685,99 @@
         opt.textContent = `${u.name} (${u.grade || '未設定'}) — 参加:${Number(u.reward_points || 0)}回 / 次回優先カウント:${pCount}回`;
         selectEl.appendChild(opt);
       });
+
+      if (prevVal && Array.from(selectEl.options).some(o => o.value === prevVal)) {
+        selectEl.value = prevVal;
+      }
+    }
+
+    /**
+     * シフト編集（tab-admin-shift-edit）の追加メンバー検索サジェスト表示
+     */
+    function handleShiftEditSearchInput() {
+      filterShiftEditMemberSelect();
+      const inputEl = document.getElementById('shift-edit-member-search');
+      const listEl = document.getElementById('shift-edit-suggest-list');
+      if (!inputEl || !listEl) return;
+
+      const rawKeyword = inputEl.value.trim().toLowerCase();
+      const normKeyword = normalizeNameClient(rawKeyword);
+      if (!rawKeyword) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+        return;
+      }
+
+      const currentNormSet = new Set(SHIFT_EDIT_CURRENT_MEMBERS.map(n => normalizeNameClient(n)));
+      const matched = APP_STATE.usersList
+        .filter(u => {
+          if (currentNormSet.has(normalizeNameClient(u.name))) return false;
+          const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
+          const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
+          return nameNorm.includes(normKeyword) || gradeNorm.includes(normKeyword);
+        })
+        .slice(0, 25);
+
+      if (matched.length === 0) {
+        listEl.innerHTML = '<div class="px-3.5 py-2.5 text-xs text-slate-400">追加可能な該当メンバーが見つかりません。</div>';
+        listEl.classList.remove('hidden');
+        return;
+      }
+
+      listEl.innerHTML = matched.map(u => {
+        const pCount = Number(u.penalty_points || 0);
+        const rCount = Number(u.reward_points || 0);
+        const safeJsName = escapeHtml(String(u.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+        const pBadge = pCount > 0
+          ? `<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-extrabold text-[10px]">次回優先 ${pCount}</span>`
+          : '';
+        return `
+          <button type="button"
+            onmousedown="event.preventDefault(); selectShiftEditSuggestedMember('${safeJsName}')"
+            class="w-full px-3.5 py-2.5 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
+            <div class="min-w-0 flex items-center gap-2 flex-wrap">
+              <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(u.name)}</span>
+              <span class="text-[11px] text-slate-500">(${escapeHtml(u.grade || '未設定')})</span>
+              ${pBadge}
+              <span class="text-[11px] text-slate-400">参加:${rCount}回</span>
+            </div>
+            <span class="shrink-0 px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-bold text-[10px]">選択</span>
+          </button>
+        `;
+      }).join('');
+      listEl.classList.remove('hidden');
+    }
+
+    function selectShiftEditSuggestedMember(memberName) {
+      const inputEl = document.getElementById('shift-edit-member-search');
+      const listEl = document.getElementById('shift-edit-suggest-list');
+      const selectEl = document.getElementById('shift-edit-add-member-select');
+      if (inputEl) inputEl.value = '';
+      if (listEl) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+      }
+      filterShiftEditMemberSelect();
+      if (selectEl) {
+        selectEl.value = memberName;
+      }
+      showToast(`「${memberName}」を選択しました。「＋ この枠にメンバーを追加」で確定できます。`, 'info');
     }
 
     async function handleRenameShiftSlot() {
       const selectEl = document.getElementById('shift-edit-slot-select');
       const oldSlot = selectEl ? selectEl.value : '';
       const newDate = String((document.getElementById('shift-edit-rename-date') || {}).value || '').trim();
+      const newEndDate = String((document.getElementById('shift-edit-rename-end-date') || {}).value || '').trim();
       const newLabel = String((document.getElementById('shift-edit-rename-label') || {}).value || '').trim();
 
       if (!oldSlot) return;
       if (!newDate) {
-        showToast('新しい日付をカレンダーから選択してください。', 'error');
+        showToast('開始日をカレンダーから選択してください。', 'error');
         return;
       }
 
-      const newSlot = newLabel ? `${newDate} ${newLabel}` : newDate;
+      const newSlot = formatShiftSlotName(newDate, newEndDate, newLabel);
       if (newSlot === oldSlot) {
         showToast('変更前と同じシフト枠名です。', 'info');
         return;
@@ -11524,8 +11895,28 @@
     }
 
     // -------------------------------------------------------------------------
-    // 7-4. システム管理パネル (権限変更・LINE URL・次回優先カウント調整・バッジ管理・進級・強制切断)
+    // 7-4. メンバー・バッジ管理タブ（Manager以上） ＆ システム管理パネル（System Admin専用）
     // -------------------------------------------------------------------------
+
+    window.loadAdminMembersTab = async function() {
+      if (!currentUserIsManagerOrAbove()) return;
+      try {
+        const [users, badges] = await Promise.all([
+          callGasRpc('getUsers'),
+          callGasRpc('getBadgesMaster').catch(() => APP_STATE.badgesMaster)
+        ]);
+        APP_STATE.usersList = Array.isArray(users) ? users : [];
+        if (Array.isArray(badges) && badges.length > 0) {
+          APP_STATE.badgesMaster = badges;
+        }
+        filterControlPenaltyUserSelect();
+        renderControlBadgesSection();
+        filterControlBadgeUserSelect();
+        renderGradeAccordionParticipants();
+      } catch (err) {
+        showToast('メンバー・バッジ管理データの取得に失敗しました: ' + err.message, 'error');
+      }
+    };
 
     window.loadAdminControlPanel = async function() {
       if (!currentUserIsSystemAdmin()) return;
@@ -11611,6 +12002,70 @@
       }
     }
 
+    function handleRoleUserSearchInput() {
+      filterControlRoleUserSelect();
+      const inputEl = document.getElementById('ctrl-role-user-search');
+      const listEl = document.getElementById('ctrl-role-suggest-list');
+      if (!inputEl || !listEl) return;
+
+      const rawKeyword = inputEl.value.trim().toLowerCase();
+      const normKeyword = normalizeNameClient(rawKeyword);
+      if (!rawKeyword) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+        return;
+      }
+
+      const matched = [];
+      APP_STATE.usersList.forEach((u, idx) => {
+        const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
+        const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
+        if (nameNorm.includes(normKeyword) || gradeNorm.includes(normKeyword)) {
+          matched.push({ user: u, idx: idx });
+        }
+      });
+
+      const topMatched = matched.slice(0, 25);
+      if (topMatched.length === 0) {
+        listEl.innerHTML = '<div class="px-3.5 py-2.5 text-xs text-slate-400">該当するメンバーが見つかりません。</div>';
+        listEl.classList.remove('hidden');
+        return;
+      }
+
+      listEl.innerHTML = topMatched.map(({ user, idx }) => {
+        const roleLabel = roleDisplayName(user.role);
+        return `
+          <button type="button"
+            onmousedown="event.preventDefault(); selectSuggestedRoleUser(${idx})"
+            class="w-full px-3.5 py-2.5 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
+            <div class="min-w-0 flex items-center gap-2 flex-wrap">
+              <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px]">${escapeHtml(roleLabel)}</span>
+              <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(user.name)}</span>
+              <span class="text-[11px] text-slate-500">(${escapeHtml(user.grade || '未設定')})</span>
+            </div>
+            <span class="shrink-0 px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-bold text-[10px]">選択</span>
+          </button>
+        `;
+      }).join('');
+      listEl.classList.remove('hidden');
+    }
+
+    function selectSuggestedRoleUser(idx) {
+      const inputEl = document.getElementById('ctrl-role-user-search');
+      const listEl = document.getElementById('ctrl-role-suggest-list');
+      const selectEl = document.getElementById('ctrl-user-select');
+      if (inputEl) inputEl.value = '';
+      if (listEl) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+      }
+      filterControlRoleUserSelect();
+      if (selectEl) {
+        selectEl.value = String(idx);
+      }
+      handleControlUserSelectChange();
+    }
+
     function filterControlPenaltyUserSelect() {
       const penaltySelectEl = document.getElementById('ctrl-penalty-user-select');
       const searchEl = document.getElementById('ctrl-penalty-user-search');
@@ -11634,6 +12089,70 @@
 
       if (prevVal !== '' && Array.from(penaltySelectEl.options).some(o => o.value === prevVal)) {
         penaltySelectEl.value = prevVal;
+      }
+      handlePenaltyUserSelectChange();
+    }
+
+    function handlePenaltyUserSearchInput() {
+      filterControlPenaltyUserSelect();
+      const inputEl = document.getElementById('ctrl-penalty-user-search');
+      const listEl = document.getElementById('ctrl-penalty-suggest-list');
+      if (!inputEl || !listEl) return;
+
+      const rawKeyword = inputEl.value.trim().toLowerCase();
+      const normKeyword = normalizeNameClient(rawKeyword);
+      if (!rawKeyword) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+        return;
+      }
+
+      const matched = [];
+      APP_STATE.usersList.forEach((u, idx) => {
+        const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
+        const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
+        if (nameNorm.includes(normKeyword) || gradeNorm.includes(normKeyword)) {
+          matched.push({ user: u, idx: idx });
+        }
+      });
+
+      const topMatched = matched.slice(0, 25);
+      if (topMatched.length === 0) {
+        listEl.innerHTML = '<div class="px-3.5 py-2.5 text-xs text-slate-400">該当するメンバーが見つかりません。</div>';
+        listEl.classList.remove('hidden');
+        return;
+      }
+
+      listEl.innerHTML = topMatched.map(({ user, idx }) => {
+        const pCount = Number(user.penalty_points || 0);
+        return `
+          <button type="button"
+            onmousedown="event.preventDefault(); selectSuggestedPenaltyUser(${idx})"
+            class="w-full px-3.5 py-2.5 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
+            <div class="min-w-0 flex items-center gap-2 flex-wrap">
+              <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(user.name)}</span>
+              <span class="text-[11px] text-slate-500">(${escapeHtml(user.grade || '未設定')})</span>
+              <span class="px-1.5 py-0.5 rounded ${pCount > 0 ? 'bg-rose-100 text-rose-700 font-extrabold' : 'bg-slate-100 text-slate-600 font-semibold'} text-[10px]">次回優先: ${pCount}回</span>
+            </div>
+            <span class="shrink-0 px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-bold text-[10px]">選択</span>
+          </button>
+        `;
+      }).join('');
+      listEl.classList.remove('hidden');
+    }
+
+    function selectSuggestedPenaltyUser(idx) {
+      const inputEl = document.getElementById('ctrl-penalty-user-search');
+      const listEl = document.getElementById('ctrl-penalty-suggest-list');
+      const selectEl = document.getElementById('ctrl-penalty-user-select');
+      if (inputEl) inputEl.value = '';
+      if (listEl) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+      }
+      filterControlPenaltyUserSelect();
+      if (selectEl) {
+        selectEl.value = String(idx);
       }
       handlePenaltyUserSelectChange();
     }
@@ -11743,11 +12262,16 @@
           operation: operation
         });
 
+        const oldPen = res.old_penalty !== undefined ? res.old_penalty : res.old_penalty_points;
+        const newPen = res.new_penalty !== undefined ? res.new_penalty : res.new_penalty_points;
         showToast(
-          `「${res.name}」の次回優先カウントを ${res.old_penalty} 回 → ${res.new_penalty} 回に更新しました。`,
+          `「${res.name}」の次回優先カウントを ${oldPen} 回 → ${newPen} 回に更新しました。`,
           'success'
         );
-        await loadAdminControlPanel();
+        await window.loadAdminMembersTab();
+        if (currentUserIsSystemAdmin()) {
+          renderControlPanelMembers();
+        }
       } catch (err) {
         showToast(err.message || '次回優先カウントの更新に失敗しました。', 'error');
       } finally {
@@ -11756,7 +12280,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // 7-4B. 🎖️ バッジ・称号の新規作成 ＆ 手動授与 (要件⑤-3)
+    // 7-4B. 🎖️ バッジ・称号の新規作成 ＆ 手動授与 (要件④・⑥・⑧)
     // -------------------------------------------------------------------------
 
     function renderControlBadgesSection() {
@@ -11769,17 +12293,24 @@
           listEl.innerHTML = '<span class="text-xs text-slate-400">バッジが登録されていません</span>';
         } else {
           listEl.innerHTML = badges.map(b => {
+            const bName = String(b.name || b.badge_name || '').trim();
             const safeId = escapeHtml(String(b.badge_id || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
-            const condLabel = b.condition_type === 'attendance'
-              ? `参加${b.threshold}回`
-              : b.condition_type === 'campfire_score'
-              ? `焚き火${b.threshold}点`
-              : '手動授与';
+            const cType = String(b.condition_type || 'manual').trim();
+            let condLabel = '手動授与';
+            if (cType === 'reward_count' || cType === 'attendance') {
+              condLabel = `参加${b.threshold}回`;
+            } else if (cType === 'game_score' || cType === 'campfire_score') {
+              condLabel = `焚き火${b.threshold}点`;
+            } else if (cType === 'early_adopter') {
+              condLabel = `初期登録${b.threshold}名`;
+            } else if (cType === 'grade') {
+              condLabel = `学年:${b.threshold}`;
+            }
             return `
               <button type="button" onclick="editBadgeInControlForm('${safeId}')"
                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white ring-1 ring-slate-200 hover:ring-brand-400 text-xs font-bold text-slate-800 shadow-2xs transition">
                 <span>${escapeHtml(b.icon || '🏅')}</span>
-                <span>${escapeHtml(b.badge_name)}</span>
+                <span>${escapeHtml(bName)}</span>
                 <span class="text-[10px] font-normal text-slate-400">[${escapeHtml(condLabel)}]</span>
               </button>
             `;
@@ -11791,9 +12322,10 @@
         const prevVal = manualSelectEl.value;
         manualSelectEl.innerHTML = '<option value="">-- 授与・剥奪するバッジを選択 --</option>';
         badges.forEach(b => {
+          const bName = String(b.name || b.badge_name || '').trim();
           const opt = document.createElement('option');
           opt.value = b.badge_id;
-          opt.textContent = `${b.icon || '🏅'} ${b.badge_name} (${b.badge_id})`;
+          opt.textContent = `${b.icon || '🏅'} ${bName} (${b.badge_id})`;
           manualSelectEl.appendChild(opt);
         });
         if (prevVal && badges.some(b => b.badge_id === prevVal)) {
@@ -11805,13 +12337,18 @@
     function editBadgeInControlForm(badgeId) {
       const badge = (APP_STATE.badgesMaster || []).find(b => b.badge_id === badgeId);
       if (!badge) return;
+      const bName = String(badge.name || badge.badge_name || '').trim();
+      let cType = String(badge.condition_type || 'manual').trim();
+      if (cType === 'attendance') cType = 'reward_count';
+      if (cType === 'campfire_score') cType = 'game_score';
+
       document.getElementById('bm-badge-id').value = badge.badge_id || '';
       document.getElementById('bm-icon').value = badge.icon || '🏅';
-      document.getElementById('bm-badge-name').value = badge.badge_name || '';
+      document.getElementById('bm-badge-name').value = bName;
       document.getElementById('bm-description').value = badge.description || '';
-      document.getElementById('bm-condition-type').value = badge.condition_type || 'manual';
-      document.getElementById('bm-threshold').value = String(badge.threshold || 0);
-      showToast(`バッジ「${badge.badge_name}」を編集フォームに読み込みました。`, 'info');
+      document.getElementById('bm-condition-type').value = cType;
+      document.getElementById('bm-threshold').value = String(badge.threshold !== undefined ? badge.threshold : 0);
+      showToast(`バッジ「${bName}」を編集フォームに読み込みました。`, 'info');
     }
 
     async function handleUpsertBadgeMaster(event) {
@@ -11821,7 +12358,10 @@
       const badgeName = document.getElementById('bm-badge-name').value.trim();
       const description = document.getElementById('bm-description').value.trim();
       const conditionType = document.getElementById('bm-condition-type').value;
-      const threshold = Math.max(0, Math.round(Number(document.getElementById('bm-threshold').value) || 0));
+      const rawThreshold = document.getElementById('bm-threshold').value.trim();
+      const threshold = conditionType === 'grade'
+        ? rawThreshold
+        : Math.max(0, Math.round(Number(rawThreshold) || 0));
 
       if (!badgeName) {
         showToast('バッジ・称号名を入力してください。', 'error');
@@ -11833,6 +12373,7 @@
         const res = await callGasRpc('upsertBadgeMaster', {
           badge_id: badgeId,
           icon: icon,
+          name: badgeName,
           badge_name: badgeName,
           description: description,
           condition_type: conditionType,
@@ -11840,11 +12381,17 @@
         });
         if (res && Array.isArray(res.badges_master)) {
           APP_STATE.badgesMaster = res.badges_master;
+        } else {
+          const latestBadges = await callGasRpc('getBadgesMaster').catch(() => null);
+          if (Array.isArray(latestBadges)) {
+            APP_STATE.badgesMaster = latestBadges;
+          }
         }
         renderControlBadgesSection();
         renderHomeBadgesCollection(APP_STATE.user);
         document.getElementById('badge-master-form').reset();
         document.getElementById('bm-icon').value = '🏅';
+        document.getElementById('bm-threshold').value = '0';
         showToast(`バッジ「${badgeName}」を保存しました！`, 'success');
       } catch (err) {
         showToast(err.message || 'バッジ保存に失敗しました。', 'error');
@@ -11875,6 +12422,70 @@
 
       if (prevVal !== '' && Array.from(selectEl.options).some(o => o.value === prevVal)) {
         selectEl.value = prevVal;
+      }
+      handleBadgeUserSelectChange();
+    }
+
+    function handleBadgeUserSearchInput() {
+      filterControlBadgeUserSelect();
+      const inputEl = document.getElementById('ctrl-badge-user-search');
+      const listEl = document.getElementById('ctrl-badge-suggest-list');
+      if (!inputEl || !listEl) return;
+
+      const rawKeyword = inputEl.value.trim().toLowerCase();
+      const normKeyword = normalizeNameClient(rawKeyword);
+      if (!rawKeyword) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+        return;
+      }
+
+      const matched = [];
+      APP_STATE.usersList.forEach((u, idx) => {
+        const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
+        const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
+        if (nameNorm.includes(normKeyword) || gradeNorm.includes(normKeyword)) {
+          matched.push({ user: u, idx: idx });
+        }
+      });
+
+      const topMatched = matched.slice(0, 25);
+      if (topMatched.length === 0) {
+        listEl.innerHTML = '<div class="px-3.5 py-2.5 text-xs text-slate-400">該当するメンバーが見つかりません。</div>';
+        listEl.classList.remove('hidden');
+        return;
+      }
+
+      listEl.innerHTML = topMatched.map(({ user, idx }) => {
+        const rawManual = String(user.manual_badges || '').trim();
+        return `
+          <button type="button"
+            onmousedown="event.preventDefault(); selectSuggestedBadgeUser(${idx})"
+            class="w-full px-3.5 py-2.5 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
+            <div class="min-w-0 flex items-center gap-2 flex-wrap">
+              <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(user.name)}</span>
+              <span class="text-[11px] text-slate-500">(${escapeHtml(user.grade || '未設定')})</span>
+              ${rawManual ? `<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">保有:${escapeHtml(rawManual)}</span>` : ''}
+            </div>
+            <span class="shrink-0 px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-bold text-[10px]">選択</span>
+          </button>
+        `;
+      }).join('');
+      listEl.classList.remove('hidden');
+    }
+
+    function selectSuggestedBadgeUser(idx) {
+      const inputEl = document.getElementById('ctrl-badge-user-search');
+      const listEl = document.getElementById('ctrl-badge-suggest-list');
+      const selectEl = document.getElementById('ctrl-badge-user-select');
+      if (inputEl) inputEl.value = '';
+      if (listEl) {
+        listEl.classList.add('hidden');
+        listEl.innerHTML = '';
+      }
+      filterControlBadgeUserSelect();
+      if (selectEl) {
+        selectEl.value = String(idx);
       }
       handleBadgeUserSelectChange();
     }
@@ -11914,6 +12525,7 @@
       try {
         await callGasRpc('grantManualBadge', {
           row_index: user.row_index,
+          name: user.name,
           target_name: user.name,
           badge_id: badgeId,
           revoke: Boolean(revoke)
@@ -11924,7 +12536,10 @@
             : `「${user.name}」にバッジ (${badgeId}) を授与しました！`,
           'success'
         );
-        await window.loadAdminControlPanel();
+        await window.loadAdminMembersTab();
+        if (currentUserIsSystemAdmin()) {
+          renderControlPanelMembers();
+        }
       } catch (err) {
         showToast(err.message || 'バッジ授与処理に失敗しました。', 'error');
       } finally {
@@ -12005,7 +12620,7 @@
      */
     async function handlePromoteAllGrades() {
       const ok = window.confirm(
-        '【確認】Usersシート全員の学年を一括で1学年繰り上げます（1回生→2回生、2回生→3回生、3回生→4回生、4回生→卒業・OBOG）。\n\n本当に実行してよろしいですか？'
+        '【確認】Usersシート全員の学年を一括で1学年繰り上げます（1回生→2回生、2回生→3回生、3回生→4回生、4回生→卒業生）。\n\n本当に実行してよろしいですか？'
       );
       if (!ok) return;
 
