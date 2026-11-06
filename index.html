@@ -286,13 +286,34 @@
       <!-- 管理タブ用サブナビ（幹部以上のみ・管理タブ表示中のみ表示・折り返しタイル型グリッドメニュー） -->
       <div id="admin-subnav" class="hidden -mt-2">
         <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-1.5 bg-white ring-1 ring-slate-200/80 rounded-2xl p-2 shadow-xs">
-          <button type="button" id="tab-btn-admin-dashboard" onclick="switchTab('admin-dashboard')" class="tab-btn flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">📊 会計</button>
-          <button type="button" id="tab-btn-admin-budget" onclick="switchTab('admin-budget')" class="tab-btn flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">📋 イベント予算</button>
-          <button type="button" id="tab-btn-admin-direct" onclick="switchTab('admin-direct')" class="tab-btn flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">✍️ 直接起票</button>
-          <button type="button" id="tab-btn-admin-lottery" onclick="switchTab('admin-lottery')" class="tab-btn flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">🎲 シフト抽選</button>
-          <button type="button" id="tab-btn-admin-shift-edit" onclick="switchTab('admin-shift-edit')" class="tab-btn flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">✏️ シフト編集</button>
-          <button type="button" id="tab-btn-admin-members" onclick="switchTab('admin-members')" class="tab-btn flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">👥 メンバー・バッジ</button>
-          <button type="button" id="tab-btn-admin-control" onclick="switchTab('admin-control')" class="tab-btn hidden flex items-center justify-center text-center px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold leading-tight transition">🛠️ システム管理</button>
+          <button type="button" id="tab-btn-admin-dashboard" onclick="switchTab('admin-dashboard')" class="tab-btn flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition">
+            <span class="text-base leading-none">📊</span>
+            <span class="text-[11px] font-bold whitespace-nowrap">会計</span>
+          </button>
+          <button type="button" id="tab-btn-admin-budget" onclick="switchTab('admin-budget')" class="tab-btn flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition">
+            <span class="text-base leading-none">📋</span>
+            <span class="text-[11px] font-bold whitespace-nowrap">予算企画</span>
+          </button>
+          <button type="button" id="tab-btn-admin-direct" onclick="switchTab('admin-direct')" class="tab-btn flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition">
+            <span class="text-base leading-none">✍️</span>
+            <span class="text-[11px] font-bold whitespace-nowrap">直接起票</span>
+          </button>
+          <button type="button" id="tab-btn-admin-lottery" onclick="switchTab('admin-lottery')" class="tab-btn flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition">
+            <span class="text-base leading-none">🎲</span>
+            <span class="text-[11px] font-bold whitespace-nowrap">シフト抽選</span>
+          </button>
+          <button type="button" id="tab-btn-admin-shift-edit" onclick="switchTab('admin-shift-edit')" class="tab-btn flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition">
+            <span class="text-base leading-none">✏️</span>
+            <span class="text-[11px] font-bold whitespace-nowrap">シフト編集</span>
+          </button>
+          <button type="button" id="tab-btn-admin-members" onclick="switchTab('admin-members')" class="tab-btn flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition">
+            <span class="text-base leading-none">👥</span>
+            <span class="text-[11px] font-bold whitespace-nowrap">部員・称号</span>
+          </button>
+          <button type="button" id="tab-btn-admin-control" onclick="switchTab('admin-control')" class="tab-btn hidden col-span-3 sm:col-span-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition">
+            <span class="text-base leading-none">🛠️</span>
+            <span class="text-[11px] font-bold whitespace-nowrap">システム管理</span>
+          </button>
         </div>
       </div>
 
@@ -1065,10 +1086,16 @@
               </div>
             </div>
 
-            <!-- 日程別の詳細スコア内訳コンテナ -->
-            <div id="lottery-shifts-detail-container" class="space-y-3">
-              <!-- JSで各日程の当選・スコア内訳テーブルを描画 -->
-            </div>
+            <!-- 日程別の詳細スコア内訳コンテナ（折りたたみ格納） -->
+            <details id="lottery-score-details-accordion" class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 group">
+              <summary class="cursor-pointer select-none text-xs sm:text-sm font-bold text-slate-700 hover:text-brand-700 flex items-center justify-between gap-2 list-none">
+                <span>🔍 抽選スコア・優先度の詳細内訳を見る（幹部確認用）</span>
+                <span class="text-[11px] font-semibold text-slate-400 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div id="lottery-shifts-detail-container" class="mt-3.5 space-y-3">
+                <!-- JSで各日程の当選・スコア内訳テーブルを描画 -->
+              </div>
+            </details>
           </div>
         </div>
       </section>
@@ -1325,8 +1352,11 @@
 
           <!-- 登録済みバッジ一覧 -->
           <div class="space-y-1.5">
-            <div class="text-xs font-bold text-slate-700">登録済みバッジマスタ一覧</div>
-            <div id="ctrl-badges-master-list" class="flex flex-wrap gap-2">
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-xs font-bold text-slate-700">登録済みバッジマスタ一覧</div>
+              <span id="ctrl-badges-master-count" class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold">全 0 個</span>
+            </div>
+            <div id="ctrl-badges-master-list" class="flex flex-wrap gap-2 max-h-44 overflow-y-auto p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80">
               <!-- JSで描画 -->
             </div>
           </div>
@@ -1496,6 +1526,32 @@
               LINE URLを保存
             </button>
           </form>
+        </div>
+
+        <!-- カード2.5: 🎮 ゲーム機能の公開設定（段階リリース制御） -->
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs space-y-3.5">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-slate-900">🎮 ゲーム機能の公開設定（段階リリース制御）</h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                一般部員（Member）のボトムナビに「🎮 ゲーム」タブを表示するかどうかをワンタップで切り替えます。
+              </p>
+            </div>
+            <span id="ctrl-game-release-status-badge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-900 ring-1 ring-amber-300">
+              🔒 幹部のみテスト公開中
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+            <button type="button" id="btn-game-mode-managers" onclick="handleUpdateGameReleaseMode('managers_only')"
+              class="py-2.5 px-4 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs shadow-2xs transition active:scale-[0.99]">
+              🔒 幹部のみテスト公開にする
+            </button>
+            <button type="button" id="btn-game-mode-public" onclick="handleUpdateGameReleaseMode('public')"
+              class="py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-emerald-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-[0.99]">
+              🎉 全メンバーに一般公開する
+            </button>
+          </div>
         </div>
 
         <!-- カード3 & 4: 年次・緊急メンテナンス操作 -->
@@ -7723,6 +7779,7 @@
         { id: 'other', label: 'その他（自由入力）', amount: null }
       ],
       adminLineUrl: 'https://line.me/ti/p/',
+      gameReleaseMode: 'managers_only',
       plannedMembersForDate: [],
       pendingLoginEmail: '',
       lastAdminTab: ''
@@ -8300,6 +8357,9 @@
         if (authContext.config.adminLineUrl) {
           syncAdminLineUrlLinks(authContext.config.adminLineUrl);
         }
+        if (authContext.config.gameReleaseMode) {
+          APP_STATE.gameReleaseMode = authContext.config.gameReleaseMode === 'public' ? 'public' : 'managers_only';
+        }
       }
 
       if (!authContext || !authContext.tokenValid) {
@@ -8361,7 +8421,7 @@
         pendingBanner.classList.add('hidden');
       }
 
-      // ボトムナビ「管理」タブ（Manager以上のみ）とサブナビの表示切り替え
+      // ボトムナビ「管理」タブ（Manager以上のみ）・「ゲーム」タブ（公開設定連動）とサブナビの表示切り替え
       const isManagerPlus = isManagerOrAboveRole(authContext.role);
       const isSysAdmin = isSystemAdminRole(authContext.role);
 
@@ -8369,6 +8429,8 @@
       if (adminMenuBtnEl) {
         adminMenuBtnEl.classList.toggle('hidden', !isManagerPlus);
       }
+
+      syncGameTabVisibility();
 
       const adminTabVisibility = {
         'tab-btn-admin-dashboard': isManagerPlus,
@@ -8754,6 +8816,10 @@
         const ctx = await callGasRpc('getAuthContext', {});
         if (ctx && ctx.tokenValid && ctx.authenticated) {
           APP_STATE.user = Object.assign({}, APP_STATE.user || {}, ctx);
+          if (ctx.config && ctx.config.gameReleaseMode) {
+            APP_STATE.gameReleaseMode = ctx.config.gameReleaseMode === 'public' ? 'public' : 'managers_only';
+          }
+          syncGameTabVisibility();
           if (Array.isArray(ctx.badges_master)) {
             APP_STATE.badgesMaster = ctx.badges_master;
           }
@@ -8966,11 +9032,33 @@
 
     const NAV_BTN_ACTIVE = 'tab-btn flex flex-col items-center justify-center gap-0.5 py-2 transition text-brand-700 bg-brand-50';
     const NAV_BTN_IDLE = 'tab-btn flex flex-col items-center justify-center gap-0.5 py-2 transition text-slate-400 hover:text-slate-600';
-    const SUBNAV_ACTIVE = 'tab-btn flex items-center justify-center px-2 py-2 rounded-xl text-[11px] sm:text-xs font-bold text-center transition bg-brand-600 text-white shadow-xs';
-    const SUBNAV_IDLE = 'tab-btn flex items-center justify-center px-2 py-2 rounded-xl text-[11px] sm:text-xs font-bold text-center transition bg-slate-50 ring-1 ring-slate-200/70 text-slate-600 hover:bg-slate-100';
+    const SUBNAV_ACTIVE = 'tab-btn flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition bg-brand-600 text-white shadow-xs';
+    const SUBNAV_IDLE = 'tab-btn flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition bg-slate-50 ring-1 ring-slate-200/70 text-slate-600 hover:bg-slate-100';
+
+    /**
+     * ボトムナビの「🎮 ゲーム」ボタン (#tab-btn-game) およびシステム管理パネルの公開状態UIを同期する
+     */
+    function syncGameTabVisibility() {
+      const isPublic = APP_STATE.gameReleaseMode === 'public';
+      const canAccessGame = isPublic || currentUserIsManagerOrAbove();
+      const gameBtnEl = document.getElementById('tab-btn-game');
+      if (gameBtnEl) {
+        gameBtnEl.classList.toggle('hidden', !canAccessGame);
+      }
+      renderGameReleaseControlUI();
+    }
 
     function switchTab(tabName) {
       triggerHaptic(15);
+
+      // --- 権限ガード: ゲーム段階公開チェック ---
+      if (tabName === 'game') {
+        const canPlayGame = APP_STATE.gameReleaseMode === 'public' || currentUserIsManagerOrAbove();
+        if (!canPlayGame) {
+          showToast('現在ゲーム機能は幹部限定テスト公開中です。', 'info');
+          tabName = 'home';
+        }
+      }
 
       // --- 権限ガード: 管理系タブは Manager 以上、システム管理パネルは System Admin のみ ---
       if (ADMIN_TAB_KEYS.includes(tabName)) {
@@ -9024,11 +9112,12 @@
         }
       });
 
-      // ボトムナビ（下部固定）のアクティブ状態
+      // ボトムナビ（下部固定）のアクティブ状態（hidden状態を維持）
       NAV_TAB_KEYS.forEach(key => {
         const btn = document.getElementById(`tab-btn-${key}`);
         if (!btn) return;
-        btn.className = key === tabName ? NAV_BTN_ACTIVE : NAV_BTN_IDLE;
+        const wasHidden = btn.classList.contains('hidden');
+        btn.className = (key === tabName ? NAV_BTN_ACTIVE : NAV_BTN_IDLE) + (wasHidden ? ' hidden' : '');
       });
 
       const adminMenuBtn = document.getElementById('tab-btn-admin-menu');
@@ -9046,7 +9135,8 @@
         const btn = document.getElementById(`tab-btn-${key}`);
         if (!btn) return;
         const wasHidden = btn.classList.contains('hidden');
-        btn.className = (key === tabName ? SUBNAV_ACTIVE : SUBNAV_IDLE) + (wasHidden ? ' hidden' : '');
+        const spanClass = key === 'admin-control' ? ' col-span-3 sm:col-span-1' : '';
+        btn.className = (key === tabName ? SUBNAV_ACTIVE : SUBNAV_IDLE) + spanClass + (wasHidden ? ' hidden' : '');
       });
 
       if (tabName !== 'game') {
@@ -11427,11 +11517,15 @@
       calendarTableHtml += '</tbody></table>';
       calendarPreview.innerHTML = calendarTableHtml;
 
-      // 2. 日程別の詳細スコア内訳テーブルの構築（当選者および立候補抽選対象者を表示）
+      // 2. 日程別の詳細スコア内訳テーブルの構築（折りたたみ内に格納・初期は閉じた状態）
+      const scoreAccordionEl = document.getElementById('lottery-score-details-accordion');
+      if (scoreAccordionEl) {
+        scoreAccordionEl.open = false;
+      }
       detailContainer.innerHTML = '';
       shifts.forEach((s, sIdx) => {
         const card = document.createElement('div');
-        card.className = 'bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5';
+        card.className = 'bg-white border border-slate-200 rounded-xl p-4 space-y-2.5';
 
         const rankedList = Array.isArray(s.all_ranked)
           ? s.all_ranked.filter(item => item.is_winner || item.selection_type === 'volunteer_lottery')
@@ -11925,6 +12019,7 @@
       if (adminLineInput) {
         adminLineInput.value = APP_STATE.adminLineUrl || 'https://line.me/ti/p/';
       }
+      renderGameReleaseControlUI();
 
       try {
         const [users, badges] = await Promise.all([
@@ -11942,6 +12037,83 @@
         showToast('管理パネルデータの取得に失敗しました: ' + err.message, 'error');
       }
     };
+
+    /**
+     * システム管理パネル内の「🎮 ゲーム機能の公開設定」状態バッジ＆ボタンを描画する
+     */
+    function renderGameReleaseControlUI() {
+      const badgeEl = document.getElementById('ctrl-game-release-status-badge');
+      const btnManagers = document.getElementById('btn-game-mode-managers');
+      const btnPublic = document.getElementById('btn-game-mode-public');
+      const isPublic = APP_STATE.gameReleaseMode === 'public';
+
+      if (badgeEl) {
+        if (isPublic) {
+          badgeEl.textContent = '🎉 現在：全メンバーに一般公開中';
+          badgeEl.className = 'px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-900 ring-1 ring-emerald-300';
+        } else {
+          badgeEl.textContent = '🔒 現在：幹部のみテスト公開中';
+          badgeEl.className = 'px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-900 ring-1 ring-amber-300';
+        }
+      }
+
+      if (btnManagers) {
+        btnManagers.className = !isPublic
+          ? 'py-2.5 px-4 rounded-xl bg-amber-600 text-white font-extrabold text-xs shadow-xs transition active:scale-[0.99]'
+          : 'py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-amber-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-[0.99]';
+      }
+      if (btnPublic) {
+        btnPublic.className = isPublic
+          ? 'py-2.5 px-4 rounded-xl bg-emerald-600 text-white font-extrabold text-xs shadow-xs transition active:scale-[0.99]'
+          : 'py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-emerald-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-[0.99]';
+      }
+    }
+
+    /**
+     * ゲーム機能の公開モードをワンタップで切り替える（System Admin専用）
+     * @param {'managers_only'|'public'} mode
+     */
+    async function handleUpdateGameReleaseMode(mode) {
+      const targetMode = mode === 'public' ? 'public' : 'managers_only';
+      if (APP_STATE.gameReleaseMode === targetMode) {
+        showToast(
+          targetMode === 'public'
+            ? 'すでに全メンバーへ一般公開されています。'
+            : 'すでに幹部のみテスト公開モードに設定されています。',
+          'info'
+        );
+        return;
+      }
+
+      const confirmMsg = targetMode === 'public'
+        ? '🎉 全メンバー（一般部員を含む全員）の画面下部に「🎮 ゲーム」タブを公開しますか？'
+        : '🔒 ゲーム機能を「幹部・システム管理者のみテスト公開」に戻しますか？（一般部員の画面からゲームタブが非表示になります）';
+      if (!window.confirm(confirmMsg)) return;
+
+      showLoader('ゲームの公開設定を更新しています...');
+      try {
+        const res = await callGasRpc('updateGameReleaseMode', { mode: targetMode });
+        const savedMode = (res && (res.gameReleaseMode || res.game_release_mode)) || targetMode;
+        APP_STATE.gameReleaseMode = savedMode === 'public' ? 'public' : 'managers_only';
+        if (APP_STATE.user && APP_STATE.user.config) {
+          APP_STATE.user.config.gameReleaseMode = APP_STATE.gameReleaseMode;
+          try {
+            localStorage.setItem(CACHED_BOOTSTRAP_KEY, JSON.stringify(APP_STATE.user));
+          } catch (_) {}
+        }
+        syncGameTabVisibility();
+        showToast(
+          APP_STATE.gameReleaseMode === 'public'
+            ? '🎉 ゲームを全メンバーに一般公開しました！'
+            : '🔒 ゲームを「幹部のみテスト公開」に切り替えました。',
+          'success'
+        );
+      } catch (err) {
+        showToast(err.message || 'ゲーム公開設定の更新に失敗しました。', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
 
     /**
      * 会計役のLINE URLを更新して PropertiesService に保存する (updateAdminLineUrl)
@@ -12285,8 +12457,13 @@
 
     function renderControlBadgesSection() {
       const listEl = document.getElementById('ctrl-badges-master-list');
+      const countEl = document.getElementById('ctrl-badges-master-count');
       const manualSelectEl = document.getElementById('ctrl-manual-badge-select');
       const badges = Array.isArray(APP_STATE.badgesMaster) ? APP_STATE.badgesMaster : [];
+
+      if (countEl) {
+        countEl.textContent = `全 ${badges.length} 個`;
+      }
 
       if (listEl) {
         if (badges.length === 0) {
