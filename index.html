@@ -132,7 +132,7 @@
   <!-- ===================================================================== -->
   <!-- メインコンテンツ領域 -->
   <!-- ===================================================================== -->
-  <main class="flex-1 max-w-4xl w-full mx-auto px-4 pt-5 pb-28">
+  <main id="app-main" class="flex-1 max-w-4xl w-full mx-auto px-4 pt-5 pb-28">
 
     <!-- GAS API URL 未設定時の案内バナー -->
     <div id="gas-url-warning" class="hidden mb-5 bg-amber-50 border border-amber-300 rounded-2xl p-4 text-xs text-amber-900">
@@ -1471,6 +1471,11 @@
     /* ==========================================================================
        完全隔離スタイル: #tab-game.wc-game-root スコープ限定
        ========================================================================== */
+    #tab-game.wc-game-root.animate-fade-in {
+      animation: none !important;
+      transform: none !important;
+    }
+    
     #tab-game.wc-game-root {
       position: relative;
       width: 100%;
@@ -4125,6 +4130,9 @@
          導入スライド（全2ページ・カードめくり式）：チュートリアルON時に「🔥 キャンプを始める！」直後に表示
          ====================================================================== */
       openIntroModal() {
+        if (typeof window.setDwcAppFullscreen === "function") {
+          window.setDwcAppFullscreen(true);
+        }
         this.state.tutorialActive = true;
         this.showIntroPage(1);
         this.els.introModal.classList.remove("hidden");
@@ -7848,15 +7856,18 @@
 
     /**
      * ゲームセンター（限界キャンプファイヤー）向けのグローバルユーザーデータ同期
+     * ★ userId と workCount（業務参加回数 reward_points）を正確に連携！
      */
     function syncGameUserData() {
       const u = APP_STATE.user || {};
       window.WC_USER_DATA = {
+        userId: String(u.email || u.name || 'guest_user'),
         email: u.email || '',
         name: u.name || '',
-        campName: u.camp_name || '',
+        campName: String(u.camp_name || u.name || 'たきびまる'),
+        workCount: Math.max(0, Number(u.reward_points || 0)),
         role: u.role || 'Member',
-        highScore: Number(u.campfire_high_score || 0)
+        highScore: Number(u.high_score || u.campfire_high_score || 0)
       };
       if (window.WC_CAMPFIRE && typeof window.WC_CAMPFIRE.syncUserData === 'function') {
         try {
@@ -7866,11 +7877,12 @@
     }
 
     /**
-     * ゲームプレイ中のフルスクリーン切り替え関数（要件⑥-3）
+     * ゲームプレイ中のフルスクリーン切り替え関数
+     * ★ プレイ中は上部ヘッダー(#main-header)と下部メニュー(#main-nav)を完全に隠し、100dvh全画面化！
      * @param {boolean} isFullscreen
      */
     window.setDwcAppFullscreen = function(isFullscreen) {
-      const headerEl = document.getElementById('app-header');
+      const headerEl = document.getElementById('main-header');
       const subnavEl = document.getElementById('admin-subnav');
       const mainEl = document.getElementById('app-main');
       const navEl = document.getElementById('main-nav');
@@ -7878,22 +7890,18 @@
       if (isFullscreen) {
         if (headerEl) headerEl.classList.add('hidden');
         if (subnavEl) subnavEl.classList.add('hidden');
+        if (navEl) navEl.classList.add('hidden');
         if (mainEl) {
           mainEl.className = 'w-full h-[100dvh] overflow-hidden p-0 m-0 max-w-none';
-        }
-        if (navEl) {
-          navEl.classList.remove('z-30');
-          navEl.classList.add('z-50');
         }
         document.body.classList.add('overflow-hidden');
       } else {
         if (headerEl) headerEl.classList.remove('hidden');
-        if (mainEl) {
-          mainEl.className = 'max-w-4xl mx-auto px-4 py-6 pb-28';
+        if (navEl && APP_STATE.user && APP_STATE.user.authenticated) {
+          navEl.classList.remove('hidden');
         }
-        if (navEl) {
-          navEl.classList.remove('z-50');
-          navEl.classList.add('z-30');
+        if (mainEl) {
+          mainEl.className = 'flex-1 max-w-4xl w-full mx-auto px-4 pt-5 pb-28';
         }
         document.body.classList.remove('overflow-hidden');
       }
