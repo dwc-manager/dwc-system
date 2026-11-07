@@ -628,7 +628,7 @@
         <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 sm:p-6 shadow-xs">
           <div class="flex items-center justify-between gap-2 mb-4">
             <div>
-              <h2 class="text-base sm:text-lg font-bold text-slate-900">🏆 メンバー貢献度ランキング</h2>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">🏆 業務参加回数(2026年9月1日～)</h2>
               <p id="leaderboard-subtitle" class="text-xs text-slate-400 mt-0.5">
                 業務への累計参加回数ランキング
               </p>
@@ -1361,47 +1361,77 @@
             </div>
           </div>
 
-          <!-- (B) 特定メンバーへの手動バッジ授与・剥奪 -->
+          <!-- (B) 複数メンバーへの手動バッジ一括授与・剥奪 -->
           <div class="bg-amber-50/60 ring-1 ring-amber-200/80 rounded-xl p-4 space-y-3">
-            <div class="text-xs font-extrabold text-amber-900">🎁 メンバーへ手動バッジを授与 / 剥奪する</div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="min-w-0 space-y-1.5">
-                <label class="block text-[11px] font-bold text-slate-700">対象メンバーを選択</label>
-                <div class="relative">
-                  <input id="ctrl-badge-user-search" type="search" autocomplete="off"
-                    oninput="handleBadgeUserSearchInput()"
-                    onfocus="handleBadgeUserSearchInput()"
-                    onblur="hideSuggestListDelayed('ctrl-badge-suggest-list')"
-                    placeholder="🔍 氏名・学年を入力してタップで選択..."
-                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-brand-500 focus:outline-none" />
-                  <div id="ctrl-badge-suggest-list"
-                    class="hidden absolute left-0 right-0 z-30 mt-1 max-h-56 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
-                  </div>
-                </div>
-                <select id="ctrl-badge-user-select" onchange="handleBadgeUserSelectChange()"
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:outline-none">
-                  <option value="">-- メンバーを選択 --</option>
-                </select>
-              </div>
-              <div class="min-w-0 space-y-1.5">
-                <label class="block text-[11px] font-bold text-slate-700">授与・剥奪するバッジを選択</label>
-                <select id="ctrl-manual-badge-select"
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-bold focus:border-brand-600 focus:outline-none">
-                  <option value="">-- バッジを選択 --</option>
-                </select>
-                <div id="ctrl-user-current-badges" class="text-[11px] text-slate-600 pt-1">
-                  選択メンバーの保有手動バッジ: -
-                </div>
-              </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="text-xs font-extrabold text-amber-900">🎁 メンバーへ手動バッジを授与 / 剥奪する（複数人一括対応）</div>
+              <span id="ctrl-badge-selected-count" class="px-2.5 py-0.5 rounded-full bg-amber-600 text-white text-[11px] font-extrabold shadow-2xs">
+                選択中: 0 名
+              </span>
             </div>
+
+            <!-- 1. 授与・剥奪するバッジを選択するプルダウン -->
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <label for="ctrl-manual-badge-select" class="block text-[11px] font-bold text-slate-700">① 授与・剥奪するバッジを選択</label>
+                <span id="ctrl-badge-holder-count" class="text-[11px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                  現在の保有者: - 名
+                </span>
+              </div>
+              <select id="ctrl-manual-badge-select" onchange="handleManualBadgeSelectChange()"
+                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-bold focus:border-brand-600 focus:outline-none">
+                <option value="">-- バッジを選択 --</option>
+              </select>
+            </div>
+
+            <!-- 2. メンバー絞り込みバー（学年フィルタ ＋ 氏名検索 ＋ 全選択・クリア） -->
+            <div class="space-y-2 pt-1">
+              <div class="flex flex-wrap items-center justify-between gap-1.5">
+                <div id="ctrl-badge-grade-filters" class="flex flex-wrap items-center gap-1">
+                  <button type="button" data-grade="ALL" onclick="setBatchBadgeGradeFilter('ALL')"
+                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-600 text-white shadow-2xs transition">全員</button>
+                  <button type="button" data-grade="1回生" onclick="setBatchBadgeGradeFilter('1回生')"
+                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-600 border border-slate-200 hover:bg-amber-50 transition">1回生</button>
+                  <button type="button" data-grade="2回生" onclick="setBatchBadgeGradeFilter('2回生')"
+                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-600 border border-slate-200 hover:bg-amber-50 transition">2回生</button>
+                  <button type="button" data-grade="3回生" onclick="setBatchBadgeGradeFilter('3回生')"
+                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-600 border border-slate-200 hover:bg-amber-50 transition">3回生</button>
+                  <button type="button" data-grade="4回生" onclick="setBatchBadgeGradeFilter('4回生')"
+                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-600 border border-slate-200 hover:bg-amber-50 transition">4回生</button>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="selectAllVisibleBadgeMembers()"
+                    class="px-2.5 py-1 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 text-[11px] font-bold transition">
+                    表示中を全選択
+                  </button>
+                  <button type="button" onclick="clearBatchBadgeSelection()"
+                    class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 text-[11px] font-bold transition">
+                    選択クリア
+                  </button>
+                </div>
+              </div>
+
+              <input id="ctrl-badge-user-search" type="search" autocomplete="off"
+                oninput="handleBadgeUserSearchInput()"
+                placeholder="🔍 氏名・学年で絞り込み検索..."
+                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-brand-500 focus:outline-none" />
+            </div>
+
+            <!-- 3. スクロール可能なチェックボックス付きメンバーリスト -->
+            <div id="ctrl-badge-member-checklist"
+              class="max-h-56 overflow-y-auto bg-white rounded-xl border border-slate-200 p-2 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <!-- JSで描画 -->
+            </div>
+
+            <!-- 4. 下部一括操作ボタン -->
             <div class="flex flex-wrap items-center gap-2 pt-1">
-              <button type="button" onclick="handleGrantManualBadge(false)"
-                class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs transition">
-                🎖️ このバッジを授与する
+              <button type="button" onclick="handleGrantManualBadgeBatch(false)"
+                class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs transition">
+                🎖️ 選択したメンバーに一括授与する
               </button>
-              <button type="button" onclick="handleGrantManualBadge(true)"
-                class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition">
-                バッジを剥奪（解除）する
+              <button type="button" onclick="handleGrantManualBadgeBatch(true)"
+                class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition">
+                選択したメンバーから一括剥奪する
               </button>
             </div>
           </div>
@@ -2106,76 +2136,97 @@
       </div>
     </div>
 
-    <!-- 導入スライド（全2ページ・カードめくり式）：チュートリアルON時に「🔥 キャンプを始める！」直後に表示 -->
+    <!-- 導入スライド（全2ページ・文字量70%超圧縮の図解特化版）：チュートリアルON時に「🔥 キャンプを始める！」直後に表示 -->
     <div id="wc-intro-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4" style="max-width:520px;margin:0 auto;">
       <div class="w-full max-h-[94dvh] overflow-y-auto">
 
         <!-- 【1ページ目：🎯 このゲームの目的】 -->
         <div id="wc-intro-page-1" class="wc-wood-card w-full rounded-3xl border-4 border-yellow-300 p-4 sm:p-5 space-y-3.5 text-center">
           <div class="inline-block px-3 py-0.5 rounded-full bg-sky-500/30 border border-sky-300/60 text-xs text-sky-200">
-            🎯 このゲームの目的 (1 / 2)
+            🎯 GOAL (1 / 2)
           </div>
-          <h3 class="wc-pop-text text-xl sm:text-2xl text-yellow-300 leading-snug">
-            🔥 目指せ宇宙！キャンプファイヤーを銀河までぶち上げろ！
+          <h3 class="wc-pop-text text-lg sm:text-xl text-yellow-300 leading-snug">
+            🔥 火力を上げて、花背から銀河まで火柱をぶち上げろ！
           </h3>
-          <div class="rounded-2xl bg-black/55 border-2 border-amber-400/45 p-3 space-y-2.5 text-left">
-            <p class="text-xs text-amber-50 leading-relaxed">
-              火力を上げて火柱を高くするほど、ステージが昇格！最終的な<b class="text-yellow-300">火力（kcal）</b>でランキングを競うゲームです。
-            </p>
-            <div class="flex items-center justify-center flex-wrap gap-1 text-[11px]">
-              <span class="px-2 py-1 rounded-full bg-emerald-900/80 border border-emerald-300/60 text-emerald-100">⛺広場</span>
+          <div class="rounded-2xl bg-black/60 border-2 border-amber-400/50 p-3.5">
+            <div class="flex items-center justify-center flex-wrap gap-1.5 text-xs">
+              <span class="px-2.5 py-1 rounded-full bg-emerald-900/85 border border-emerald-300/70 text-emerald-100">⛺広場</span>
               <span class="text-yellow-300">➔</span>
-              <span class="px-2 py-1 rounded-full bg-red-900/80 border border-red-300/60 text-red-100">🏠ボラルの屋根</span>
+              <span class="px-2.5 py-1 rounded-full bg-red-900/85 border border-red-300/70 text-red-100">🏠屋根</span>
               <span class="text-yellow-300">➔</span>
-              <span class="px-2 py-1 rounded-full bg-pink-900/80 border border-pink-300/60 text-pink-100">⛰️雲海</span>
+              <span class="px-2.5 py-1 rounded-full bg-pink-900/85 border border-pink-300/70 text-pink-100">⛰️雲海</span>
               <span class="text-yellow-300">➔</span>
-              <span class="px-2 py-1 rounded-full bg-sky-900/80 border border-sky-300/60 text-sky-100">🛰️成層圏</span>
+              <span class="px-2.5 py-1 rounded-full bg-sky-900/85 border border-sky-300/70 text-sky-100">🛰️成層圏</span>
               <span class="text-yellow-300">➔</span>
-              <span class="px-2 py-1 rounded-full bg-slate-800/90 border border-slate-300/60 text-slate-100">🌕月面</span>
+              <span class="px-2.5 py-1 rounded-full bg-slate-800/90 border border-slate-300/70 text-slate-100">🌕月面</span>
               <span class="text-yellow-300">➔</span>
-              <span class="px-2 py-1 rounded-full bg-gradient-to-r from-fuchsia-700/90 to-amber-600/90 border border-yellow-200/80 text-white">🌌銀河系</span>
+              <span class="px-2.5 py-1 rounded-full bg-gradient-to-r from-fuchsia-700/90 to-amber-600/90 border border-yellow-200/80 text-white">🌌銀河</span>
             </div>
           </div>
           <button id="wc-btn-intro-next" type="button"
             class="wc-arcade-btn w-full py-3.5 rounded-2xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-4 border-yellow-100 text-base sm:text-lg text-white">
-            <span class="wc-pop-sub">次へ（2つのフェーズとは？） ➔</span>
+            <span class="wc-pop-sub">次へ ➔</span>
           </button>
         </div>
 
-        <!-- 【2ページ目：🌓 なぜ2つのフェーズに分かれているの？】 -->
-        <div id="wc-intro-page-2" class="hidden wc-wood-card w-full rounded-3xl border-4 border-yellow-300 p-4 sm:p-5 space-y-3 text-center">
+        <!-- 【2ページ目：🌓 2パート勝負の図解】 -->
+        <div id="wc-intro-page-2" class="hidden wc-wood-card w-full rounded-3xl border-4 border-yellow-300 p-4 sm:p-5 space-y-3.5 text-center">
           <div class="inline-block px-3 py-0.5 rounded-full bg-sky-500/30 border border-sky-300/60 text-xs text-sky-200">
-            🌓 なぜ2つのフェーズに分かれているの？ (2 / 2)
+            🌓 FLOW (2 / 2)
           </div>
-          <h3 class="wc-pop-text text-xl sm:text-2xl text-yellow-300 leading-snug">
-            🪓 夕方の「薪集め」が<br>夜の「火柱の高さ」を決める！
+          <h3 class="wc-pop-text text-base sm:text-lg text-yellow-300 leading-snug">
+            ①夕方に【🪵薪】を切り出し ➔ ②夜に【🔥点火】して燃やし尽くす2パート勝負！
           </h3>
-          <div class="space-y-2 text-left">
-            <div class="rounded-2xl bg-black/55 border-2 border-amber-400/50 p-3 space-y-1.5 text-center">
-              <div class="text-xs text-sky-300">📺 毎日の天気予報</div>
-              <p class="text-[11px] text-amber-50 leading-relaxed">
-                プレイするたびに「花背の天気」が変わり、追い風ボーナスやハプニングが発生！
-              </p>
+          <div class="grid grid-cols-2 gap-2.5 text-center">
+            <div class="rounded-2xl bg-gradient-to-b from-amber-950/90 to-black/75 border-2 border-amber-400/70 p-3 space-y-1">
+              <div class="text-2xl">🌇🪓🪵</div>
+              <div class="wc-pop-sub text-xs text-yellow-300">① 夕方の伐採</div>
+              <div class="text-[11px] text-amber-100">薪の本数＆乾燥度GET</div>
+            </div>
+            <div class="rounded-2xl bg-gradient-to-b from-indigo-950/90 to-black/75 border-2 border-orange-400/70 p-3 space-y-1">
+              <div class="text-2xl">🌌🔥🪭</div>
+              <div class="wc-pop-sub text-xs text-orange-300">② 夜の点火</div>
+              <div class="text-[11px] text-amber-100">コンボ＆助燃剤で爆伸</div>
             </div>
           </div>
-            <div class="rounded-2xl bg-black/55 border-2 border-amber-400/50 p-3 space-y-1.5">
-              <div class="text-xs text-yellow-300">① 夕方の伐採フェーズ（準備）</div>
-              <p class="text-[11px] text-amber-50 leading-relaxed">
-                夜に燃やすための<b class="text-yellow-300">「🪵薪の本数（最大30本）」</b>と<b class="text-yellow-300">「☀️薪の乾燥度（燃えやすさ最大約4倍！）」</b>を切り出す準備パート！
-              </p>
-            </div>
-            <div class="rounded-2xl bg-black/55 border-2 border-orange-400/50 p-3 space-y-1.5">
-              <div class="text-xs text-orange-300">② 夜の点火フェーズ（本番）</div>
-              <p class="text-[11px] text-amber-50 leading-relaxed">
-                集めた薪をリズムよくくべ、7本ごとの<b class="text-yellow-300">「🧪助燃剤カード＆🪭DWCうちわ」</b>で火力を何倍にも爆発させる本番パート！
-              </p>
-            </div>
           <button id="wc-btn-intro-start" type="button"
             class="wc-arcade-btn w-full py-3.5 rounded-2xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-4 border-yellow-100 text-sm sm:text-base text-white">
-            <span class="wc-pop-sub">OK！まずは今日の天気予報を見る！ 🔥</span>
+            <span class="wc-pop-sub">OK！今日の天気予報へ 🔥</span>
           </button>
         </div>
 
+      </div>
+    </div>
+
+    <!-- 🎓 ステップ・バイ・ステップ実演コーチング用オーバーレイ（実際のUIをハイライトしながら1つずつ進める） -->
+    <div id="wc-step-coach-overlay" class="hidden fixed inset-0 z-40" style="max-width:520px;margin:0 auto;background:rgba(0,0,0,0.42);">
+      <div id="wc-step-coach-pointer" class="hidden wc-coach-arrow z-50">👇</div>
+      <div id="wc-step-coach-card-wrap" class="absolute inset-x-3 z-50" style="top:50%;transform:translateY(-50%);">
+        <div class="wc-wood-card rounded-3xl border-4 border-yellow-300 p-3.5 sm:p-4 shadow-[0_18px_45px_rgba(0,0,0,0.92)] space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <span id="wc-step-coach-badge" class="px-2.5 py-0.5 rounded-full bg-sky-500/35 border border-sky-300/70 text-[10px] text-sky-100">
+              🎓 ハナコロ先生のステップ解説
+            </span>
+            <span class="text-[10px] text-amber-200/80">練習モード（記録除外）</span>
+          </div>
+          <div class="flex items-start gap-2.5">
+            <div id="wc-step-coach-avatar" class="w-12 h-12 shrink-0 drop-shadow"></div>
+            <div id="wc-step-coach-body" class="text-xs text-amber-50 leading-relaxed text-left flex-1"></div>
+          </div>
+          <button id="wc-btn-step-coach-next" type="button"
+            class="wc-arcade-btn w-full py-2.5 rounded-2xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-2 border-yellow-100 text-xs sm:text-sm text-white text-center">
+            <span id="wc-btn-step-coach-label" class="wc-pop-sub">タップで次へ ▸</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🎬 お手本実演デモ再生中バナー -->
+    <div id="wc-demo-playing-banner" class="hidden fixed inset-x-3 top-14 z-40 pointer-events-none" style="max-width:496px;margin:0 auto;">
+      <div class="wc-heartbeat-badge rounded-2xl bg-gradient-to-r from-fuchsia-700/95 via-amber-600/95 to-orange-600/95 border-2 border-yellow-200 px-3.5 py-2 text-center shadow-2xl">
+        <div id="wc-demo-playing-text" class="wc-pop-sub text-xs sm:text-sm text-white">
+          🎬 ハナコロのお手本デモ再生中…！
+        </div>
       </div>
     </div>
 
@@ -2224,9 +2275,9 @@
     </div>
 
     <!-- ======================================================================
-         VIEW 1: ロビー画面（リッチ火の粉＆流れ星Canvas ＋ キャリア成績 ＋ 最高＆累積2列ランキング）
+         VIEW 1: ロビー画面（2段タイトル ＋ 前景焚き火バッジ ＋ 1行ボーナスバー ＋ 3タブ切替1列ワイド番付）
          ====================================================================== -->
-    <div id="wc-view-lobby" class="min-h-[100dvh] flex flex-col justify-between p-4 pb-24 bg-gradient-to-b from-[#06150f] via-[#261109] to-[#4a1c0b] relative overflow-y-auto">
+    <div id="wc-view-lobby" class="min-h-[100dvh] flex flex-col justify-between p-3.5 pb-24 bg-gradient-to-b from-[#06150f] via-[#261109] to-[#4a1c0b] relative overflow-y-auto">
       <canvas id="wc-lobby-canvas" class="pointer-events-none absolute inset-0 w-full h-full z-0"></canvas>
 
       <div class="pointer-events-none absolute inset-x-0 top-0 h-64 opacity-70 z-0" aria-hidden="true">
@@ -2237,58 +2288,70 @@
         </svg>
       </div>
 
-      <div class="relative z-10 space-y-3.5">
-        <div class="flex items-center justify-between gap-1.5">
-          <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] bg-amber-500/25 text-amber-200 border-2 border-amber-400/50 shadow truncate">
-            🏕️ DWC CAMPFIRE
-          </span>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <button id="wc-btn-howto" type="button" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs bg-sky-900/90 hover:bg-sky-800 text-sky-100 border-2 border-sky-400/60 shadow-md">
-              <span>❓</span>
-              <span>遊び方</span>
-            </button>
-            <button id="wc-btn-mute" type="button" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs bg-amber-950/90 hover:bg-amber-900 text-amber-100 border-2 border-amber-500/60 shadow-md">
-              <span id="wc-mute-icon">🔊</span>
-              <span id="wc-mute-label">SOUND ON</span>
-            </button>
-          </div>
+      <div class="relative z-10 space-y-2.5">
+        <!-- 上部バー：左上の不要な楕円バッジを削除し、右上の「❓ 遊び方」と「🔊 SOUND」のみ配置 -->
+        <div class="flex items-center justify-end gap-1.5">
+          <button id="wc-btn-howto" type="button" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-sky-900/90 hover:bg-sky-800 text-sky-100 border-2 border-sky-400/60 shadow-md">
+            <span>❓</span>
+            <span>遊び方</span>
+          </button>
+          <button id="wc-btn-mute" type="button" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-amber-950/90 hover:bg-amber-900 text-amber-100 border-2 border-amber-500/60 shadow-md">
+            <span id="wc-mute-icon">🔊</span>
+            <span id="wc-mute-label">SOUND ON</span>
+          </button>
         </div>
 
-        <div class="wc-wood-card rounded-3xl p-4 text-center relative overflow-hidden">
-          <div class="inline-block px-3 py-0.5 rounded-full bg-orange-500/30 border border-orange-300/40 text-[11px] text-amber-200 mb-1">
-            〜花背山の家から宇宙へ〜
-          </div>
-          <h1 class="wc-pop-text text-3xl sm:text-4xl text-amber-300 leading-tight py-0.5">
-            限界キャンプファイヤー
+        <!-- タイトル＆ハナコロ看板（ファーストビュー最適設計） -->
+        <div class="wc-wood-card rounded-3xl px-3.5 py-3 text-center relative overflow-hidden">
+          <h1 class="wc-pop-text py-0.5">
+            <span class="block text-sm sm:text-base text-yellow-200 tracking-wider mb-0.5">宇宙まで燃えろ！</span>
+            <span class="block text-3xl sm:text-4xl text-amber-300 leading-tight">花背ファイヤー</span>
           </h1>
-          <p class="text-[11px] text-amber-100/90 mt-1">
+          <p class="text-[10px] sm:text-[11px] text-amber-100/90 mt-0.5">
             極限乾燥の薪を切り出し、DWCうちわで扇いで銀河へ火柱をぶち上げろ！
           </p>
 
-          <div class="mt-3 flex items-center justify-center gap-3">
-            <div id="wc-lobby-hanakoro" class="wc-hanakoro-idle w-24 h-24 shrink-0 drop-shadow-[0_8px_12px_rgba(0,0,0,0.65)]"></div>
-            <div class="text-left bg-black/45 rounded-2xl p-3 border-2 border-amber-400/35 text-xs leading-relaxed">
-              <div class="text-lime-300 mb-0.5">🐸 守り神・ハナコロ</div>
-              <!-- ★編集ガイド：ロビー画面のハナコロのセリフ（JavaScript側の this.HANAKORO_LINES.lobby でも編集可能です） -->
-              <div id="wc-lobby-hanakoro-speech" class="text-amber-50 text-[11px]">
+          <!-- ハナコロ＋前景焚き火丸太ミニバッジ（下半身ブツ切り感を自然に隠す）＆コンパクト吹き出し -->
+          <div class="mt-2 flex items-center justify-center gap-2.5">
+            <div class="relative flex flex-col items-center shrink-0">
+              <div id="wc-lobby-hanakoro" class="wc-hanakoro-idle w-20 h-20 drop-shadow-[0_6px_10px_rgba(0,0,0,0.65)]"></div>
+              <div class="-mt-5 relative z-10 w-24 h-8 pointer-events-none drop-shadow-[0_4px_6px_rgba(0,0,0,0.88)]" aria-hidden="true">
+                <svg viewBox="0 0 120 42" class="w-full h-full">
+                  <ellipse cx="60" cy="36" rx="48" ry="6" fill="rgba(0,0,0,0.58)"/>
+                  <g stroke="#1c0a04" stroke-width="2.2" stroke-linejoin="round">
+                    <path d="M16 34 L56 18 L62 24 L22 40 Z" fill="#7c3a19"/>
+                    <path d="M104 34 L64 18 L58 24 L98 40 Z" fill="#5c2d16"/>
+                    <rect x="24" y="27" width="72" height="10" rx="4.5" fill="#85421e"/>
+                    <circle cx="30" cy="32" r="3.2" fill="#fbbf24"/>
+                    <circle cx="90" cy="32" r="3.2" fill="#fbbf24"/>
+                  </g>
+                  <path d="M60 2 C50 12, 46 21, 53 28 C56 31, 64 31, 67 28 C74 21, 70 12, 60 2 Z" fill="#f97316" stroke="#7c2d12" stroke-width="1.5"/>
+                  <path d="M60 8 C54 15, 53 21, 57 26 C59 28, 61 28, 63 26 C67 21, 66 15, 60 8 Z" fill="#fde047"/>
+                </svg>
+              </div>
+            </div>
+            <div class="text-left bg-black/50 rounded-2xl px-3 py-2 border-2 border-amber-400/40 text-xs leading-snug flex-1 min-w-0">
+              <div class="text-[10px] text-lime-300 mb-0.5">🐸 守り神・ハナコロ</div>
+              <div id="wc-lobby-hanakoro-speech" class="text-amber-50 text-[11px] leading-relaxed">
                 「花背の森で極上の乾燥薪を切り出して、宇宙まで火柱をぶち上げるケロ！」
               </div>
             </div>
           </div>
         </div>
 
+        <!-- スタートボタン -->
         <button id="wc-btn-start" type="button"
-          class="wc-arcade-btn w-full py-4 sm:py-5 rounded-3xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-4 border-yellow-200 text-center">
+          class="wc-arcade-btn w-full py-3.5 sm:py-4 rounded-3xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-4 border-yellow-200 text-center">
           <span class="wc-pop-text text-2xl sm:text-3xl text-white block">🔥 キャンプを始める！</span>
-          <span class="wc-pop-sub text-xs text-yellow-100 tracking-wider block mt-0.5">START HANASE BONFIRE!</span>
+          <span class="wc-pop-sub text-[11px] text-yellow-100 tracking-wider block mt-0.5">START HANASE FIRE!</span>
         </button>
 
-        <!-- 🎓 初心者チュートリアルモード ON/OFF トグル（初回はON ／ 1回クリアすると自動でOFF ／ 手動でいつでもONに戻せる） -->
+        <!-- 🎓 初心者チュートリアルモード ON/OFF トグル -->
         <button id="wc-btn-tutorial-toggle" type="button" role="switch" aria-checked="true"
-          class="w-full flex items-center justify-between gap-3 rounded-2xl bg-black/55 border-2 border-sky-400/65 px-3.5 py-2.5 text-left active:scale-[0.99] transition">
+          class="w-full flex items-center justify-between gap-2.5 rounded-2xl bg-black/55 border-2 border-sky-400/65 px-3 py-2 text-left active:scale-[0.99] transition">
           <span class="min-w-0">
-            <span class="block text-xs text-sky-100 leading-snug">🎓 初心者チュートリアルモード</span>
-            <span class="block text-[10px] text-amber-200/90 mt-0.5 leading-snug">初回はON ／ 1回クリアすると自動でOFF ／ いつでも手動でONに戻せます</span>
+            <span class="block text-xs text-sky-100 leading-snug">🎓 触って覚える実演チュートリアル</span>
+            <span class="block text-[10px] text-amber-200/90 mt-0.5 leading-snug">初回ON（練習プレイは記録除外）／クリア後自動でOFF</span>
           </span>
           <span class="shrink-0 flex items-center gap-1.5">
             <span id="wc-tutorial-toggle-label" class="text-xs text-emerald-300 w-7 text-right">ON</span>
@@ -2298,89 +2361,74 @@
           </span>
         </button>
 
-        <div class="wc-wood-card rounded-3xl p-4 space-y-3">
-          <div>
-            <label for="wc-input-campname" class="block text-xs text-amber-200 mb-1.5">
-              🏕️ キャンプネーム（ランキング表示名）
-            </label>
-            <input id="wc-input-campname" type="text" maxlength="16" placeholder="たきびまる"
-              class="w-full rounded-2xl bg-[#190b05] border-2 border-amber-500/60 focus:border-yellow-300 focus:outline-none px-4 py-2 text-base text-amber-100 shadow-inner" />
+        <!-- 1行スリムカプセルバー：活動参加ボーナス表示 -->
+        <div class="rounded-full bg-gradient-to-r from-amber-950/90 via-orange-950/90 to-sky-950/90 border border-yellow-400/65 px-3 py-1.5 text-center shadow-md">
+          <div id="wc-work-honor-main" class="text-[10px] sm:text-[11px] text-amber-100 truncate">
+            🛠️ 活動参加 12回ボーナス発動中：🪚予備ノコギリ 2個 ／ 🪭うちわ黄金枠 ×1.18
           </div>
-
-          <div class="rounded-2xl bg-gradient-to-r from-amber-900/80 via-orange-900/75 to-sky-900/80 border-2 border-yellow-400/60 p-3 shadow-md">
-            <div class="flex items-center gap-2 text-xs text-yellow-200">
-              <span class="text-base">🏅</span>
-              <span id="wc-work-honor-main">🛠️ あなたの累計活動参加：12回</span>
-            </div>
-            <div id="wc-work-honor-sub" class="mt-1.5 text-[11px] text-amber-100 bg-black/35 rounded-xl px-3 py-1.5 border border-white/15 leading-relaxed">
-              🪚 予備ノコギリ 2個 ／ 🪭 うちわ黄金枠 ×1.18 拡大中！
-            </div>
-          </div>
+          <span id="wc-work-honor-sub" class="hidden"></span>
         </div>
 
-        <!-- 自分だけの成績『🎖️ あなたの花背キャリア記録』パネル -->
-        <div class="wc-wood-card rounded-3xl p-4 space-y-2.5">
-          <div class="flex items-center justify-between">
-            <h2 class="text-sm text-yellow-300 flex items-center gap-1.5">
-              🎖️ あなたの花背キャリア記録
+        <!-- 1億kcal超え完全対応！タブ切替式の1列ワイド番付 ＆ キャリア記録ボード -->
+        <div class="wc-wood-card rounded-3xl p-3 sm:p-4 space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-xs sm:text-sm text-yellow-300 flex items-center gap-1.5">
+              🏅 花背ファイヤー番付 ＆ 記録
             </h2>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/40">MY STATS</span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div class="rounded-2xl bg-black/45 border border-yellow-400/40 p-2.5">
-              <div class="text-[10px] text-amber-200/80">👑 自己ベスト火力</div>
-              <div id="wc-stat-best-score" class="text-sm sm:text-base text-yellow-300 mt-0.5 truncate">0 kcal</div>
-            </div>
-            <div class="rounded-2xl bg-black/45 border border-sky-400/40 p-2.5">
-              <div class="text-[10px] text-amber-200/80">🚀 最高到達高度</div>
-              <div id="wc-stat-best-tier" class="text-xs sm:text-sm text-sky-300 mt-0.5 truncate">未記録</div>
-            </div>
-          </div>
-
-          <div class="rounded-2xl bg-black/45 border border-amber-400/35 px-3 py-2 flex items-center justify-between gap-2 text-xs">
-            <span class="text-[10px] text-amber-200/80 shrink-0">🏷️ 最高獲得称号</span>
-            <span id="wc-stat-best-title" class="text-xs text-lime-300 truncate">まだ称号がありません</span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div class="rounded-xl bg-black/40 border border-white/10 px-3 py-2 flex items-center justify-between">
-              <span class="text-[10px] text-amber-200/80">🔥 総プレイ回数</span>
-              <span id="wc-stat-play-count" class="text-xs text-orange-300">0 回</span>
-            </div>
-            <div class="rounded-xl bg-black/40 border border-white/10 px-3 py-2 flex items-center justify-between">
-              <span class="text-[10px] text-amber-200/80">🪵 累計くべた薪</span>
-              <span id="wc-stat-total-wood" class="text-xs text-yellow-200">0 本</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 左右2列横並びランキング看板（左：最高火力ランキング ／ 右：累積火力ランキング） -->
-        <div class="wc-wood-card rounded-3xl p-3.5 sm:p-4">
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="text-sm text-yellow-300 flex items-center gap-1.5">
-              🏅 花背キャンプファイヤー番付
-            </h2>
-            <button id="wc-btn-refresh-rank" type="button" class="text-xs text-sky-200 hover:text-white px-3 py-1 rounded-xl bg-black/45 border border-sky-400/40">
+            <button id="wc-btn-refresh-rank" type="button" class="text-[11px] text-sky-200 hover:text-white px-2.5 py-1 rounded-xl bg-black/45 border border-sky-400/40 shrink-0">
               ↻ 更新
             </button>
           </div>
 
-          <div class="grid grid-cols-2 gap-2.5">
-            <!-- 左カラム：🏆 最高火力ランキング -->
-            <div class="rounded-2xl bg-black/35 border border-yellow-400/35 p-2 space-y-2 min-w-0">
-              <div class="text-[11px] sm:text-xs text-yellow-300 text-center pb-1 border-b border-yellow-400/25 truncate">
-                🏆 最高火力ランキング
-              </div>
-              <div id="wc-ranking-best-list" class="space-y-1.5 text-xs"></div>
-            </div>
+          <!-- 3つのピル型タブ切替ボタン -->
+          <div class="grid grid-cols-3 gap-1.5 bg-black/45 p-1 rounded-2xl border border-amber-400/30">
+            <button id="wc-rank-tab-best" type="button" data-rank-tab="best"
+              class="py-1.5 px-1 rounded-xl text-[10px] sm:text-xs bg-gradient-to-b from-amber-400 to-orange-600 text-white border border-yellow-200 shadow transition truncate">
+              🏆 最高火力番付
+            </button>
+            <button id="wc-rank-tab-total" type="button" data-rank-tab="total"
+              class="py-1.5 px-1 rounded-xl text-[10px] sm:text-xs bg-transparent text-amber-200/80 hover:text-white border border-transparent transition truncate">
+              🔥 累積火力番付
+            </button>
+            <button id="wc-rank-tab-career" type="button" data-rank-tab="career"
+              class="py-1.5 px-1 rounded-xl text-[10px] sm:text-xs bg-transparent text-amber-200/80 hover:text-white border border-transparent transition truncate">
+              🎖️ 自分のキャリア記録
+            </button>
+          </div>
 
-            <!-- 右カラム：🔥 累積火力ランキング -->
-            <div class="rounded-2xl bg-black/35 border border-orange-400/35 p-2 space-y-2 min-w-0">
-              <div class="text-[11px] sm:text-xs text-orange-300 text-center pb-1 border-b border-orange-400/25 truncate">
-                🔥 累積火力ランキング
+          <!-- タブパネル①：🏆 最高火力番付（1列ワイドリスト） -->
+          <div id="wc-rank-panel-best" class="rounded-2xl bg-black/35 border border-yellow-400/35 p-2.5 space-y-1.5">
+            <div id="wc-ranking-best-list" class="space-y-1.5 text-xs"></div>
+          </div>
+
+          <!-- タブパネル②：🔥 累積火力番付（1列ワイドリスト） -->
+          <div id="wc-rank-panel-total" class="hidden rounded-2xl bg-black/35 border border-orange-400/35 p-2.5 space-y-1.5">
+            <div id="wc-ranking-total-list" class="space-y-1.5 text-xs"></div>
+          </div>
+
+          <!-- タブパネル③：🎖️ 自分のキャリア記録（1列ワイド表示） -->
+          <div id="wc-rank-panel-career" class="hidden rounded-2xl bg-black/35 border border-lime-400/35 p-3 space-y-2 text-xs">
+            <div class="rounded-2xl bg-black/50 border border-yellow-400/45 p-2.5 flex items-center justify-between gap-2">
+              <span class="text-[11px] text-amber-200/90 shrink-0">👑 自己ベスト火力</span>
+              <span id="wc-stat-best-score" class="text-xs sm:text-sm text-yellow-300 text-right">0 kcal</span>
+            </div>
+            <div class="rounded-2xl bg-black/50 border border-sky-400/45 p-2.5 flex items-center justify-between gap-2">
+              <span class="text-[11px] text-amber-200/90 shrink-0">🚀 最高到達高度</span>
+              <span id="wc-stat-best-tier" class="text-xs sm:text-sm text-sky-300 text-right">未記録</span>
+            </div>
+            <div class="rounded-2xl bg-black/50 border border-amber-400/35 p-2.5 flex items-center justify-between gap-2">
+              <span class="text-[11px] text-amber-200/90 shrink-0">🏷️ 最高獲得称号</span>
+              <span id="wc-stat-best-title" class="text-xs text-lime-300 text-right">まだ称号がありません</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="rounded-xl bg-black/45 border border-white/10 px-3 py-2 flex items-center justify-between">
+                <span class="text-[10px] text-amber-200/80">🔥 総プレイ回数</span>
+                <span id="wc-stat-play-count" class="text-xs text-orange-300">0 回</span>
               </div>
-              <div id="wc-ranking-total-list" class="space-y-1.5 text-xs"></div>
+              <div class="rounded-xl bg-black/45 border border-white/10 px-3 py-2 flex items-center justify-between">
+                <span class="text-[10px] text-amber-200/80">🪵 累計くべた薪</span>
+                <span id="wc-stat-total-wood" class="text-xs text-yellow-200">0 本</span>
+              </div>
             </div>
           </div>
         </div>
@@ -2446,36 +2494,49 @@
         </svg>
       </div>
 
-      <!-- 毎プレイ必ず表示される「📺 今日の天気予報」ボード（メリット黄色・デメリット水色・スキップ設定なしの完全独立画面） -->
+      <!-- 毎プレイ必ず表示される「📺 HANASE WEATHER NEWS」TVお天気コーナー風ボード -->
       <div id="wc-weather-briefing" class="hidden absolute inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="wc-wood-card w-full rounded-3xl p-4 sm:p-5 text-center space-y-3 border-4 border-yellow-300">
-          <div class="inline-block px-3 py-0.5 rounded-full bg-amber-500/30 border border-yellow-300/60 text-xs text-yellow-200">
-            📺 今日の天気予報
+        <div class="wc-wood-card w-full rounded-3xl overflow-hidden text-center border-4 border-yellow-300 shadow-[0_20px_50px_rgba(0,0,0,0.92)]">
+          <!-- TV番組風ヘッダー帯 -->
+          <div class="bg-gradient-to-r from-sky-700 via-blue-600 to-indigo-800 border-b-2 border-yellow-300/70 px-4 py-2 flex items-center justify-between">
+            <span class="wc-pop-sub text-xs sm:text-sm text-yellow-200 tracking-wider">📺 HANASE WEATHER NEWS</span>
+            <span class="px-2 py-0.5 rounded bg-red-600 text-[10px] text-white font-bold">LIVE</span>
           </div>
 
-          <div id="wc-brief-weather-name" class="wc-pop-text text-2xl sm:text-3xl text-white">
-            ☀️ 花背の快晴
-          </div>
-
-          <div id="wc-brief-weather-desc" class="text-xs text-amber-100/90 leading-relaxed">
-            クセのない標準天候！実力勝負で宇宙を目指そう！
-          </div>
-
-          <div class="space-y-2 text-left text-xs">
-            <div class="rounded-2xl bg-amber-950/85 border-2 border-yellow-400/70 px-3.5 py-2.5">
-              <div class="text-[10px] text-yellow-300">✨ メリット（追い風効果）</div>
-              <div id="wc-brief-merit" class="text-yellow-100 mt-0.5 leading-snug">安定した気候でペナルティなし！</div>
+          <div class="p-4 sm:p-5 space-y-3">
+            <!-- 中央：大きな天気アイコン＋天気名 -->
+            <div id="wc-brief-weather-name" class="wc-pop-text text-2xl sm:text-3xl text-white py-0.5">
+              ☀️ 花背の快晴
             </div>
-            <div class="rounded-2xl bg-sky-950/85 border-2 border-sky-400/70 px-3.5 py-2.5">
-              <div class="text-[10px] text-sky-300">💧 デメリット（注意ポイント）</div>
-              <div id="wc-brief-demerit" class="text-sky-100 mt-0.5 leading-snug">特になし（純粋なプレイスキル勝負！）</div>
-            </div>
-          </div>
 
-          <button id="wc-btn-brief-start" type="button"
-            class="wc-arcade-btn w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-4 border-yellow-100 text-center">
-            <span class="wc-pop-text text-xl sm:text-2xl text-white">🪓 伐採スタート！</span>
-          </button>
+            <!-- お天気キャスター・ハナコロのミニアイコン＋1行実況吹き出し -->
+            <div class="flex items-center gap-2.5 bg-black/55 rounded-2xl p-2.5 border border-lime-400/50 text-left">
+              <div id="wc-brief-caster-icon" class="w-12 h-12 shrink-0 drop-shadow"></div>
+              <div class="min-w-0 flex-1">
+                <div class="text-[10px] text-lime-300">🐸 お天気キャスター・ハナコロ</div>
+                <div id="wc-brief-weather-desc" class="text-xs text-amber-50 mt-0.5 leading-snug">
+                  澄み渡る花背の空！クセのない標準コンディションケロ！
+                </div>
+              </div>
+            </div>
+
+            <!-- 追い風ボーナス（黄色枠）＆ 今日の注意報（水色枠） -->
+            <div class="space-y-2 text-left text-xs">
+              <div class="rounded-2xl bg-amber-950/90 border-2 border-yellow-400/80 px-3.5 py-2.5">
+                <div class="text-[10px] text-yellow-300">📈 追い風ボーナス</div>
+                <div id="wc-brief-merit" class="text-yellow-100 font-bold mt-0.5 leading-snug">悪影響なし！安定リズムでコンボが繋がる！</div>
+              </div>
+              <div class="rounded-2xl bg-sky-950/90 border-2 border-sky-400/80 px-3.5 py-2.5">
+                <div class="text-[10px] text-sky-300">⚠️ 今日の注意報</div>
+                <div id="wc-brief-demerit" class="text-sky-100 font-bold mt-0.5 leading-snug">特になし（純粋な実力勝負！）</div>
+              </div>
+            </div>
+
+            <button id="wc-btn-brief-start" type="button"
+              class="wc-arcade-btn w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-4 border-yellow-100 text-center">
+              <span class="wc-pop-text text-xl sm:text-2xl text-white">🪓 伐採スタート！</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -2514,9 +2575,12 @@
       </div>
 
       <!-- 上部ステータスバー（静止UI） -->
-      <div class="relative z-20 p-2.5 pt-2.5 space-y-1.5">
+      <div class="relative z-20 p-2.5 pt-2 space-y-1.5">
+        <div id="wc-log-tutorial-badge" class="hidden rounded-full bg-gradient-to-r from-sky-900/95 via-indigo-900/95 to-sky-900/95 border border-yellow-300 px-3 py-0.5 text-center text-[10px] text-yellow-200 shadow">
+          🎓 チュートリアル中（スコアは記録されません）
+        </div>
         <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-1.5">
+          <div id="wc-log-top-actions" class="flex items-center gap-1.5">
             <button id="wc-btn-log-retry" type="button" class="px-2.5 py-1 rounded-xl bg-black/55 hover:bg-black/75 border border-amber-400/50 text-[11px] text-amber-100">
               🔄 やり直し
             </button>
@@ -2530,15 +2594,15 @@
         </div>
 
         <div class="wc-wood-card grid grid-cols-3 gap-1 rounded-2xl p-2 text-center">
-          <div>
+          <div id="wc-log-tree-box" class="rounded-xl p-0.5">
             <div class="text-[10px] text-amber-200/85">現在の木</div>
             <div id="wc-log-tree-num" class="text-sm sm:text-base text-white mt-0.5">1 / 3本目</div>
           </div>
-          <div>
+          <div id="wc-log-wood-box" class="rounded-xl p-0.5">
             <div class="text-[10px] text-amber-200/85">獲得薪合計</div>
             <div id="wc-log-wood-total" class="text-sm sm:text-base text-yellow-300 mt-0.5">🪵 0 本</div>
           </div>
-          <div>
+          <div id="wc-log-saws-box" class="rounded-xl p-0.5">
             <div class="text-[10px] text-amber-200/85">予備ノコギリ</div>
             <div id="wc-log-saws" class="text-sm sm:text-base text-sky-300 mt-0.5">🪚 0</div>
           </div>
@@ -2640,16 +2704,16 @@
         </svg>
       </div>
 
-      <!-- 【コーチング①】伐採1本目：実画面ストップ＆矢印ガイドオーバーレイ（95.20%でピタッと停止） -->
+      <!-- 【コーチング①】伐採1本目：95.20%でピタッと停止した際のアクション誘導 -->
       <div id="wc-coach-log" class="hidden absolute inset-0 z-30 pointer-events-none" style="background:rgba(0,0,0,0.26);">
         <div id="wc-coach-log-stack" class="absolute left-2 right-2 flex flex-col gap-1.5" style="bottom:260px;">
           <div class="flex items-center gap-2">
             <div id="wc-coach-log-avatar" class="w-11 h-11 shrink-0"></div>
             <span class="wc-pop-sub text-[11px] text-lime-200">🐸 ハナコロ先生のコーチング</span>
           </div>
-          <div class="wc-coach-bubble wc-coach-b-gold">👇木は三本生えているからパワーゲージは三回あるぞ！【3本目の木】は途中からゲージが消える「夕霧ステルス」仕様になるから気をつけるケロ！ 93%〜99.9%の黄金ゾーンで切ると【薪10本＆乾燥度MAX】！右端の💀赤エリアまで行くとバースト（薪0本）になるケロ！</div>
-          <div class="wc-coach-bubble wc-coach-b-sky">👇 ゲージは各木ごとに3周するまで見送ってもOK！実は右端まで行ってもすぐにバーストせず、ノコギリが加熱して「2周目・3周目」に突入できるが、ゲージがどんどん速くなるぞ！</div>
-          <div class="wc-coach-bubble wc-coach-b-orange">👇 今95.2%で止まってるケロ！下の「🪓 ここで切る！」を押して極上薪を切り出そう！</div>
+          <div class="wc-coach-bubble wc-coach-b-orange text-xs">
+            👇 今<b>95.2%（薪10本＆超乾燥）</b>で止めたケロ！下の<b>『🪓ここで切る！』</b>を押そう！
+          </div>
         </div>
         <div id="wc-coach-log-arrow" class="wc-coach-arrow">👇</div>
       </div>
@@ -2814,7 +2878,10 @@
       <!-- ====================================================================
            【第1層：上部エリア（完全静止UI！）】ステータスHUD ＆ ステージ昇格リボン ＆ 判定文字エリア
            ==================================================================== -->
-      <div class="relative z-30 shrink-0 px-2.5 pt-2 pb-0.5">
+      <div class="relative z-30 shrink-0 px-2.5 pt-1.5 pb-0.5">
+        <div id="wc-fire-tutorial-badge" class="hidden mb-1 rounded-full bg-gradient-to-r from-sky-900/95 via-indigo-900/95 to-sky-900/95 border border-yellow-300 px-3 py-0.5 text-center text-[10px] text-yellow-200 shadow">
+          🎓 チュートリアル中（スコアは記録されません）
+        </div>
         <div class="rounded-2xl bg-black/62 backdrop-blur-md border-2 border-amber-400/45 px-2.5 py-2 shadow-xl">
           <div class="flex items-center justify-between gap-1 flex-wrap">
             <div class="flex items-center gap-1 shrink-0">
@@ -2839,12 +2906,12 @@
           </div>
 
           <div class="mt-1 flex items-baseline justify-between gap-2">
-            <div class="flex items-baseline gap-1 min-w-0">
+            <div id="wc-fire-kcal-box" class="flex items-baseline gap-1 min-w-0 rounded-xl px-1">
               <span class="text-lg shrink-0">🔥</span>
               <span id="wc-fire-kcal" class="wc-pop-text text-2xl sm:text-3xl text-yellow-300 truncate">1,000</span>
               <span class="text-[11px] text-amber-200 shrink-0">kcal</span>
             </div>
-            <div class="text-right shrink-0">
+            <div id="wc-fire-combo-box" class="text-right shrink-0 rounded-xl px-1">
               <span id="wc-fire-combo" class="wc-pop-text text-base sm:text-lg text-orange-200">0 COMBO</span>
               <span id="wc-fire-combo-mult" class="block text-[10px] text-yellow-200">(薪火力 ×1.00倍🔥)</span>
             </div>
@@ -2940,15 +3007,16 @@
       <!-- ====================================================================
            【第3層：下部操作デッキ（完全静止UI！1ミリも揺れない快適操作デッキ）】
            ==================================================================== -->
-      <!-- 【コーチング②】後半・薪くべ1本目：実画面ストップ＆矢印ガイドオーバーレイ（リングが黄金に光る r=48 でピタッと停止） -->
+      <!-- 【コーチング②】後半・薪くべ1本目：黄色い枠にピタッと重なった瞬間の停止ガイド -->
       <div id="wc-coach-ring" class="hidden absolute inset-0 z-40 pointer-events-none" style="background:rgba(0,0,0,0.26);">
         <div id="wc-coach-ring-stack" class="absolute left-2 right-2 flex flex-col gap-1.5" style="bottom:230px;">
           <div class="flex items-center gap-2">
             <div id="wc-coach-ring-avatar" class="w-11 h-11 shrink-0"></div>
             <span class="wc-pop-sub text-[11px] text-lime-200">🐸 ハナコロ先生のコーチング</span>
           </div>
-          <div class="wc-coach-bubble wc-coach-b-gold">👆 縮むリングが黄色い枠に重なって【黄金にピカッと光った瞬間】がCRITICALタイミング！（早押しはMISSになるケロ）</div>
-          <div class="wc-coach-bubble wc-coach-b-orange">👇 今ピタッと重なってるケロ！下のボタンを押して薪をくべよう！</div>
+          <div class="wc-coach-bubble wc-coach-b-orange text-xs">
+            👇 <b>黄色い枠にピタッと重なったケロ！今だ！下の『🔥薪をくべる！』を押そう！</b>
+          </div>
         </div>
         <div id="wc-coach-ring-arrow" class="wc-coach-arrow">👇</div>
       </div>
@@ -2960,8 +3028,9 @@
             <div id="wc-coach-swing-avatar" class="w-11 h-11 shrink-0"></div>
             <span class="wc-pop-sub text-[11px] text-lime-200">🐸 ハナコロ先生のコーチング</span>
           </div>
-          <div class="wc-coach-bubble wc-coach-b-gold">👆 扇型メーターの針が【真上の黄金ゾーン】に入った瞬間に止めると、着火率が＋50%アップするケロ！</div>
-          <div class="wc-coach-bubble wc-coach-b-orange">👇 今ど真ん中で止まってるケロ！ボタンを押して扇ごう！</div>
+          <div class="wc-coach-bubble wc-coach-b-orange text-xs">
+            👇 <b>今、真上の黄金ゾーン（＋50%UP!）で止めたケロ！ボタンを押して扇ごう！</b>
+          </div>
         </div>
         <div id="wc-coach-swing-arrow" class="wc-coach-arrow">👇</div>
       </div>
@@ -3170,7 +3239,7 @@
     };
 
     /**
-     * 『限界キャンプファイヤー 〜花背山の家から宇宙へ〜』
+     * 『宇宙まで燃えろ！花背ファイヤー』
      * 完全カプセル化ゲームクラス（グローバル変数・DOM汚染ゼロ）
      */
     class LimitCampfireGame {
@@ -3204,42 +3273,42 @@
           lv6:   "「銀河の果てまで火柱が届いたケロ…！！あんたこそDWCの歴史に名を刻む伝説のファイヤーゴッドっす！！🌌👑」"
         };
 
-        // ★編集ガイド：天候データ（全5種）＆「文豪の筆ペン」発動時の専用ボイスセリフ
+        // ★編集ガイド：天候データ（全5種・TVお天気コーナー風の端的な実況）＆「文豪の筆ペン」発動時の専用ボイスセリフ
         this.WEATHERS = [
           {
             id: "sunny", icon: "☀️", name: "花背の快晴", shortName: "☀️ 快晴", weight: 40,
             quote: "はれのほうがええからなぁ",
-            desc: "澄み渡る花背の空！クセのない標準コンディションで宇宙を目指そう！",
-            merit: "クセや悪影響が一切なく、安定したリズムでコンボを伸ばせる！",
+            desc: "澄み渡る花背の空！クセのない標準コンディションケロ！",
+            merit: "悪影響なし！安定リズムでコンボが繋がる！",
             demerit: "特になし（純粋なプレイスキル＆戦略勝負！）"
           },
           {
             id: "wind", icon: "🍃", name: "比良おろし（強風）", shortName: "🍃 強風", weight: 20,
             quote: "あついっすね",
-            desc: "比良山系から吹き下ろす強風が炎を煽り立てるハイスピード天候！",
-            merit: "後半スタート時の初期火力が ×1.3倍 に大幅アップ！",
-            demerit: "後半のファイア・リング収縮速度も ×1.3倍 に加速する！"
+            desc: "比良山系から吹き下ろす強風が炎を煽るハイスピード天候ケロ！",
+            merit: "後半スタート時の初期火力が ×1.3倍 にUP！",
+            demerit: "後半のリング収縮スピードも ×1.3倍 に加速！"
           },
           {
             id: "rain", icon: "🌧️", name: "花背の通り雨", shortName: "🌧️ 通り雨", weight: 20,
             quote: "しのいだるでぇ",
-            desc: "山の気まぐれな通り雨。ピンチの裏に特大ロマンの追い風が吹く！",
-            merit: "助燃剤で「🔥ロマン枠・🌈伝説枠」の出現率が2倍にアップ！",
-            demerit: "後半の薪くべMISS時の火力減少が -15% に悪化する！"
+            desc: "山の気まぐれな通り雨！ピンチの裏に特大ロマンの追い風が吹くケロ！",
+            merit: "助燃剤で「🔥ロマン枠・🌈伝説枠」の出現率2倍！",
+            demerit: "後半の薪くべMISS時の火力減少が -15% に悪化！"
           },
           {
             id: "frog", icon: "🐸", name: "ハナコロの祝福", shortName: "🐸 祝福", weight: 10,
             quote: "めでたいっすねぇ",
-            desc: "守り神ハナコロが大喜びで跳ね回るお祭りフィーバー天候！",
-            merit: "すべての助燃剤カードの基本着火率が ＋15% アップ！",
-            demerit: "後半、巨大ハナコロが下部デッキを左右にピョーンと横断ジャンプして横切る！"
+            desc: "ワイが大喜びで跳ね回るお祭りフィーバー天候ケロ〜！！",
+            merit: "全助燃剤カードの基本着火率が ＋15% アップ！",
+            demerit: "後半、巨大ハナコロが下部デッキを左右に横断ジャンプ！"
           },
           {
             id: "snow", icon: "❄️", name: "厳冬の花背（吹雪）", shortName: "❄️ 吹雪", weight: 10,
             quote: "冬すか。まぁまぁ好きっすね。",
-            desc: "極寒の吹雪の中だからこそ、焚き火の熱量が極限まで高まる！",
-            merit: "後半の薪1本あたりの基礎加算火力が ×1.5倍 に大増量！",
-            demerit: "前半の伐採パワーゲージ速度が ×1.25倍 に速くなる！"
+            desc: "極寒の吹雪だからこそ、焚き火の熱量が極限まで高まるケロ！",
+            merit: "後半の薪1本あたりの基礎火力が ×1.5倍 に大増量！",
+            demerit: "前半の伐採パワーゲージ速度が ×1.25倍 に高速化！"
           }
         ];
 
@@ -3291,17 +3360,34 @@
           workCount: 12,
           bonusSaws: 0,
           fanToleranceMult: 1.0,
+          activeRankTab: "best",
 
           tutorialActive: false,
           tutorialNextCallback: null,
 
-          // 実画面ストップ＆矢印コーチング（チュートリアルモードON時のみ有効）
+          // 🎓 触りながら順番に覚えるステップ・バイ・ステップ実演チュートリアル状態
+          isTutorialRun: false,
           coachActive: false,
-          coachPaused: null, // null | "log" | "ring" | "swing"
+          coachPaused: null, // null | "step_modal" | "log_demo_overheat" | "log" | "ring_demo" | "ring" | "swing_demo" | "swing"
+          coachPhase1IntroDone: false,
           coachLogDone: false,
+          coachTree2IntroDone: false,
+          coachTree3IntroDone: false,
+          coachPhase2IntroDone: false,
+          coachPreRingDemoDone: false,
           coachRingDone: false,
+          coachPostFirstWoodDone: false,
+          coachBoosterIntroDone: false,
+          coachSwingDemoDone: false,
           coachCardDone: false,
+          coachFirstBoosterFollowupDone: false,
+          coachStageUpDone: false,
+          pendingStageUpCoach: false,
+          coachRushIntroDone: false,
           coachTargets: [],
+          stepCoachNextFn: null,
+          stepCoachOpenedAt: 0,
+          ringDemoHoldTimer: 0,
           warningHold: false, // 3本目「夕霧ステルス」警告テロップ表示中のゲージ停止
 
           weather: this.WEATHERS[0],
@@ -3437,6 +3523,18 @@
           btnIntroNext: q("#wc-btn-intro-next"),
           btnIntroStart: q("#wc-btn-intro-start"),
 
+          // ステップ・バイ・ステップ解説モーダル＆実演デモバナー
+          stepCoachOverlay: q("#wc-step-coach-overlay"),
+          stepCoachPointer: q("#wc-step-coach-pointer"),
+          stepCoachCardWrap: q("#wc-step-coach-card-wrap"),
+          stepCoachBadge: q("#wc-step-coach-badge"),
+          stepCoachAvatar: q("#wc-step-coach-avatar"),
+          stepCoachBody: q("#wc-step-coach-body"),
+          btnStepCoachNext: q("#wc-btn-step-coach-next"),
+          btnStepCoachLabel: q("#wc-btn-step-coach-label"),
+          demoPlayingBanner: q("#wc-demo-playing-banner"),
+          demoPlayingText: q("#wc-demo-playing-text"),
+
           // 実画面ストップ＆矢印コーチング・オーバーレイ
           coachLog: q("#wc-coach-log"),
           coachLogStack: q("#wc-coach-log-stack"),
@@ -3469,7 +3567,7 @@
           viewFire: q("#wc-view-fire"),
           viewResult: q("#wc-view-result"),
 
-          // ロビー（2列ランキング対応）
+          // ロビー（3タブ切替・1列ワイドランキング対応）
           lobbyCanvas: q("#wc-lobby-canvas"),
           btnMute: q("#wc-btn-mute"),
           muteIcon: q("#wc-mute-icon"),
@@ -3479,6 +3577,12 @@
           inputCampName: q("#wc-input-campname"),
           workHonorMain: q("#wc-work-honor-main"),
           workHonorSub: q("#wc-work-honor-sub"),
+          rankTabBest: q("#wc-rank-tab-best"),
+          rankTabTotal: q("#wc-rank-tab-total"),
+          rankTabCareer: q("#wc-rank-tab-career"),
+          rankPanelBest: q("#wc-rank-panel-best"),
+          rankPanelTotal: q("#wc-rank-panel-total"),
+          rankPanelCareer: q("#wc-rank-panel-career"),
           statBestScore: q("#wc-stat-best-score"),
           statBestTier: q("#wc-stat-best-tier"),
           statBestTitle: q("#wc-stat-best-title"),
@@ -3494,6 +3598,7 @@
           loggingStageProps: q("#wc-logging-stage-props"),
           weatherBriefing: q("#wc-weather-briefing"),
           briefWeatherName: q("#wc-brief-weather-name"),
+          briefCasterIcon: q("#wc-brief-caster-icon"),
           briefWeatherDesc: q("#wc-brief-weather-desc"),
           briefMerit: q("#wc-brief-merit"),
           briefDemerit: q("#wc-brief-demerit"),
@@ -3506,8 +3611,13 @@
           sumShinbokuBanner: q("#wc-sum-shinboku-banner"),
           btnToFireNow: q("#wc-btn-to-fire-now"),
 
+          logTutorialBadge: q("#wc-log-tutorial-badge"),
+          logTopActions: q("#wc-log-top-actions"),
           btnLogRetry: q("#wc-btn-log-retry"),
           btnLogAbort: q("#wc-btn-log-abort"),
+          logTreeBox: q("#wc-log-tree-box"),
+          logWoodBox: q("#wc-log-wood-box"),
+          logSawsBox: q("#wc-log-saws-box"),
           logTreeNum: q("#wc-log-tree-num"),
           logWoodTotal: q("#wc-log-wood-total"),
           logSaws: q("#wc-log-saws"),
@@ -3539,12 +3649,15 @@
             6: q("#wc-bg-lv6")
           },
           fireCanvas: q("#wc-fire-canvas"),
+          fireTutorialBadge: q("#wc-fire-tutorial-badge"),
           btnFireRetry: q("#wc-btn-fire-retry"),
           btnFireAbort: q("#wc-btn-fire-abort"),
           fireTierBadge: q("#wc-fire-tier-badge"),
           flameEvoBadge: q("#wc-flame-evo-badge"),
           fireWeatherPill: q("#wc-fire-weather-pill"),
+          fireKcalBox: q("#wc-fire-kcal-box"),
           fireKcal: q("#wc-fire-kcal"),
+          fireComboBox: q("#wc-fire-combo-box"),
           fireCombo: q("#wc-fire-combo"),
           fireComboMult: q("#wc-fire-combo-mult"),
           fireBuffs: q("#wc-fire-buffs"),
@@ -3620,7 +3733,9 @@
         this.state.campName = String(ud.campName || "たきびまる");
         this.state.workCount = Math.max(0, Math.floor(Number(ud.workCount ?? 12)));
 
-        this.els.inputCampName.value = this.state.campName;
+        if (this.els.inputCampName) {
+          this.els.inputCampName.value = this.state.campName;
+        }
         this.recalcWorkBonuses();
       }
 
@@ -3630,20 +3745,32 @@
         this.state.bonusSaws = Math.min(3, Math.floor(wc / 5));
         this.state.fanToleranceMult = Number((1 + Math.min(0.30, wc * 0.015)).toFixed(3));
 
-        this.els.workHonorMain.textContent = `🛠️ あなたの累計活動参加：${wc}回`;
-        this.els.workHonorSub.textContent =
-          `🪚 予備ノコギリ ${this.state.bonusSaws}個 ／ 🪭 うちわ黄金枠 ×${this.state.fanToleranceMult.toFixed(2)} 拡大中！`;
+        if (this.els.workHonorMain) {
+          this.els.workHonorMain.textContent =
+            `🛠️ 活動参加 ${wc}回ボーナス発動中：🪚予備ノコギリ ${this.state.bonusSaws}個 ／ 🪭うちわ黄金枠 ×${this.state.fanToleranceMult.toFixed(2)}`;
+        }
+        if (this.els.workHonorSub) {
+          this.els.workHonorSub.textContent =
+            `🪚 予備ノコギリ ${this.state.bonusSaws}個 ／ 🪭 うちわ黄金枠 ×${this.state.fanToleranceMult.toFixed(2)} 拡大中！`;
+        }
       }
 
       renderStaticSVGs() {
-        this.els.lobbyHanakoro.innerHTML = this.createHanakoroSVG({ blinking: true });
-        this.els.frogHopper.innerHTML = this.createHanakoroSVG({ blinking: false });
-        this.els.resHanakoroIcon.innerHTML = this.createHanakoroSVG({ blinking: true });
-        this.els.uchiwaSvgSlot.innerHTML = this.createDwcUchiwaSVG();
-        this.els.rushUchiwaSlot.innerHTML = this.createDwcUchiwaSVG();
-        this.els.ufoHanakoro.innerHTML = this.createUfoHanakoroSVG();
+        if (this.els.lobbyHanakoro) this.els.lobbyHanakoro.innerHTML = this.createHanakoroSVG({ blinking: true });
+        if (this.els.frogHopper) this.els.frogHopper.innerHTML = this.createHanakoroSVG({ blinking: false });
+        if (this.els.resHanakoroIcon) this.els.resHanakoroIcon.innerHTML = this.createHanakoroSVG({ blinking: true });
+        if (this.els.briefCasterIcon) this.els.briefCasterIcon.innerHTML = this.createHanakoroSVG({ blinking: true });
+        if (this.els.uchiwaSvgSlot) this.els.uchiwaSvgSlot.innerHTML = this.createDwcUchiwaSVG();
+        if (this.els.rushUchiwaSlot) this.els.rushUchiwaSlot.innerHTML = this.createDwcUchiwaSVG();
+        if (this.els.ufoHanakoro) this.els.ufoHanakoro.innerHTML = this.createUfoHanakoroSVG();
         // コーチング用ハナコロ先生アバター
-        [this.els.coachLogAvatar, this.els.coachRingAvatar, this.els.coachSwingAvatar, this.els.cardCoachAvatar].forEach((slot) => {
+        [
+          this.els.stepCoachAvatar,
+          this.els.coachLogAvatar,
+          this.els.coachRingAvatar,
+          this.els.coachSwingAvatar,
+          this.els.cardCoachAvatar
+        ].forEach((slot) => {
           if (slot) slot.innerHTML = this.createHanakoroSVG({ blinking: true });
         });
         this.updateSwingArchZones();
@@ -3851,13 +3978,39 @@
         this.renderCareerStats();
       }
 
+      formatFireKcal(val) {
+        const n = Math.max(0, Math.round(Number(val) || 0));
+        if (n >= 100000000) {
+          const oku = Math.floor(n / 100000000);
+          const man = Math.floor((n % 100000000) / 10000);
+          const unitStr = man > 0
+            ? `${oku.toLocaleString()}億${man.toLocaleString()}万 kcal`
+            : `${oku.toLocaleString()}億 kcal`;
+          return `${unitStr} (${n.toLocaleString()} kcal)`;
+        }
+        return `${n.toLocaleString()} kcal`;
+      }
+
+      switchRankingTab(tabKey = "best") {
+        this.state.activeRankTab = tabKey;
+        const activeCls = "py-1.5 px-1 rounded-xl text-[10px] sm:text-xs bg-gradient-to-b from-amber-400 to-orange-600 text-white border border-yellow-200 shadow transition truncate";
+        const idleCls = "py-1.5 px-1 rounded-xl text-[10px] sm:text-xs bg-transparent text-amber-200/80 hover:text-white border border-transparent transition truncate";
+        if (this.els.rankTabBest) this.els.rankTabBest.className = tabKey === "best" ? activeCls : idleCls;
+        if (this.els.rankTabTotal) this.els.rankTabTotal.className = tabKey === "total" ? activeCls : idleCls;
+        if (this.els.rankTabCareer) this.els.rankTabCareer.className = tabKey === "career" ? activeCls : idleCls;
+
+        if (this.els.rankPanelBest) this.els.rankPanelBest.classList.toggle("hidden", tabKey !== "best");
+        if (this.els.rankPanelTotal) this.els.rankPanelTotal.classList.toggle("hidden", tabKey !== "total");
+        if (this.els.rankPanelCareer) this.els.rankPanelCareer.classList.toggle("hidden", tabKey !== "career");
+      }
+
       renderCareerStats() {
         const st = this.getCareerStats();
-        this.els.statBestScore.textContent = `${Number(st.bestScore || 0).toLocaleString()} kcal`;
-        this.els.statBestTier.textContent = st.bestTierName || "未記録";
-        this.els.statBestTitle.textContent = st.bestTitle || "まだ称号がありません";
-        this.els.statPlayCount.textContent = `${Number(st.playCount || 0).toLocaleString()} 回`;
-        this.els.statTotalWood.textContent = `${Number(st.totalWoodStoked || 0).toLocaleString()} 本`;
+        if (this.els.statBestScore) this.els.statBestScore.textContent = this.formatFireKcal(st.bestScore || 0);
+        if (this.els.statBestTier) this.els.statBestTier.textContent = st.bestTierName || "未記録";
+        if (this.els.statBestTitle) this.els.statBestTitle.textContent = st.bestTitle || "まだ称号がありません";
+        if (this.els.statPlayCount) this.els.statPlayCount.textContent = `${Number(st.playCount || 0).toLocaleString()} 回`;
+        if (this.els.statTotalWood) this.els.statTotalWood.textContent = `${Number(st.totalWoodStoked || 0).toLocaleString()} 本`;
       }
 
       /* ======================================================================
@@ -4293,10 +4446,294 @@
       }
 
       /* ======================================================================
-         実画面ストップ＆矢印コーチング・チュートリアル（ベストタイミングで画面がピタッと一時停止し、
-         ハナコロの吹き出し＋指差しハイライト＋バウンス矢印が出る。そのままボタンを押して成功体験！）
-         kind: "log"（伐採1本目 95.20%）／ "ring"（薪くべ1本目 r=48）／ "swing"（扇型アーチ 0deg）
+         ステップ・バイ・ステップ実演コーチング ＆ ベストタイミング一時停止ガイド
          ====================================================================== */
+      openStepCoachModal({
+        badge = "🎓 ハナコロ先生のステップ解説",
+        html = "",
+        btnLabel = "タップで次へ ▸",
+        targets = [],
+        roundTargets = [],
+        pointerTarget = null,
+        cardPos = "auto",
+        onNext = null
+      }) {
+        if (!this.els.stepCoachOverlay) {
+          if (typeof onNext === "function") onNext();
+          return;
+        }
+        (this.state.coachTargets || []).forEach((el) => {
+          el.classList.remove("wc-coach-target", "wc-coach-target-round");
+        });
+        this.state.coachTargets = (targets || []).filter(Boolean);
+        this.state.coachTargets.forEach((el) => {
+          el.classList.add("wc-coach-target");
+          if (roundTargets && roundTargets.includes(el)) {
+            el.classList.add("wc-coach-target-round");
+          }
+        });
+
+        this.state.coachPaused = "step_modal";
+        this.state.stepCoachNextFn = onNext;
+        this.state.stepCoachOpenedAt = performance.now();
+
+        if (this.els.stepCoachBadge) this.els.stepCoachBadge.textContent = badge;
+        if (this.els.stepCoachBody) this.els.stepCoachBody.innerHTML = html;
+        if (this.els.btnStepCoachLabel) this.els.btnStepCoachLabel.textContent = btnLabel;
+
+        this.els.stepCoachOverlay.classList.remove("hidden");
+
+        const oRect = this.els.stepCoachOverlay.getBoundingClientRect();
+        const wrap = this.els.stepCoachCardWrap;
+        const ptr = this.els.stepCoachPointer;
+
+        let resolvedPos = cardPos;
+        const mainTarget = pointerTarget || this.state.coachTargets[0] || null;
+        if (resolvedPos === "auto") {
+          if (mainTarget && oRect.height > 0) {
+            const tRect = mainTarget.getBoundingClientRect();
+            const centerRatio = ((tRect.top + tRect.bottom) * 0.5 - oRect.top) / oRect.height;
+            resolvedPos = centerRatio < 0.48 ? "bottom" : "top";
+          } else {
+            resolvedPos = "center";
+          }
+        }
+
+        if (wrap) {
+          if (resolvedPos === "top") {
+            wrap.style.top = "54px";
+            wrap.style.bottom = "auto";
+            wrap.style.transform = "none";
+          } else if (resolvedPos === "bottom") {
+            wrap.style.top = "auto";
+            wrap.style.bottom = "28px";
+            wrap.style.transform = "none";
+          } else {
+            wrap.style.top = "50%";
+            wrap.style.bottom = "auto";
+            wrap.style.transform = "translateY(-50%)";
+          }
+        }
+
+        if (ptr) {
+          if (mainTarget && oRect.width > 0 && oRect.height > 0) {
+            const tRect = mainTarget.getBoundingClientRect();
+            const centerRatio = ((tRect.top + tRect.bottom) * 0.5 - oRect.top) / oRect.height;
+            const leftPx = Math.max(16, Math.min(oRect.width - 48, Math.round(tRect.left - oRect.left + tRect.width * 0.5 - 16)));
+            ptr.style.left = `${leftPx}px`;
+            if (centerRatio < 0.48) {
+              ptr.textContent = "👆";
+              ptr.style.top = `${Math.round(tRect.bottom - oRect.top + 4)}px`;
+            } else {
+              ptr.textContent = "👇";
+              ptr.style.top = `${Math.max(8, Math.round(tRect.top - oRect.top - 38))}px`;
+            }
+            ptr.classList.remove("hidden");
+          } else {
+            ptr.classList.add("hidden");
+          }
+        }
+
+        if (this.els.frogHopper) this.els.frogHopper.style.visibility = "hidden";
+        this.playSound("tap");
+      }
+
+      closeStepCoachModal() {
+        if (this.els.stepCoachOverlay) {
+          this.els.stepCoachOverlay.classList.add("hidden");
+        }
+        if (this.els.stepCoachPointer) {
+          this.els.stepCoachPointer.classList.add("hidden");
+        }
+        (this.state.coachTargets || []).forEach((el) => {
+          el.classList.remove("wc-coach-target", "wc-coach-target-round");
+        });
+        this.state.coachTargets = [];
+        this.state.stepCoachNextFn = null;
+        if (this.state.coachPaused === "step_modal") {
+          this.state.coachPaused = null;
+        }
+        if (this.els.frogHopper) this.els.frogHopper.style.visibility = "";
+      }
+
+      advanceStepCoach() {
+        if (this.state.coachPaused !== "step_modal") return;
+        if (performance.now() - (this.state.stepCoachOpenedAt || 0) < 160) return;
+        const nextFn = this.state.stepCoachNextFn;
+        this.closeStepCoachModal();
+        if (typeof nextFn === "function") {
+          nextFn();
+        }
+      }
+
+      startPhase1TutorialSteps() {
+        const e = this.els;
+        // ステップ1：フェーズ導入
+        this.openStepCoachModal({
+          badge: "🎓 伐採チュートリアル (1/6)",
+          html: "まずは<b>【夕方の薪集め】</b>ケロ！夜のキャンプファイヤーで燃やす『薪』を切り出すぞ！（タップで次へ▸）",
+          btnLabel: "タップで次へ ▸",
+          targets: [],
+          cardPos: "center",
+          onNext: () => {
+            // ステップ2：現在の木 1/3 をハイライト
+            this.openStepCoachModal({
+              badge: "🎓 伐採チュートリアル (2/6)",
+              html: "切れる木は全部で<b>【3本】</b>！つまり3回パワーゲージにチャレンジできるケロ！（タップで次へ▸）",
+              btnLabel: "タップで次へ ▸",
+              targets: [e.logTreeBox],
+              pointerTarget: e.logTreeBox,
+              cardPos: "bottom",
+              onNext: () => {
+                // ステップ3：パワーゲージ枠をハイライト
+                this.openStepCoachModal({
+                  badge: "🎓 伐採チュートリアル (3/6)",
+                  html: "切った位置で獲得できる<b>【🪵薪の本数】</b>が決まるぞ！<br>・〜79%：4本 ／ 80%〜：7本 ／ <b>93%〜99.9%：最大の10本！</b>（タップで次へ▸）",
+                  btnLabel: "タップで次へ ▸",
+                  targets: [e.logGaugeFrame],
+                  pointerTarget: e.logGaugeFrame,
+                  cardPos: "top",
+                  onNext: () => {
+                    // ステップ4：%表示＆乾燥度ヒントをハイライト
+                    this.openStepCoachModal({
+                      badge: "🎓 伐採チュートリアル (4/6)",
+                      html: "さらに右ギリギリ（99%）に近いほど、よく乾いた<b>【☀️高乾燥度の薪】</b>になって、夜の火力が<b>最大4倍</b>に跳ね上がるケロ！（タップで次へ▸）",
+                      btnLabel: "タップで次へ ▸",
+                      targets: [e.logPctText, e.logGaugeFrame],
+                      pointerTarget: e.logPctText,
+                      cardPos: "top",
+                      onNext: () => {
+                        // ステップ5：1周目バッジ＆赤ゾーンをハイライト ➔ お手本バースト実演デモへ
+                        this.openStepCoachModal({
+                          badge: "🎓 伐採チュートリアル (5/6)",
+                          html: "右端の💀赤ゾーンで押すとバースト（0本）！でも押さずに見送れば<b>【2周目➔3周目】</b>と最大3周まで粘れるぞ！実際にだんだん速くなって3周目で爆発する様子を見てみよう！（タップでお手本を見る▸）",
+                          btnLabel: "タップでお手本を見る ▸",
+                          targets: [e.sawLapBadge, e.logGaugeFrame],
+                          pointerTarget: e.sawLapBadge,
+                          cardPos: "top",
+                          onNext: () => {
+                            this.startLoggingOverheatDemo();
+                          }
+                        });
+                      }
+                    });
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+
+      startLoggingOverheatDemo() {
+        this.state.gaugePct = 0;
+        this.state.sawLap = 1;
+        this.updateSawLapBadge(1);
+        this.els.logGaugeBar.style.width = "0%";
+        this.els.logPctText.textContent = "0.00%";
+        if (this.els.demoPlayingText) {
+          this.els.demoPlayingText.textContent = "🎬 お手本デモ：1周目 ➔ 2周目（加速） ➔ 3周目突破でバースト爆発！";
+        }
+        if (this.els.demoPlayingBanner) {
+          this.els.demoPlayingBanner.classList.remove("hidden");
+        }
+        this.state.coachPaused = "log_demo_overheat";
+      }
+
+      finishLoggingOverheatDemo() {
+        const currentRunId = this.state.runId;
+        this.state.coachPaused = "step_modal";
+        this.els.logGaugeBar.style.width = "100%";
+        this.els.logPctText.textContent = "OVER!!";
+        this.playSound("burst");
+        this.triggerShake("lg");
+        this.spawnWoodChips(18, true);
+
+        this.els.logResultMain.textContent = "💥 DEMO OVERHEAT!!";
+        this.els.logResultMain.className = "wc-pop-text text-2xl sm:text-3xl text-rose-400";
+        this.els.logResultSub.textContent = "3周目スルーや赤ゾーンは爆発0本！（※練習デモのため木は消費しません）";
+        this.els.logResultPop.classList.remove("hidden");
+
+        setTimeout(() => {
+          if (this.state.runId !== currentRunId || this.state.phase !== "logging") return;
+          if (this.els.demoPlayingBanner) this.els.demoPlayingBanner.classList.add("hidden");
+          this.els.logResultPop.classList.add("hidden");
+          this.state.gaugePct = 0;
+          this.state.sawLap = 1;
+          this.updateSawLapBadge(1);
+          this.els.logGaugeBar.style.width = "0%";
+          this.els.logPctText.textContent = "0.00%";
+
+          // ステップ6：予備ノコギリ＆やり直し・中断ボタンをハイライト
+          this.openStepCoachModal({
+            badge: "🎓 伐採チュートリアル (6/6)",
+            html: "今みたいに3周目を超えたり赤ゾーンで押すと0本になるけど、普段の花背業務にたくさん参加している人は<b>【🪚予備ノコギリ】</b>がもらえて自動で88%（7本）に救済される特権があるぞ！左上からいつでもやり直し・中断もできるケロ！（タップで1本目スタート▸）",
+            btnLabel: "タップで1本目スタート ▸",
+            targets: [this.els.logSawsBox, this.els.logTopActions],
+            pointerTarget: this.els.logSawsBox,
+            cardPos: "bottom",
+            onNext: () => {
+              this.state.coachPaused = null;
+            }
+          });
+        }, 980);
+      }
+
+      startPhase2PreIgnitionSteps() {
+        const e = this.els;
+        // ステップ1：現在火力 kcal をハイライト
+        this.openStepCoachModal({
+          badge: "🎓 夜のキャンプファイヤー (1/2)",
+          html: "後半は<b>【夜のキャンプファイヤー】</b>！さっき集めた薪をくべて、この<b>火力（kcal）</b>をどこまで増やせるか競うケロ！（タップで次へ▸）",
+          btnLabel: "タップで次へ ▸",
+          targets: [e.fireKcalBox],
+          pointerTarget: e.fireKcalBox,
+          cardPos: "bottom",
+          onNext: () => {
+            // ステップ2：COMBO＆残り薪をハイライト
+            this.openStepCoachModal({
+              badge: "🎓 夜のキャンプファイヤー (2/2)",
+              html: "タイミングよく薪をくべて<b>【COMBO】</b>が繋がるほど、薪1本の火力がどんどん倍増して炎も進化するぞ！まずは下のボタンを押して種火を灯そう！",
+              btnLabel: "種火を灯すへ ▸",
+              targets: [e.fireComboBox, e.fireWoodLeft, e.btnStoke],
+              pointerTarget: e.fireComboBox,
+              cardPos: "center",
+              onNext: () => {
+                this.state.coachPaused = null;
+              }
+            });
+          }
+        });
+      }
+
+      startPhase2RingDemoStep() {
+        this.resetShrinkingRingVisual();
+        this.openStepCoachModal({
+          badge: "🎓 薪くべのタイミング解説",
+          html: "ここからは集めた薪を<b>【1本ずつ】</b>投げ込むケロ！外から縮んでくるオレンジの円が、<b>内側の黄色い太枠</b>に重なった瞬間にTAPすると薪が激しく燃えるぞ！（※外すと薪が不発になりコンボも0に戻るケロ）まずはワイのお手本を見てて！（タップでお手本再生▸）",
+          btnLabel: "タップでお手本再生 ▸",
+          targets: [this.els.ringSvg],
+          roundTargets: [this.els.ringSvg],
+          pointerTarget: this.els.ringSvg,
+          cardPos: "top",
+          onNext: () => {
+            this.startRingShrinkDemo();
+          }
+        });
+      }
+
+      startRingShrinkDemo() {
+        this.resetShrinkingRingVisual();
+        this.state.ringDemoHoldTimer = 0;
+        if (this.els.demoPlayingText) {
+          this.els.demoPlayingText.textContent = "🎬 お手本デモ：外側の円が黄色い太枠に重なる瞬間に注目！";
+        }
+        if (this.els.demoPlayingBanner) {
+          this.els.demoPlayingBanner.classList.remove("hidden");
+        }
+        this.state.coachPaused = "ring_demo";
+      }
+
       getCoachConfig(kind) {
         const e = this.els;
         if (kind === "log") {
@@ -4353,11 +4790,15 @@
         [this.els.coachLog, this.els.coachRing, this.els.coachSwing].forEach((el) => {
           if (el) el.classList.add("hidden");
         });
+        if (this.els.stepCoachOverlay) this.els.stepCoachOverlay.classList.add("hidden");
+        if (this.els.stepCoachPointer) this.els.stepCoachPointer.classList.add("hidden");
+        if (this.els.demoPlayingBanner) this.els.demoPlayingBanner.classList.add("hidden");
         (this.state.coachTargets || []).forEach((el) => {
           el.classList.remove("wc-coach-target");
           el.classList.remove("wc-coach-target-round");
         });
         this.state.coachTargets = [];
+        this.state.stepCoachNextFn = null;
         this.state.coachPaused = null;
         if (this.els.frogHopper) this.els.frogHopper.style.visibility = "";
       }
@@ -4404,17 +4845,52 @@
           this.playSound("tap");
         });
 
+        // ロビー：3タブ切替（最高火力番付 ／ 累積火力番付 ／ 自分のキャリア記録）
+        if (this.els.rankTabBest) {
+          this.els.rankTabBest.addEventListener("click", () => {
+            this.playSound("tap");
+            this.switchRankingTab("best");
+          });
+        }
+        if (this.els.rankTabTotal) {
+          this.els.rankTabTotal.addEventListener("click", () => {
+            this.playSound("tap");
+            this.switchRankingTab("total");
+          });
+        }
+        if (this.els.rankTabCareer) {
+          this.els.rankTabCareer.addEventListener("click", () => {
+            this.playSound("tap");
+            this.switchRankingTab("career");
+          });
+        }
+
         // 導入スライド（全2ページ）
         this.els.btnIntroNext.addEventListener("click", () => this.advanceIntro());
         this.els.btnIntroStart.addEventListener("click", () => this.advanceIntro());
 
-        this.els.inputCampName.addEventListener("input", (e) => {
-          const val = e.target.value.trim();
-          this.state.campName = val || "名無しのキャンパー";
-          if (window.WC_USER_DATA) {
-            window.WC_USER_DATA.campName = this.state.campName;
-          }
-        });
+        // ステップ・バイ・ステップ解説モーダル（ボタンまたはオーバーレイタップで次へ）
+        if (this.els.btnStepCoachNext) {
+          this.els.btnStepCoachNext.addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.advanceStepCoach();
+          });
+        }
+        if (this.els.stepCoachOverlay) {
+          this.els.stepCoachOverlay.addEventListener("click", () => {
+            this.advanceStepCoach();
+          });
+        }
+
+        if (this.els.inputCampName) {
+          this.els.inputCampName.addEventListener("input", (e) => {
+            const val = e.target.value.trim();
+            this.state.campName = val || "名無しのキャンパー";
+            if (window.WC_USER_DATA) {
+              window.WC_USER_DATA.campName = this.state.campName;
+            }
+          });
+        }
 
         this.els.btnRefreshRank.addEventListener("click", () => {
           this.playSound("tap");
@@ -4467,6 +4943,7 @@
           if (this.state.phase !== "logging" || this.state.tutorialActive) return;
           if (!this.els.weatherBriefing.classList.contains("hidden")) return;
           if (this.state.waitingForFireStart) return;
+          if (this.state.coachPaused && this.state.coachPaused !== "log") return;
           if (e.target.closest("button") && e.target.closest("button") !== this.els.btnCut) return;
           e.preventDefault();
           this.handleCutTap();
@@ -4482,6 +4959,13 @@
         const onFireAction = (e) => {
           if (this.state.phase !== "fire" || this.state.tutorialActive || this.state.crossfadingToFire) return;
           if (this.state.mode === "card") return;
+          if (
+            this.state.coachPaused &&
+            this.state.coachPaused !== "ring" &&
+            this.state.coachPaused !== "swing"
+          ) {
+            return;
+          }
           if (e.target.closest("#wc-card-modal")) return;
           if (e.target.closest("button") && e.target.closest("button") !== this.els.btnStoke) return;
           e.preventDefault();
@@ -4496,7 +4980,7 @@
 
         window.addEventListener("keydown", (e) => {
           if (e.code !== "Space") return;
-          if (document.activeElement === this.els.inputCampName) return;
+          if (this.els.inputCampName && document.activeElement === this.els.inputCampName) return;
           if (e.repeat) {
             e.preventDefault();
             return;
@@ -4504,6 +4988,11 @@
           if (this.state.tutorialActive) {
             e.preventDefault();
             this.advanceIntro();
+            return;
+          }
+          if (this.state.coachPaused === "step_modal") {
+            e.preventDefault();
+            this.advanceStepCoach();
             return;
           }
           if (this.state.phase === "logging") {
@@ -4529,7 +5018,11 @@
         });
         this.els.btnRetry.addEventListener("click", () => {
           this.playSound("tap");
-          this.startNewGame();
+          if (this.getTutorialMode()) {
+            this.openIntroModal();
+          } else {
+            this.startNewGame();
+          }
         });
       }
 
@@ -4603,7 +5096,9 @@
       startNewGame() {
         this.state.runId += 1;
         this.resetTransientVisuals();
-        const typedName = this.els.inputCampName.value.trim();
+        const typedName = this.els.inputCampName
+          ? this.els.inputCampName.value.trim()
+          : String(window.WC_USER_DATA?.campName || this.state.campName || "");
         this.state.campName = typedName || "たきびまる";
         this.recalcWorkBonuses();
         this.updateSwingArchZones();
@@ -4625,13 +5120,34 @@
         this.state.hasHelmet = false;
         this.state.calmModeActive = false;
 
-        // 🎓 実画面ストップ＆矢印コーチング（チュートリアルモードON時のみ有効）
-        this.state.coachActive = this.getTutorialMode();
+        // 🎓 触りながら順番に覚える実演チュートリアルモード（ON時はスコア記録除外）
+        const isTut = this.getTutorialMode();
+        this.state.isTutorialRun = isTut;
+        this.state.coachActive = isTut;
         this.state.coachPaused = null;
+        this.state.coachPhase1IntroDone = false;
         this.state.coachLogDone = false;
+        this.state.coachTree2IntroDone = false;
+        this.state.coachTree3IntroDone = false;
+        this.state.coachPhase2IntroDone = false;
+        this.state.coachPreRingDemoDone = false;
         this.state.coachRingDone = false;
+        this.state.coachPostFirstWoodDone = false;
+        this.state.coachBoosterIntroDone = false;
+        this.state.coachSwingDemoDone = false;
         this.state.coachCardDone = false;
+        this.state.coachFirstBoosterFollowupDone = false;
+        this.state.coachStageUpDone = false;
+        this.state.pendingStageUpCoach = false;
+        this.state.coachRushIntroDone = false;
         this.state.warningHold = false;
+
+        if (this.els.logTutorialBadge) {
+          this.els.logTutorialBadge.classList.toggle("hidden", !isTut);
+        }
+        if (this.els.fireTutorialBadge) {
+          this.els.fireTutorialBadge.classList.toggle("hidden", !isTut);
+        }
 
         this.logParticles = [];
         this.fireParticles = [];
@@ -4687,6 +5203,46 @@
         }
 
         this.updateLoggingHUD();
+
+        // 🎓 チュートリアル中：1本目・2本目・3本目の開始前ステップ解説
+        if (this.state.isTutorialRun) {
+          if (idx === 0 && !this.state.coachPhase1IntroDone) {
+            this.state.coachPhase1IntroDone = true;
+            this.startPhase1TutorialSteps();
+            return;
+          }
+          if (idx === 1 && !this.state.coachTree2IntroDone) {
+            this.state.coachTree2IntroDone = true;
+            this.openStepCoachModal({
+              badge: "🎓 2本目の木にチャレンジ！",
+              html: "ナイス10本！次は<b>【2本目の木】</b>のゲージが始まるぞ！ここからは止まらないから、💀赤ゾーンに気をつけて自分の力で右ギリギリを狙うケロ！（タップで2本目スタート▸）",
+              btnLabel: "タップで2本目スタート ▸",
+              targets: [this.els.logGaugeFrame, this.els.btnCut],
+              pointerTarget: this.els.logGaugeFrame,
+              cardPos: "top",
+              onNext: () => {
+                this.state.coachPaused = null;
+              }
+            });
+            return;
+          }
+          if (idx === 2 && !this.state.coachTree3IntroDone) {
+            this.state.coachTree3IntroDone = true;
+            this.openStepCoachModal({
+              badge: "🎓 ラスト3本目：夕霧ステルス！",
+              html: "ラスト<b>【3本目の木】</b>は、途中で霧が出てゲージが消える<b>『🌫️夕霧ステルス』</b>だ！消えてもゲージは進んでるから感覚で切るケロ！（※ちなみに3本とも自力90%以上だと<b>『🌲伝説の神木』</b>で初期火力が2倍になるぞ！）（タップで3本目スタート▸）",
+              btnLabel: "タップで3本目スタート ▸",
+              targets: [this.els.logStealthZone, this.els.logGaugeFrame],
+              pointerTarget: this.els.logGaugeFrame,
+              cardPos: "top",
+              onNext: () => {
+                this.state.coachPaused = null;
+                this.showFinalTreeWarning();
+              }
+            });
+            return;
+          }
+        }
 
         // 3本目（夕霧ステルス）直前の専用警告テロップ（約1.5秒・ゲージ停止）
         if (idx === 2) {
@@ -4925,6 +5481,11 @@
           if (this.state.runId !== currentRunId) return;
           fadeEl.classList.add("hidden");
           this.state.crossfadingToFire = false;
+          // 🎓 チュートリアル中：後半画面が表示された直後にステップ解説①・②を開始
+          if (this.state.isTutorialRun && !this.state.coachPhase2IntroDone) {
+            this.state.coachPhase2IntroDone = true;
+            this.startPhase2PreIgnitionSteps();
+          }
         }, 2500);
       }
 
@@ -4997,7 +5558,7 @@
        * 種火点火 ➔ 『3 ➔ 2 ➔ 1 ➔ START!!』のリズムカウントダウン（0.5秒刻み）＋『👀 ここに注目！』バウンス誘導
        */
       igniteCampfire() {
-        if (this.state.mode !== "ignition_wait") return;
+        if (this.state.mode !== "ignition_wait" || this.state.coachPaused) return;
         const currentRunId = this.state.runId;
         this.state.mode = "ignition_countdown";
         this.state.pillarEmberOnly = false;
@@ -5016,7 +5577,10 @@
         this.spawnShockwave("#fde047");
 
         this.els.ignitionCountdownOverlay.classList.remove("hidden");
-        this.els.ringFocusGuide.classList.remove("hidden");
+        if (this.els.ringFocusGuide) {
+          this.els.ringFocusGuide.innerHTML = `<div class="rounded-full bg-gradient-to-r from-yellow-300 via-amber-300 to-yellow-300 border-2 border-white px-3 py-1 text-[11px] text-amber-950 font-black shadow-[0_4px_16px_rgba(250,204,21,0.9)]">👀 ここに注目！黄色枠に重なる瞬間にTAP！</div>`;
+          this.els.ringFocusGuide.classList.remove("hidden");
+        }
         this.els.btnStoke.className =
           "wc-arcade-btn w-full py-3.5 sm:py-4 rounded-3xl bg-gradient-to-b from-slate-600 to-slate-800 border-4 border-amber-300/70 text-center";
         this.els.btnStokeLabel.textContent = "👀 リングに注目… 3";
@@ -5044,10 +5608,18 @@
                 "wc-arcade-btn w-full py-3.5 sm:py-4 rounded-3xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-4 border-yellow-200 text-center";
               this.els.btnStokeLabel.textContent = st.btn;
 
+              if (this.state.isTutorialRun && !this.state.coachPreRingDemoDone) {
+                this.state.coachPaused = "step_modal";
+              }
+
               setTimeout(() => {
                 if (this.state.runId !== currentRunId) return;
                 this.els.ignitionCountdownOverlay.classList.add("hidden");
                 this.els.ringFocusGuide.classList.add("hidden");
+                if (this.state.isTutorialRun && !this.state.coachPreRingDemoDone) {
+                  this.state.coachPreRingDemoDone = true;
+                  this.startPhase2RingDemoStep();
+                }
               }, 380);
             } else {
               this.playSound("countdown_beep", { pitch: st.pitch });
@@ -5071,7 +5643,7 @@
       }
 
       /**
-       * 1. 収縮リングのリアルタイム発光・色・太さ更新（オレンジ ➔ 水色 ➔ 黄金極太！）
+       * 1. 収縮リングのリアルタイム発光・色・太さ更新（黄色い太枠と同化しないよう、CRITICAL重なり時は鮮やかな紅蓮破線＋白金グローで明確に視認！）
        */
       resetShrinkingRingVisual() {
         this.state.ringProgress = 0;
@@ -5079,6 +5651,7 @@
         this.els.ringShrinking.setAttribute("r", "98");
         this.els.ringShrinking.setAttribute("stroke", "#fb923c");
         this.els.ringShrinking.setAttribute("stroke-width", "5.5");
+        this.els.ringShrinking.removeAttribute("stroke-dasharray");
         this.els.ringShrinking.style.filter = "drop-shadow(0 0 8px rgba(251,146,60,0.85))";
       }
 
@@ -5088,19 +5661,22 @@
         const effDist = this.state.hasHelmet ? dist / 1.5 : dist;
 
         if (effDist <= 7) {
-          // CRITICAL圏内（accuracyA >= 0.86）：輝く黄金極太！
-          this.els.ringShrinking.setAttribute("stroke", "#fef08a");
-          this.els.ringShrinking.setAttribute("stroke-width", "9");
-          this.els.ringShrinking.style.filter = "drop-shadow(0 0 16px rgba(254,240,138,1))";
+          // CRITICAL圏内（黄色い太枠 r=48 に重なった瞬間）：黄色枠と同化しない鮮やかな紅蓮破線＋白金グロー！
+          this.els.ringShrinking.setAttribute("stroke", "#ff3b00");
+          this.els.ringShrinking.setAttribute("stroke-width", "6.5");
+          this.els.ringShrinking.setAttribute("stroke-dasharray", "12 6");
+          this.els.ringShrinking.style.filter = "drop-shadow(0 0 6px #ffffff) drop-shadow(0 0 14px #fde047)";
         } else if (effDist <= 16) {
           // GOOD圏内（accuracyA >= 0.68）：鮮やかな水色！
           this.els.ringShrinking.setAttribute("stroke", "#38bdf8");
           this.els.ringShrinking.setAttribute("stroke-width", "7");
+          this.els.ringShrinking.removeAttribute("stroke-dasharray");
           this.els.ringShrinking.style.filter = "drop-shadow(0 0 12px rgba(56,189,248,0.95))";
         } else {
           // 圏外：標準オレンジ
           this.els.ringShrinking.setAttribute("stroke", "#fb923c");
           this.els.ringShrinking.setAttribute("stroke-width", "5.5");
+          this.els.ringShrinking.removeAttribute("stroke-dasharray");
           this.els.ringShrinking.style.filter = "drop-shadow(0 0 8px rgba(251,146,60,0.85))";
         }
       }
@@ -5327,6 +5903,35 @@
           this.startFinalRushCountdown();
           return;
         }
+
+        // 🎓 1本目の薪投入直後のステップガイド（2本目・3本目は自力で挑戦！）
+        if (this.state.isTutorialRun && this.state.woodUsed === 1 && !this.state.coachPostFirstWoodDone) {
+          this.state.coachPostFirstWoodDone = true;
+          this.openStepCoachModal({
+            badge: "🎓 2本目以降は自力で挑戦！",
+            html: "大成功！これで薪を1本投げ込んだケロ！次からは自動で止まらないから、2本目・3本目の薪も<b>黄色い枠に重なる瞬間</b>に自分の力でくべてみよう！（タップでスタート▸）",
+            btnLabel: "タップでスタート ▸",
+            targets: [this.els.ringSvg, this.els.btnStoke],
+            roundTargets: [this.els.ringSvg],
+            pointerTarget: this.els.ringSvg,
+            cardPos: "top"
+          });
+          return;
+        }
+
+        // 🎓 初めて上空ステージ（Lv.2以上）へ突入した際の1回限定ガイド
+        if (this.state.isTutorialRun && this.state.pendingStageUpCoach && !this.state.coachStageUpDone) {
+          this.state.pendingStageUpCoach = false;
+          this.state.coachStageUpDone = true;
+          this.openStepCoachModal({
+            badge: "🚀 ステージ昇格ボーナス！",
+            html: "🚀火柱が伸びて<b>上空ステージ</b>へ突入したケロ！火力が上がるほど<b>『雲海➔成層圏➔月面➔銀河』</b>へと背景が進化していくぞ！（タップで再開▸）",
+            btnLabel: "タップで再開 ▸",
+            targets: [this.els.fireTierBadge],
+            pointerTarget: this.els.fireTierBadge,
+            cardPos: "bottom"
+          });
+        }
       }
 
       /* ======================================================================
@@ -5334,7 +5939,6 @@
          ====================================================================== */
       startFinalRushCountdown() {
         const currentRunId = this.state.runId;
-        this.state.mode = "rush_countdown";
         this.els.ringDeckPanel.classList.add("hidden");
         this.els.uchiwaDeckPanel.classList.add("hidden");
         this.els.rushDeckPanel.classList.remove("hidden");
@@ -5345,6 +5949,25 @@
           "wc-arcade-btn w-full py-3.5 sm:py-4 rounded-3xl bg-gradient-to-b from-slate-600 to-slate-800 border-4 border-yellow-300/60 text-center";
         this.els.btnStokeLabel.textContent = "🪭 うちわを構えろ…！";
 
+        // 🎓 チュートリアル時：カウントダウンが始まる前に一時停止して3秒連打ラッシュを解説
+        if (this.state.isTutorialRun && !this.state.coachRushIntroDone) {
+          this.state.coachRushIntroDone = true;
+          this.state.mode = "cutin_pause";
+          this.openStepCoachModal({
+            badge: "🔥 最終局面｜限界うちわ連打ラッシュ！",
+            html: "🪵すべての薪をくべ終えたケロ！最後は<b>【🔥3秒間の限界うちわ連打ラッシュ】</b>！1回叩くごとに火力が<b>＋3%ずつ爆伸び</b>する最終局面だ！指が釣るまで連打しまくるケロ〜！！（タップでカウントダウン開始▸）",
+            btnLabel: "タップでカウントダウン開始 ▸",
+            targets: [this.els.rushDeckPanel, this.els.btnStoke],
+            pointerTarget: this.els.btnStoke,
+            cardPos: "top",
+            onNext: () => {
+              this.startFinalRushCountdown();
+            }
+          });
+          return;
+        }
+
+        this.state.mode = "rush_countdown";
         this.els.rushCountdownOverlay.classList.remove("hidden");
         this.els.rushCountSub.textContent = "🔥 ラスト3秒！限界うちわ連打ラッシュ！";
 
@@ -5521,6 +6144,40 @@
 
         this.els.deckRemain.textContent = `山札: ${this.state.deck.length}枚`;
         this.renderCardChoices(cards);
+
+        // 🎓 1回目の助燃剤チャンス発生時：カード選択モーダルが開く直前に2ステップで解説
+        if (this.state.isTutorialRun && this.state.accelerantCount === 1 && !this.state.coachBoosterIntroDone) {
+          this.state.coachBoosterIntroDone = true;
+          this.openStepCoachModal({
+            badge: "🧪 助燃剤チャンス解説 (1/2)",
+            html: "薪を7本くべるごとに<b>【🧪助燃剤チャンス】</b>が発生！全16枚のカードから3枚が登場し、それぞれ『成功確率』と『着火倍率』が違うケロ！（次へ▸）",
+            btnLabel: "次へ ▸",
+            targets: [],
+            cardPos: "center",
+            onNext: () => {
+              this.openStepCoachModal({
+                badge: "🧪 助燃剤チャンス解説 (2/2)｜4つの枠の特徴",
+                html: `
+                  <div class="space-y-1 text-[11px] leading-snug">
+                    <div><span class="text-emerald-300 font-black">🌿 安全枠（超重要！）：</span>手堅く着火し、さらに【＋3 COMBO】が加算される安定成長の要！</div>
+                    <div><span class="text-amber-300 font-black">⚡ 勝負枠：</span>中確率で火力を一気に2倍以上に引き上げる中リスク・中リターン！</div>
+                    <div><span class="text-pink-300 font-black">🔥 ロマン枠：</span>低確率だが成功すれば火力大爆発！ただし失敗すると火力が減り【コンボが0に崩壊】する大博打！</div>
+                    <div><span class="text-yellow-200 font-black">🌈 伝説枠：</span>うちわ扇ぎ不要で100%特殊効果が発動するチート級カード！</div>
+                  </div>
+                `,
+                btnLabel: "カードを選ぶ ▸",
+                targets: [],
+                cardPos: "center",
+                onNext: () => {
+                  this.els.cardModal.classList.remove("hidden");
+                  this.playSound("tap");
+                }
+              });
+            }
+          });
+          return;
+        }
+
         this.els.cardModal.classList.remove("hidden");
         this.playSound("tap");
       }
@@ -5657,6 +6314,32 @@
           "wc-arcade-btn w-full py-3.5 sm:py-4 rounded-3xl bg-gradient-to-b from-sky-300 via-blue-500 to-indigo-700 border-4 border-yellow-200 text-center";
         this.els.btnStokeLabel.textContent = "🪭 今だ！うちわで扇ぐ！！";
         this.playSound("tap");
+
+        // 🎓 1回目のうちわスイング時：針が動き出す前に一時停止して事前説明＆お手本デモ
+        if (this.state.isTutorialRun && !this.state.coachSwingDemoDone) {
+          this.state.coachSwingDemoDone = true;
+          this.state.coachPaused = "swing_pre_demo";
+          this.openStepCoachModal({
+            badge: "🪭 DWCうちわ｜風送りメーター解説",
+            html: "選んだ助燃剤に<b>【🪭DWCうちわ】</b>で風を送って着火率を<b>最大＋50%</b>引き上げるケロ！針は左右に3往復するぞ！まずは動きを見てみよう！（タップでお手本を見る▸）",
+            btnLabel: "タップでお手本を見る ▸",
+            targets: [this.els.swingArchSvg],
+            pointerTarget: this.els.swingArchSvg,
+            cardPos: "top",
+            onNext: () => {
+              this.state.swingVal = -95;
+              this.state.swingDir = 1;
+              this.state.swingHalfTrips = 0;
+              this.state.coachPaused = "swing_demo";
+              if (this.els.demoPlayingText) {
+                this.els.demoPlayingText.textContent = "🎬 お手本デモ：針が左右にスイングし、真上の黄金ゾーンを狙います！";
+              }
+              if (this.els.demoPlayingBanner) {
+                this.els.demoPlayingBanner.classList.remove("hidden");
+              }
+            }
+          });
+        }
       }
 
       /**
@@ -5858,6 +6541,47 @@
             this.els.btnStoke.className =
               "wc-arcade-btn w-full py-3.5 sm:py-4 rounded-3xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-4 border-yellow-200 text-center";
             this.els.btnStokeLabel.textContent = "🔥 薪をくべる！";
+
+            // 🎓 1回目の助燃剤判定直後の動的フォローアップ ＆ ステージ昇格解説
+            if (this.state.isTutorialRun && !this.state.coachFirstBoosterFollowupDone) {
+              this.state.coachFirstBoosterFollowupDone = true;
+              const openStageUpIfPending = () => {
+                if (this.state.pendingStageUpCoach && !this.state.coachStageUpDone) {
+                  this.state.pendingStageUpCoach = false;
+                  this.state.coachStageUpDone = true;
+                  this.openStepCoachModal({
+                    badge: "🚀 ステージ昇格ボーナス！",
+                    html: "🚀火柱が伸びて<b>上空ステージ</b>へ突入したケロ！火力が上がるほど<b>『雲海➔成層圏➔月面➔銀河』</b>へと背景が進化していくぞ！（タップで再開▸）",
+                    btnLabel: "タップで再開 ▸",
+                    targets: [this.els.fireTierBadge],
+                    pointerTarget: this.els.fireTierBadge,
+                    cardPos: "bottom"
+                  });
+                }
+              };
+              this.openStepCoachModal({
+                badge: isSuccess ? "🎉 助燃剤フォローアップ" : "💦 助燃剤フォローアップ",
+                html: isSuccess
+                  ? "🎉着火大成功ケロ！火力が一気に跳ね上がったぞ！この調子で薪をくべて次の助燃剤チャンスを目指そう！（タップで再開▸）"
+                  : "💦今回は湿気で不発だったケロ…！でも黄金ゾーンで扇いでもカードの確率次第で失敗することはあるからドンマイ！薪をくべて巻き返すケロ！（タップで再開▸）",
+                btnLabel: this.state.pendingStageUpCoach && !this.state.coachStageUpDone ? "次へ ▸" : "タップで再開 ▸",
+                targets: [this.els.fireKcalBox],
+                pointerTarget: this.els.fireKcalBox,
+                cardPos: "bottom",
+                onNext: openStageUpIfPending
+              });
+            } else if (this.state.isTutorialRun && this.state.pendingStageUpCoach && !this.state.coachStageUpDone) {
+              this.state.pendingStageUpCoach = false;
+              this.state.coachStageUpDone = true;
+              this.openStepCoachModal({
+                badge: "🚀 ステージ昇格ボーナス！",
+                html: "🚀火柱が伸びて<b>上空ステージ</b>へ突入したケロ！火力が上がるほど<b>『雲海➔成層圏➔月面➔銀河』</b>へと背景が進化していくぞ！（タップで再開▸）",
+                btnLabel: "タップで再開 ▸",
+                targets: [this.els.fireTierBadge],
+                pointerTarget: this.els.fireTierBadge,
+                cardPos: "bottom"
+              });
+            }
           }
         }, 1600);
       }
@@ -5949,6 +6673,44 @@
             this.els.btnStoke.className =
               "wc-arcade-btn w-full py-3.5 sm:py-4 rounded-3xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-4 border-yellow-200 text-center";
             this.els.btnStokeLabel.textContent = "🔥 薪をくべる！";
+
+            if (this.state.isTutorialRun && !this.state.coachFirstBoosterFollowupDone) {
+              this.state.coachFirstBoosterFollowupDone = true;
+              const openStageUpIfPending = () => {
+                if (this.state.pendingStageUpCoach && !this.state.coachStageUpDone) {
+                  this.state.pendingStageUpCoach = false;
+                  this.state.coachStageUpDone = true;
+                  this.openStepCoachModal({
+                    badge: "🚀 ステージ昇格ボーナス！",
+                    html: "🚀火柱が伸びて<b>上空ステージ</b>へ突入したケロ！火力が上がるほど<b>『雲海➔成層圏➔月面➔銀河』</b>へと背景が進化していくぞ！（タップで再開▸）",
+                    btnLabel: "タップで再開 ▸",
+                    targets: [this.els.fireTierBadge],
+                    pointerTarget: this.els.fireTierBadge,
+                    cardPos: "bottom"
+                  });
+                }
+              };
+              this.openStepCoachModal({
+                badge: "🌈 伝説カード発動フォローアップ",
+                html: "🎉伝説のカードが100%確定で発動したケロ！火力が一気に跳ね上がったぞ！この調子で薪をくべて次の助燃剤チャンスを目指そう！（タップで再開▸）",
+                btnLabel: this.state.pendingStageUpCoach && !this.state.coachStageUpDone ? "次へ ▸" : "タップで再開 ▸",
+                targets: [this.els.fireKcalBox],
+                pointerTarget: this.els.fireKcalBox,
+                cardPos: "bottom",
+                onNext: openStageUpIfPending
+              });
+            } else if (this.state.isTutorialRun && this.state.pendingStageUpCoach && !this.state.coachStageUpDone) {
+              this.state.pendingStageUpCoach = false;
+              this.state.coachStageUpDone = true;
+              this.openStepCoachModal({
+                badge: "🚀 ステージ昇格ボーナス！",
+                html: "🚀火柱が伸びて<b>上空ステージ</b>へ突入したケロ！火力が上がるほど<b>『雲海➔成層圏➔月面➔銀河』</b>へと背景が進化していくぞ！（タップで再開▸）",
+                btnLabel: "タップで再開 ▸",
+                targets: [this.els.fireTierBadge],
+                pointerTarget: this.els.fireTierBadge,
+                cardPos: "bottom"
+              });
+            }
           }
         }, 1650);
       }
@@ -5975,6 +6737,9 @@
             this.spawnShockwave("#38bdf8");
             if (!this.state.cutinActive) {
               this.showStageUpBanner(newTier);
+            }
+            if (this.state.isTutorialRun && !this.state.coachStageUpDone && newTier.lv >= 2) {
+              this.state.pendingStageUpCoach = true;
             }
           }
         }
@@ -6152,6 +6917,31 @@
       }
 
       updateLoggingFrame(dt) {
+        // 🎓 3周オーバーヒート実演デモ再生中
+        if (this.state.coachPaused === "log_demo_overheat") {
+          const demoSpeed = 165.0;
+          this.state.gaugePct += demoSpeed * dt;
+          if (this.state.gaugePct >= 108.0) {
+            if (this.state.sawLap < 3) {
+              this.state.sawLap += 1;
+              this.state.gaugePct = 0;
+              this.updateSawLapBadge(this.state.sawLap);
+              this.playSound("lap_up", { lap: this.state.sawLap });
+            } else {
+              this.state.gaugePct = 108.0;
+              this.els.logGaugeBar.style.width = "100%";
+              this.els.logPctText.textContent = "OVER!!";
+              this.finishLoggingOverheatDemo();
+              return;
+            }
+          }
+          const pct = this.state.gaugePct;
+          const barW = Math.min(100, (pct / 108) * 100);
+          this.els.logGaugeBar.style.width = `${barW.toFixed(2)}%`;
+          this.els.logPctText.textContent = pct >= 100 ? "OVER!!" : `${pct.toFixed(2)}%`;
+          return;
+        }
+
         if (
           this.state.loggingLocked ||
           this.state.tutorialActive ||
@@ -6337,6 +7127,36 @@
           this.els.ufoHanakoro.style.transform = `translate3d(${ufoLeft.toFixed(1)}px, ${bobY.toFixed(1)}px, 0)`;
         }
 
+        // 🎓 収縮ファイア・リングのお手本デモ（r=98 ➔ r=48 で「👆 ここがCRITICAL!!」表示 ➔ r=98へ戻して本番1投目へ）
+        if (this.state.mode === "normal" && this.state.coachPaused === "ring_demo") {
+          if (this.state.ringDemoHoldTimer > 0) {
+            this.state.ringDemoHoldTimer -= dt;
+            if (this.state.ringDemoHoldTimer <= 0) {
+              if (this.els.ringFocusGuide) this.els.ringFocusGuide.classList.add("hidden");
+              if (this.els.demoPlayingText) {
+                this.els.demoPlayingText.textContent = "🔥 それでは本番1投目！黄金枠に重なった瞬間にストップします…！";
+              }
+              this.resetShrinkingRingVisual();
+              this.state.coachPaused = null;
+            }
+          } else {
+            this.state.ringProgress += 0.85 * dt;
+            const r = 98 - this.state.ringProgress * 80;
+            if (r <= 48) {
+              this.state.ringProgress = (98 - 48) / 80;
+              this.els.ringShrinking.setAttribute("r", "48.00");
+              this.updateShrinkingRingGlow(48);
+              if (this.els.ringFocusGuide) this.els.ringFocusGuide.classList.remove("hidden");
+              this.playSound("lap_up", { lap: 2 });
+              this.state.ringDemoHoldTimer = 0.75;
+            } else {
+              this.els.ringShrinking.setAttribute("r", Math.max(10, r).toFixed(2));
+              this.updateShrinkingRingGlow(r);
+            }
+          }
+          return;
+        }
+
         // 収縮ファイア・リング更新
         // baseRingSpeed = 0.92
         // comboSpeedMult = 1 + Math.min(this.state.combo * 0.032, 0.72)
@@ -6357,6 +7177,7 @@
             this.state.ringProgress = (98 - 48) / 80;
             this.els.ringShrinking.setAttribute("r", "48.00");
             this.updateShrinkingRingGlow(48);
+            if (this.els.demoPlayingBanner) this.els.demoPlayingBanner.classList.add("hidden");
             this.state.coachPaused = "ring";
             this.showCoach("ring");
           } else if (r <= 12) {
@@ -6367,7 +7188,27 @@
 
         // 5. 『🪭 扇型（アーチ型）スイング・メーター』左右往復更新（-60deg ⇔ 0deg ⇔ +60deg）
         if (this.state.mode === "card_fanning") {
-          if (!this.state.coachPaused) {
+          if (this.state.coachPaused === "swing_demo") {
+            const demoSwingSpeed = 225;
+            this.state.swingVal += this.state.swingDir * demoSwingSpeed * dt;
+            if (this.state.swingVal >= 100) {
+              this.state.swingVal = 100;
+              this.state.swingDir = -1;
+              this.state.swingHalfTrips += 1;
+            } else if (this.state.swingVal <= -100) {
+              this.state.swingVal = -100;
+              this.state.swingDir = 1;
+              this.state.swingHalfTrips += 1;
+            }
+            // 左端(-95) ➔ 右端(+100) ➔ 左端(-100) ➔ 真上(0deg) でピタッと一時停止！
+            if (this.state.swingHalfTrips >= 2 && this.state.swingDir === 1 && this.state.swingVal >= 0) {
+              this.state.swingVal = 0;
+              this.state.swingHalfTrips = 0;
+              if (this.els.demoPlayingBanner) this.els.demoPlayingBanner.classList.add("hidden");
+              this.state.coachPaused = "swing";
+              this.showCoach("swing");
+            }
+          } else if (!this.state.coachPaused) {
             const swingSpeed = 235;
             this.state.swingVal += this.state.swingDir * swingSpeed * dt;
 
@@ -7225,6 +8066,8 @@
         const currentRunId = this.state.runId;
         this.state.mode = "finished";
 
+        const isTutorialPlay = Boolean(this.state.isTutorialRun);
+
         // 🎓 1回最後までクリアしたら初心者チュートリアルモードを自動的にOFFへ切り替え（ロビーで手動ONに戻すことはいつでも可能）
         this.setTutorialMode(false);
 
@@ -7235,9 +8078,9 @@
         const midThreshold = nextTier ? (tier.min + nextTier.min) / 2 : tier.min * 2;
         const earnedTitle = finalScore >= midThreshold ? tier.titleHigh : tier.titleLow;
 
-        // 5. 自己ベスト更新判定（updateCareerStatsOnFinish の前に比較！）
+        // 5. 自己ベスト更新判定（チュートリアル中はノーカウントのためNEW RECORD非表示）
         const prevBestScore = Number(this.getCareerStats().bestScore) || 0;
-        const isNewRecord = finalScore > prevBestScore;
+        const isNewRecord = !isTutorialPlay && finalScore > prevBestScore;
         if (this.els.resNewRecord) {
           this.els.resNewRecord.classList.toggle("hidden", !isNewRecord);
         }
@@ -7256,12 +8099,24 @@
         this.els.resWood.textContent = `${this.state.woodUsed} 本`;
         this.els.resQuality.textContent = `×${this.state.qualityQ.toFixed(2)}`;
 
-        this.updateCareerStatsOnFinish(finalScore, tier, earnedTitle, this.state.woodUsed);
-        this.switchView("result");
-        if (isNewRecord) {
-          this.triggerScreenFlash("gold");
+        if (isTutorialPlay) {
+          // 🎓 チュートリアルプレイ時は自己ベスト・累積記録・ランキング保存をすべてスキップ（ノーカウント仕様）
+          this.switchView("result");
+          if (this.els.resSaveStatus) {
+            this.els.resSaveStatus.innerHTML = `
+              <div class="rounded-2xl bg-yellow-400/20 border-2 border-yellow-300 px-3 py-2 text-left text-[11px] sm:text-xs font-bold text-yellow-100 leading-relaxed shadow-md">
+                🎓 チュートリアルクリア！（※アシスト付きの練習プレイのため、今回の記録はランキング・自己ベストには保存されません。チュートリアルを自動でOFFにしました。次から本番スタート！）
+              </div>
+            `;
+          }
+        } else {
+          this.updateCareerStatsOnFinish(finalScore, tier, earnedTitle, this.state.woodUsed);
+          this.switchView("result");
+          if (isNewRecord) {
+            this.triggerScreenFlash("gold");
+          }
+          this.submitScore(finalScore, tier.name);
         }
-        this.submitScore(finalScore, tier.name);
 
         // 0.9秒後にピタッと最終スコアで確定停止（タブ非アクティブ時等のフォールバック兼用）
         setTimeout(() => {
@@ -7511,49 +8366,56 @@
 
         list.forEach((row, idx) => {
           const rank = idx + 1;
-          const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `${rank}.`;
+          const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `${rank}位`;
           const isMe = row.userId === this.state.userId;
           const val = mode === "total" ? row.totalScore : row.score;
-          const tierIcon = this.getTierForScore(row.score).icon;
+          const tierObj = this.getTierForScore(row.score);
+          const tierIcon = tierObj.icon;
+          const tierLabel = row.tierName || tierObj.name;
 
           const item = document.createElement("div");
-          item.className = `rounded-xl px-2 py-1.5 border ${
+          item.className = `rounded-xl px-3 py-2 border transition ${
             isMe
-              ? "bg-amber-500/25 border-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.22)]"
+              ? "bg-amber-500/25 border-yellow-300 shadow-[0_0_12px_rgba(250,204,21,0.25)]"
               : "bg-black/45 border-white/10"
           }`;
 
-          // 上段：順位メダル＋キャンプネーム（truncate）／ 下段：スコア（kcal）＋高度アイコン
+          // 1列横長カード：上段に順位・キャンプネーム・到達ステージバッジ、下段にフル幅で億・万対応スコア表示
           const topRow = document.createElement("div");
-          topRow.className = "flex items-center gap-1 min-w-0";
+          topRow.className = "flex items-center justify-between gap-2 min-w-0";
+
+          const leftNameWrap = document.createElement("div");
+          leftNameWrap.className = "flex items-center gap-1.5 min-w-0";
 
           const medalEl = document.createElement("span");
-          medalEl.className = "text-[11px] shrink-0";
+          medalEl.className = "text-xs sm:text-sm font-black shrink-0 text-yellow-200";
           medalEl.textContent = medal;
 
           const nameEl = document.createElement("span");
-          nameEl.className = `text-[11px] truncate ${isMe ? "text-yellow-200 font-bold" : "text-amber-50"}`;
+          nameEl.className = `text-xs sm:text-sm truncate ${isMe ? "text-yellow-200 font-black" : "text-amber-50 font-bold"}`;
           nameEl.textContent = row.campName || "名無しのキャンパー";
 
-          topRow.appendChild(medalEl);
-          topRow.appendChild(nameEl);
+          leftNameWrap.appendChild(medalEl);
+          leftNameWrap.appendChild(nameEl);
+
+          const tierBadgeEl = document.createElement("span");
+          tierBadgeEl.className = "text-[10px] px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-amber-100 shrink-0";
+          tierBadgeEl.title = tierLabel;
+          tierBadgeEl.textContent = `${tierIcon} ${tierObj.shortName || ""}`;
+
+          topRow.appendChild(leftNameWrap);
+          topRow.appendChild(tierBadgeEl);
 
           const bottomRow = document.createElement("div");
-          bottomRow.className = "flex items-center justify-between gap-1 mt-0.5";
+          bottomRow.className = "flex items-center justify-end gap-1.5 mt-1";
 
           const scoreEl = document.createElement("span");
-          scoreEl.className = `text-[10px] sm:text-[11px] truncate ${
+          scoreEl.className = `text-xs sm:text-sm font-black tracking-tight break-words text-right ${
             mode === "total" ? "text-orange-300" : "text-yellow-300"
           }`;
-          scoreEl.textContent = `${Math.round(val).toLocaleString()} kcal`;
-
-          const iconEl = document.createElement("span");
-          iconEl.className = "text-[11px] shrink-0";
-          iconEl.title = row.tierName || "";
-          iconEl.textContent = tierIcon;
+          scoreEl.textContent = this.formatFireKcal(val);
 
           bottomRow.appendChild(scoreEl);
-          bottomRow.appendChild(iconEl);
 
           item.appendChild(topRow);
           item.appendChild(bottomRow);
@@ -7979,7 +8841,7 @@
     }
 
     /**
-     * ゲームセンター（限界キャンプファイヤー）向けのグローバルユーザーデータ同期
+     * ゲームセンター（宇宙まで燃えろ！花背ファイヤー）向けのグローバルユーザーデータ同期
      * ★ userId と workCount（業務参加回数 reward_points）を正確に連携！
      */
     function syncGameUserData() {
@@ -8638,9 +9500,9 @@
             { badge_id: 'work_5', icon: '⛺', name: '花背の常連', badge_name: '花背の常連', description: '花背業務に累計5回参加', condition_type: 'reward_count', threshold: 5 },
             { badge_id: 'work_10', icon: '🔥', name: '炎の番人', badge_name: '炎の番人', description: '花背業務に累計10回参加', condition_type: 'reward_count', threshold: 10 },
             { badge_id: 'work_20', icon: '🌲', name: '森の守護神', badge_name: '森の守護神', description: '花背業務に累計20回参加', condition_type: 'reward_count', threshold: 20 },
-            { badge_id: 'game_3000', icon: '✨', name: '焚き火職人', badge_name: '焚き火職人', description: '限界キャンプファイヤーでスコア3,000点突破', condition_type: 'game_score', threshold: 3000 },
-            { badge_id: 'game_5000', icon: '🌟', name: '紅蓮の火付け役', badge_name: '紅蓮の火付け役', description: '限界キャンプファイヤーでスコア5,000点突破', condition_type: 'game_score', threshold: 5000 },
-            { badge_id: 'game_8000', icon: '🐉', name: '伝説のキャンプマスター', badge_name: '伝説のキャンプマスター', description: '限界キャンプファイヤーでスコア8,000点突破', condition_type: 'game_score', threshold: 8000 },
+            { badge_id: 'game_3000', icon: '✨', name: '焚き火職人', badge_name: '焚き火職人', description: '『宇宙まで燃えろ！花背ファイヤー』でスコア10,000kcal突破', condition_type: 'game_score', threshold: 10000 },
+            { badge_id: 'game_5000', icon: '🌟', name: '紅蓮の火付け役', badge_name: '紅蓮の火付け役', description: '『宇宙まで燃えろ！花背ファイヤー』でスコア50,000kcal突破', condition_type: 'game_score', threshold: 50000 },
+            { badge_id: 'game_8000', icon: '🐉', name: '伝説のキャンプマスター', badge_name: '伝説のキャンプマスター', description: '『宇宙まで燃えろ！花背ファイヤー』でスコア250,000kcal突破', condition_type: 'game_score', threshold: 250000 },
             { badge_id: 'grade_4', icon: '🎓', name: '最高学年の誇り', badge_name: '最高学年の誇り', description: '4回生としてDWCを牽引', condition_type: 'grade', threshold: '4回生' },
             { badge_id: 'special_mvp', icon: '🏆', name: '特別功労賞', badge_name: '特別功労賞', description: '幹部から授与される特別表彰バッジ', condition_type: 'manual', threshold: 0 }
           ];
@@ -12508,6 +13370,7 @@
         if (prevVal && badges.some(b => b.badge_id === prevVal)) {
           manualSelectEl.value = prevVal;
         }
+        handleManualBadgeSelectChange();
       }
     }
 
@@ -12577,151 +13440,217 @@
       }
     }
 
-    function filterControlBadgeUserSelect() {
-      const selectEl = document.getElementById('ctrl-badge-user-select');
+    let BADGE_BATCH_GRADE_FILTER = 'ALL';
+    const BADGE_BATCH_SELECTED_INDICES = new Set();
+
+    function getUserManualBadgeIds(user) {
+      if (!user) return [];
+      if (Array.isArray(user.manual_badges_list)) {
+        return user.manual_badges_list.map(s => String(s || '').trim()).filter(Boolean);
+      }
+      return String(user.manual_badges || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function getFilteredBatchBadgeUsers() {
       const searchEl = document.getElementById('ctrl-badge-user-search');
-      if (!selectEl) return;
-
-      const prevVal = selectEl.value;
       const keyword = normalizeNameClient(searchEl ? searchEl.value.toLowerCase() : '');
-      selectEl.innerHTML = '<option value="">-- メンバーを選択 --</option>';
+      const gradeFilter = BADGE_BATCH_GRADE_FILTER || 'ALL';
+      const result = [];
 
-      APP_STATE.usersList.forEach((u, idx) => {
+      (APP_STATE.usersList || []).forEach((u, idx) => {
+        const uGrade = String(u.grade || '').trim();
+        if (gradeFilter !== 'ALL' && uGrade !== gradeFilter) return;
+
         const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
-        const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
+        const gradeNorm = normalizeNameClient(uGrade.toLowerCase());
         if (keyword && !nameNorm.includes(keyword) && !gradeNorm.includes(keyword)) return;
 
-        const opt = document.createElement('option');
-        opt.value = String(idx);
-        opt.textContent = `${u.name} (${u.grade || '未設定'})`;
-        selectEl.appendChild(opt);
+        result.push({ user: u, idx: idx });
       });
+      return result;
+    }
 
-      if (prevVal !== '' && Array.from(selectEl.options).some(o => o.value === prevVal)) {
-        selectEl.value = prevVal;
+    function updateBatchBadgeSelectionCounter() {
+      const countEl = document.getElementById('ctrl-badge-selected-count');
+      if (countEl) {
+        countEl.textContent = `選択中: ${BADGE_BATCH_SELECTED_INDICES.size} 名`;
       }
-      handleBadgeUserSelectChange();
+    }
+
+    function handleManualBadgeSelectChange() {
+      const badgeSelect = document.getElementById('ctrl-manual-badge-select');
+      const holderCountEl = document.getElementById('ctrl-badge-holder-count');
+      const selectedBadgeId = badgeSelect ? String(badgeSelect.value || '').trim() : '';
+
+      if (holderCountEl) {
+        if (!selectedBadgeId) {
+          holderCountEl.textContent = '現在の保有者: - 名';
+        } else {
+          const count = (APP_STATE.usersList || []).filter(u =>
+            getUserManualBadgeIds(u).includes(selectedBadgeId)
+          ).length;
+          holderCountEl.textContent = `現在の保有者: ${count} 名`;
+        }
+      }
+      renderBatchBadgeMemberList();
+    }
+
+    function setBatchBadgeGradeFilter(grade) {
+      BADGE_BATCH_GRADE_FILTER = grade || 'ALL';
+      const container = document.getElementById('ctrl-badge-grade-filters');
+      if (container) {
+        container.querySelectorAll('button[data-grade]').forEach(btn => {
+          const isActive = btn.getAttribute('data-grade') === BADGE_BATCH_GRADE_FILTER;
+          btn.className = isActive
+            ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-600 text-white shadow-2xs transition'
+            : 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-600 border border-slate-200 hover:bg-amber-50 transition';
+        });
+      }
+      renderBatchBadgeMemberList();
+    }
+
+    function renderBatchBadgeMemberList() {
+      const listEl = document.getElementById('ctrl-badge-member-checklist');
+      const badgeSelect = document.getElementById('ctrl-manual-badge-select');
+      if (!listEl) return;
+
+      const selectedBadgeId = badgeSelect ? String(badgeSelect.value || '').trim() : '';
+      const filtered = getFilteredBatchBadgeUsers();
+      updateBatchBadgeSelectionCounter();
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div class="col-span-full py-4 text-center text-xs text-slate-400">条件に一致するメンバーがいません。</div>';
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(({ user, idx }) => {
+        const isChecked = BADGE_BATCH_SELECTED_INDICES.has(idx);
+        const manualIds = getUserManualBadgeIds(user);
+        const holdsSelected = Boolean(selectedBadgeId && manualIds.includes(selectedBadgeId));
+
+        return `
+          <label class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg border cursor-pointer select-none transition ${
+            isChecked
+              ? 'bg-amber-50/90 border-amber-400 ring-1 ring-amber-300'
+              : 'bg-slate-50/60 border-slate-200/80 hover:bg-amber-50/40'
+          }">
+            <div class="flex items-center gap-2 min-w-0">
+              <input type="checkbox"
+                ${isChecked ? 'checked' : ''}
+                onchange="toggleBatchBadgeMember(${idx}, this.checked)"
+                class="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 shrink-0" />
+              <span class="text-xs font-bold text-slate-900 truncate">${escapeHtml(user.name)}</span>
+              <span class="text-[10px] text-slate-500 shrink-0">(${escapeHtml(user.grade || '未設定')})</span>
+            </div>
+            <div class="shrink-0 flex items-center gap-1">
+              ${
+                holdsSelected
+                  ? '<span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-extrabold text-[10px]">🎖️保有済</span>'
+                  : manualIds.length > 0
+                  ? `<span class="px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-600 font-semibold text-[9px]">他${manualIds.length}個</span>`
+                  : ''
+              }
+            </div>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function toggleBatchBadgeMember(idx, checked) {
+      const numIdx = Number(idx);
+      if (checked) {
+        BADGE_BATCH_SELECTED_INDICES.add(numIdx);
+      } else {
+        BADGE_BATCH_SELECTED_INDICES.delete(numIdx);
+      }
+      renderBatchBadgeMemberList();
+    }
+
+    function selectAllVisibleBadgeMembers() {
+      const filtered = getFilteredBatchBadgeUsers();
+      filtered.forEach(({ idx }) => BADGE_BATCH_SELECTED_INDICES.add(idx));
+      renderBatchBadgeMemberList();
+    }
+
+    function clearBatchBadgeSelection() {
+      BADGE_BATCH_SELECTED_INDICES.clear();
+      renderBatchBadgeMemberList();
+    }
+
+    function filterControlBadgeUserSelect() {
+      // 名簿再読み込み時は範囲外インデックスを 정리
+      Array.from(BADGE_BATCH_SELECTED_INDICES).forEach(idx => {
+        if (!APP_STATE.usersList[idx]) {
+          BADGE_BATCH_SELECTED_INDICES.delete(idx);
+        }
+      });
+      handleManualBadgeSelectChange();
     }
 
     function handleBadgeUserSearchInput() {
-      filterControlBadgeUserSelect();
-      const inputEl = document.getElementById('ctrl-badge-user-search');
-      const listEl = document.getElementById('ctrl-badge-suggest-list');
-      if (!inputEl || !listEl) return;
-
-      const rawKeyword = inputEl.value.trim().toLowerCase();
-      const normKeyword = normalizeNameClient(rawKeyword);
-      if (!rawKeyword) {
-        listEl.classList.add('hidden');
-        listEl.innerHTML = '';
-        return;
-      }
-
-      const matched = [];
-      APP_STATE.usersList.forEach((u, idx) => {
-        const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
-        const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
-        if (nameNorm.includes(normKeyword) || gradeNorm.includes(normKeyword)) {
-          matched.push({ user: u, idx: idx });
-        }
-      });
-
-      const topMatched = matched.slice(0, 25);
-      if (topMatched.length === 0) {
-        listEl.innerHTML = '<div class="px-3.5 py-2.5 text-xs text-slate-400">該当するメンバーが見つかりません。</div>';
-        listEl.classList.remove('hidden');
-        return;
-      }
-
-      listEl.innerHTML = topMatched.map(({ user, idx }) => {
-        const rawManual = String(user.manual_badges || '').trim();
-        return `
-          <button type="button"
-            onmousedown="event.preventDefault(); selectSuggestedBadgeUser(${idx})"
-            class="w-full px-3.5 py-2.5 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
-            <div class="min-w-0 flex items-center gap-2 flex-wrap">
-              <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(user.name)}</span>
-              <span class="text-[11px] text-slate-500">(${escapeHtml(user.grade || '未設定')})</span>
-              ${rawManual ? `<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">保有:${escapeHtml(rawManual)}</span>` : ''}
-            </div>
-            <span class="shrink-0 px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-bold text-[10px]">選択</span>
-          </button>
-        `;
-      }).join('');
-      listEl.classList.remove('hidden');
+      renderBatchBadgeMemberList();
     }
 
-    function selectSuggestedBadgeUser(idx) {
-      const inputEl = document.getElementById('ctrl-badge-user-search');
-      const listEl = document.getElementById('ctrl-badge-suggest-list');
-      const selectEl = document.getElementById('ctrl-badge-user-select');
-      if (inputEl) inputEl.value = '';
-      if (listEl) {
-        listEl.classList.add('hidden');
-        listEl.innerHTML = '';
-      }
-      filterControlBadgeUserSelect();
-      if (selectEl) {
-        selectEl.value = String(idx);
-      }
-      handleBadgeUserSelectChange();
-    }
-
-    function handleBadgeUserSelectChange() {
-      const selectEl = document.getElementById('ctrl-badge-user-select');
-      const infoEl = document.getElementById('ctrl-user-current-badges');
-      if (!selectEl || !infoEl) return;
-
-      const idx = selectEl.value;
-      if (idx === '' || !APP_STATE.usersList[Number(idx)]) {
-        infoEl.textContent = '選択メンバーの保有手動バッジ: -';
-        return;
-      }
-      const user = APP_STATE.usersList[Number(idx)];
-      const rawManual = String(user.manual_badges || '').trim();
-      infoEl.textContent = `選択メンバーの保有手動バッジ: ${rawManual || 'なし'}`;
-    }
-
-    async function handleGrantManualBadge(revoke) {
-      const userSelect = document.getElementById('ctrl-badge-user-select');
+    async function handleGrantManualBadgeBatch(revoke) {
       const badgeSelect = document.getElementById('ctrl-manual-badge-select');
-      if (!userSelect || userSelect.value === '') {
-        showToast('対象メンバーを選択してください。', 'error');
-        return;
-      }
-      if (!badgeSelect || !badgeSelect.value) {
-        showToast('対象バッジを選択してください。', 'error');
+      const badgeId = badgeSelect ? String(badgeSelect.value || '').trim() : '';
+      if (!badgeId) {
+        showToast('授与・剥奪するバッジを選択してください。', 'error');
         return;
       }
 
-      const user = APP_STATE.usersList[Number(userSelect.value)];
-      const badgeId = badgeSelect.value;
-      if (!user) return;
+      const selectedUsers = Array.from(BADGE_BATCH_SELECTED_INDICES)
+        .map(idx => APP_STATE.usersList[idx])
+        .filter(Boolean);
 
-      showLoader(revoke ? 'バッジを剥奪しています...' : 'バッジを授与しています...');
+      if (selectedUsers.length === 0) {
+        showToast('対象メンバーを1名以上チェックして選択してください。', 'error');
+        return;
+      }
+
+      const rowIndices = selectedUsers
+        .map(u => Number(u.row_index))
+        .filter(r => Number.isFinite(r) && r >= 3);
+      const targetNames = selectedUsers
+        .map(u => String(u.name || '').trim())
+        .filter(Boolean);
+
+      showLoader(
+        revoke
+          ? `選択した ${selectedUsers.length} 名からバッジを一括剥奪しています...`
+          : `選択した ${selectedUsers.length} 名にバッジを一括授与しています...`
+      );
       try {
-        await callGasRpc('grantManualBadge', {
-          row_index: user.row_index,
-          name: user.name,
-          target_name: user.name,
+        const res = await callGasRpc('grantManualBadgeBatch', {
           badge_id: badgeId,
+          row_indices: rowIndices,
+          target_names: targetNames,
           revoke: Boolean(revoke)
         });
+        const updatedCount = res && typeof res.updated_count === 'number' ? res.updated_count : selectedUsers.length;
         showToast(
           revoke
-            ? `「${user.name}」からバッジ (${badgeId}) を剥奪しました。`
-            : `「${user.name}」にバッジ (${badgeId}) を授与しました！`,
+            ? `選択メンバー（${selectedUsers.length}名中 ${updatedCount}名更新）からバッジ (${badgeId}) を一括剥奪しました。`
+            : `選択メンバー（${selectedUsers.length}名中 ${updatedCount}名更新）にバッジ (${badgeId}) を一括授与しました！`,
           'success'
         );
+        BADGE_BATCH_SELECTED_INDICES.clear();
         await window.loadAdminMembersTab();
         if (currentUserIsSystemAdmin()) {
           renderControlPanelMembers();
         }
       } catch (err) {
-        showToast(err.message || 'バッジ授与処理に失敗しました。', 'error');
+        showToast(err.message || '一括バッジ処理に失敗しました。', 'error');
       } finally {
         hideLoader();
       }
+    }
+
+    async function handleGrantManualBadge(revoke) {
+      return handleGrantManualBadgeBatch(revoke);
     }
 
     function handleControlUserSelectChange() {
