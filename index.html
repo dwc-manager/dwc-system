@@ -1742,7 +1742,7 @@
                   <label class="block text-xs font-bold text-slate-700">🖼️ 写真・チラシ画像の添付（任意・自動リサイズ圧縮）</label>
                   <p class="text-[11px] text-slate-500">選択すると自動で横幅最大800px（JPEG 0.7）に軽量化され、Google Driveへ保存＆即時表示されます。</p>
                 </div>
-                <button type="button" onclick="clearAnnouncementPhoto()"
+                <button id="pr-ann-btn-clear-photo" type="button" onclick="clearAnnouncementPhoto()"
                   class="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">
                   🗑️ 写真をクリア
                 </button>
@@ -1764,32 +1764,50 @@
           </form>
         </div>
 
-        <!-- カード2: 🎮 ゲーム2回ごとのランダム幕間ポップアップ管理（複数登録） -->
+        <!-- カード2: 🎮 ゲームのランダム幕間ポップアップ管理（複数登録・編集・頻度設定） -->
         <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h3 class="text-sm sm:text-base font-bold text-slate-900">2. 🎮 ゲーム2回ごとのランダム幕間ポップアップ管理</h3>
+              <h3 class="text-sm sm:text-base font-bold text-slate-900">2. 🎮 ゲームのランダム幕間ポップアップ管理</h3>
               <p class="text-xs text-slate-500 mt-0.5">
-                部員がゲームを2回プレイするごとに、登録リストの中からランダムで1件「ハナコロからのひとこと案内」をポップアップ表示します。
+                部員がゲームを指定回数プレイするごとに、登録リストの中からランダムで1件「ハナコロからのひとこと案内」をポップアップ表示します。
               </p>
             </div>
-            <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 ring-1 ring-emerald-200 cursor-pointer select-none">
-              <input id="pr-int-enabled" type="checkbox" onchange="handleToggleGameInterstitialsEnabled(this.checked)"
-                class="w-4 h-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500" />
-              <span class="text-xs font-extrabold text-emerald-900">幕間ポップアップを有効にする</span>
-            </label>
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 ring-1 ring-slate-200 text-xs font-bold text-slate-700">
+                <span>表示頻度:</span>
+                <select id="pr-int-interval" onchange="handleChangeGameInterstitialInterval(this.value)"
+                  class="bg-white rounded-lg border border-slate-300 px-2 py-1 text-xs font-extrabold text-slate-900 focus:border-brand-600 focus:outline-none">
+                  <option value="1">1回プレイごと (1)</option>
+                  <option value="2" selected>2回プレイごと (2・標準)</option>
+                  <option value="3">3回プレイごと (3)</option>
+                  <option value="5">5回プレイごと (5)</option>
+                </select>
+              </label>
+              <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 ring-1 ring-emerald-200 cursor-pointer select-none">
+                <input id="pr-int-enabled" type="checkbox" onchange="handleToggleGameInterstitialsEnabled(this.checked)"
+                  class="w-4 h-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500" />
+                <span class="text-xs font-extrabold text-emerald-900">幕間ポップアップを有効にする</span>
+              </label>
+            </div>
           </div>
 
           <div class="space-y-2">
-            <div class="text-xs font-bold text-slate-700">登録中の幕間メッセージ一覧（ランダムで1件表示）</div>
+            <div class="text-xs font-bold text-slate-700">登録中の幕間メッセージ一覧（ランダムで1件表示・編集／削除可能）</div>
             <div id="pr-int-items-list" class="space-y-2">
               <!-- JS (renderAdminGameInterstitialsUI) で描画 -->
             </div>
           </div>
 
-          <!-- 新規メッセージ追加フォーム -->
-          <div class="bg-slate-50 rounded-2xl p-4 ring-1 ring-slate-200/80 space-y-3">
-            <div class="text-xs font-extrabold text-slate-800">＋ 新しい幕間メッセージを追加する</div>
+          <!-- 新規メッセージ追加 / 既存メッセージ編集フォーム -->
+          <div id="pr-int-edit-box" class="bg-slate-50 rounded-2xl p-4 ring-1 ring-slate-200/80 space-y-3 transition">
+            <div class="flex items-center justify-between gap-2">
+              <div id="pr-int-form-title" class="text-xs font-extrabold text-slate-800">＋ 新しい幕間メッセージを追加する</div>
+              <button id="btn-cancel-int-edit" type="button" onclick="cancelEditGameInterstitialItem()"
+                class="hidden px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-[11px] font-bold text-slate-600 transition">
+                ✕ 編集をキャンセル
+              </button>
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
               <div>
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">アイコン絵文字</label>
@@ -1808,7 +1826,7 @@
                 class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:outline-none"></textarea>
             </div>
             <div class="flex flex-wrap items-center justify-end gap-2">
-              <button type="button" onclick="handleAddGameInterstitialItem()"
+              <button id="btn-save-int-item" type="button" onclick="handleAddGameInterstitialItem()"
                 class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs shadow-xs transition active:scale-[0.99]">
                 ＋ このメッセージを追加して保存
               </button>
@@ -3615,7 +3633,7 @@
 
           // [🌈 伝説枠：うちわ不要で100%確定発動の特殊ルール改変]
           // ★もし飛行機カードを削除したい場合は、下の1行の先頭に「//」をつけてコメントアウトしてください
-          { id: 13, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "⚠️現在火力が90%吹き飛ぶ大惨事！以降、薪火力×3.0倍＆次回ロマン枠確定になるが、うちわの風圧が暴走（速度1.35倍）する狂気ルート！", icon: "✈️", name: "飛行機", desc: "⚠️現在火力が90%吹き飛ぶ大惨事！以降、薪火力×3.0倍＆次回ロマン枠確定になるが、うちわの風圧が暴走（速度1.35倍）する狂気ルート！" },
+          { id: 13, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "🌈確定発動｜⚠️現在火力90%消失 ➔ 薪×3.0倍＆次回ロマン確定（うちわ高速化）", icon: "✈️", name: "飛行機", desc: "とてつもないスピード。あれは幻想だったのか。風圧と引き換えに伝説が始まる…！" },
           { id: 14, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "🌈確定発動｜火力×2.5倍＆即座に【＋5 COMBO】加算＆リング判定1.5倍拡大＆悪天候ペナルティ無効！", icon: "⛑️", name: "メロいヘルメット", desc: "メロ過ぎて雨風も防ぐ無敵の防具。所有者の手により最近割れたらしい。" },
           { id: 15, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "🌈確定発動｜火力×3.0倍＆天候塗り替え＆専用ボイス発動！", icon: "🖌️", name: "文豪の筆ペン", desc: "運命すら書き換える魂の一筆。花背の空模様そのものを塗り替える！" },
           { id: 16, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "🌈確定発動｜ノーリスクで火力×4.2倍！（以降冷静モード）", icon: "👃", name: "鼻シュッシュ", desc: "これだけは手離せんからなぁ。視界と鼻腔が突き抜け、圧倒的爽快ブースト！" }
@@ -9192,6 +9210,9 @@
       homeAnnouncement: null,
       gameInterstitials: null,
       feedbacksList: [],
+      selectedFeedbackReaction: '🔥 ゲーム面白い！',
+      selectedFeedbackCategory: 'general',
+      editingInterstitialId: null,
       pendingAnnouncementPhotoBase64: '',
       pendingAnnouncementPhotoMime: '',
       pendingAnnouncementPhotoName: '',
@@ -14365,15 +14386,52 @@
 
     const HOME_ANNOUNCEMENT_SEEN_PREFIX = 'dwc_ann_seen_';
 
+    // ★ご意見・感想ボックスのワンタップ・リアクションタグ定義（文言はここで自由に変更可能）
+    const FEEDBACK_REACTION_TAGS = [
+      '🔥 ゲーム面白い！',
+      '🤣 バカゲーすぎるw',
+      '⚖️ ゲームバランスについて',
+      '📱 アプリ便利！',
+      '💡 機能アイデア・要望'
+    ];
+
+    // ゲーム幕間ポップアップの初期デフォルト2件（バックエンド getGameInterstitials_ と同一）
+    const DEFAULT_GAME_INTERSTITIAL_ITEMS = [
+      {
+        id: 'default_1',
+        icon: '📝',
+        title: '業務後の交通費請求をお忘れなく！',
+        body: '📝 業務が終わったら『報告』タブから交通費請求を忘れずにケロ！'
+      },
+      {
+        id: 'default_2',
+        icon: '📅',
+        title: '次回のシフト予定をチェック！',
+        body: '📅 次のシフト予定は『シフト表』タブからいつでも確認できるケロ！'
+      }
+    ];
+
     /**
-     * ゲームの幕間ポップアップ設定を LimitCampfireGame 側へ提供するグローバル関数
+     * ゲームの幕間ポップアップ設定を LimitCampfireGame 側および管理画面へ提供するグローバル関数
      */
     window.getDwcGameInterstitialConfig = function() {
-      return (
+      const raw =
         APP_STATE.gameInterstitials ||
         (APP_STATE.user && APP_STATE.user.config && APP_STATE.user.config.gameInterstitials) ||
-        { enabled: false, items: [] }
-      );
+        null;
+      if (raw && typeof raw === 'object') {
+        const items = Array.isArray(raw.items) ? raw.items : DEFAULT_GAME_INTERSTITIAL_ITEMS.slice();
+        return {
+          enabled: raw.enabled !== undefined ? Boolean(raw.enabled) : true,
+          interval_plays: Math.max(1, Math.round(Number(raw.interval_plays) || 2)),
+          items: items
+        };
+      }
+      return {
+        enabled: true,
+        interval_plays: 2,
+        items: DEFAULT_GAME_INTERSTITIAL_ITEMS.slice()
+      };
     };
 
     /**
@@ -14386,6 +14444,8 @@
         {};
       APP_STATE.homeAnnouncement = ann;
 
+      const isCardEnabled = Boolean(ann.enabled || ann.card_enabled);
+      const isPopupEnabled = Boolean(ann.popup_enabled);
       const title = String(ann.title || '').trim();
       const body = String(ann.body || '').trim();
       const imgSrc = String(ann.image_data_url || ann.image_url || '').trim();
@@ -14396,11 +14456,11 @@
       // ② ホーム最上部の常設お知らせカード (#home-announcement-card)
       const cardEl = document.getElementById('home-announcement-card');
       if (cardEl) {
-        if (ann.card_enabled && hasContent) {
+        if (isCardEnabled && hasContent) {
           cardEl.classList.remove('hidden');
           const titleEl = document.getElementById('home-announcement-title');
           const bodyEl = document.getElementById('home-announcement-body');
-          const updatedEl = document.getElementById('home-announcement-updated');
+          const dateEl = document.getElementById('home-announcement-date') || document.getElementById('home-announcement-updated');
           const imgWrapEl = document.getElementById('home-announcement-img-wrap');
           const imgEl = document.getElementById('home-announcement-img');
           const linkWrapEl = document.getElementById('home-announcement-link-wrap');
@@ -14412,8 +14472,8 @@
             bodyEl.textContent = body;
             bodyEl.classList.toggle('hidden', !body);
           }
-          if (updatedEl) {
-            updatedEl.textContent = ann.updated_at ? String(ann.updated_at).slice(0, 10).replace(/-/g, '/') : '';
+          if (dateEl) {
+            dateEl.textContent = ann.updated_at ? String(ann.updated_at).slice(0, 10).replace(/-/g, '/') : '';
           }
           if (imgWrapEl && imgEl) {
             if (imgSrc) {
@@ -14442,7 +14502,7 @@
       // ① 全画面ポップアップモーダル (#home-announcement-modal)
       const modalEl = document.getElementById('home-announcement-modal');
       const annId = String(ann.id || '').trim();
-      if (modalEl && ann.popup_enabled && hasContent && annId) {
+      if (modalEl && isPopupEnabled && hasContent && annId) {
         let alreadySeen = false;
         try {
           alreadySeen = localStorage.getItem(HOME_ANNOUNCEMENT_SEEN_PREFIX + annId) === '1';
@@ -14512,27 +14572,51 @@
     // 📮 ご意見・感想ボックス モーダル制御（改修5）
     // -------------------------------------------------------------------------
 
+    function renderFeedbackReactionTags() {
+      const container = document.getElementById('feedback-reaction-tags');
+      if (!container) return;
+      const selected = APP_STATE.selectedFeedbackReaction || FEEDBACK_REACTION_TAGS[0];
+      container.innerHTML = FEEDBACK_REACTION_TAGS.map(tag => {
+        const isSel = tag === selected;
+        const safeTag = escapeHtml(tag.replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+        return `
+          <button type="button" data-reaction="${escapeHtml(tag)}" onclick="selectFeedbackReactionTag('${safeTag}')"
+            class="${
+              isSel
+                ? 'px-3 py-1.5 rounded-full text-xs font-extrabold bg-indigo-600 text-white ring-2 ring-indigo-300 shadow-2xs transition'
+                : 'px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 hover:bg-indigo-50 transition'
+            }">
+            ${escapeHtml(tag)}
+          </button>
+        `;
+      }).join('');
+    }
+
     function openFeedbackModal(defaultCategory) {
       triggerHaptic(15);
       const modalEl = document.getElementById('feedback-modal');
       if (!modalEl) return;
 
-      const catSelect = document.getElementById('feedback-category');
-      if (catSelect && defaultCategory) {
-        if (defaultCategory === 'game') {
-          catSelect.value = '🎮 ゲームの感想・バランス';
-        } else if (defaultCategory === 'app') {
-          catSelect.value = '📱 アプリの使いやすさ・機能要望';
-        } else {
-          catSelect.value = defaultCategory;
+      if (defaultCategory === 'game') {
+        APP_STATE.selectedFeedbackCategory = '🎮 ゲームの感想・バランス';
+        if (!APP_STATE.selectedFeedbackReaction) {
+          APP_STATE.selectedFeedbackReaction = FEEDBACK_REACTION_TAGS[0];
         }
+      } else if (defaultCategory === 'app') {
+        APP_STATE.selectedFeedbackCategory = '📱 アプリの使いやすさ・機能要望';
+        if (!APP_STATE.selectedFeedbackReaction) {
+          APP_STATE.selectedFeedbackReaction = FEEDBACK_REACTION_TAGS[3] || FEEDBACK_REACTION_TAGS[0];
+        }
+      } else if (defaultCategory) {
+        APP_STATE.selectedFeedbackCategory = defaultCategory;
       }
 
-      const tagInput = document.getElementById('feedback-reaction-tag');
-      if (tagInput && !tagInput.value) {
-        selectFeedbackReactionTag('🔥 神ゲー・楽しい！');
+      if (!APP_STATE.selectedFeedbackReaction) {
+        APP_STATE.selectedFeedbackReaction = FEEDBACK_REACTION_TAGS[0];
       }
 
+      renderFeedbackReactionTags();
+      selectFeedbackReactionTag(APP_STATE.selectedFeedbackReaction);
       modalEl.classList.remove('hidden');
     }
     window.openFeedbackModal = openFeedbackModal;
@@ -14548,33 +14632,30 @@
 
     function selectFeedbackReactionTag(tagText) {
       triggerHaptic(10);
-      const tagInput = document.getElementById('feedback-reaction-tag');
-      const currentVal = tagInput ? tagInput.value : '';
-      const nextVal = currentVal === tagText ? '' : String(tagText || '');
-      if (tagInput) {
-        tagInput.value = nextVal;
-      }
-      document.querySelectorAll('.feedback-tag-btn').forEach(btn => {
-        const isSelected = btn.getAttribute('data-tag') === nextVal;
+      const nextVal = String(tagText || '').trim();
+      APP_STATE.selectedFeedbackReaction = nextVal;
+
+      const container = document.getElementById('feedback-reaction-tags');
+      if (!container) return;
+      container.querySelectorAll('button[data-reaction]').forEach(btn => {
+        const isSelected = btn.getAttribute('data-reaction') === nextVal;
         btn.className = isSelected
-          ? 'feedback-tag-btn px-3 py-1.5 rounded-full border border-indigo-600 bg-indigo-600 text-white text-xs font-extrabold shadow-2xs transition'
-          : 'feedback-tag-btn px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold hover:bg-indigo-50 hover:border-indigo-300 transition';
+          ? 'px-3 py-1.5 rounded-full text-xs font-extrabold bg-indigo-600 text-white ring-2 ring-indigo-300 shadow-2xs transition'
+          : 'px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 hover:bg-indigo-50 transition';
       });
     }
     window.selectFeedbackReactionTag = selectFeedbackReactionTag;
 
     async function handleSubmitFeedback(event) {
       event.preventDefault();
-      const catEl = document.getElementById('feedback-category');
-      const tagEl = document.getElementById('feedback-reaction-tag');
-      const msgEl = document.getElementById('feedback-message');
-      const anonEl = document.getElementById('feedback-anonymous');
+      const msgEl = document.getElementById('feedback-message-input');
+      const anonEl = document.getElementById('feedback-anonymous-chk');
       const submitBtn = document.getElementById('btn-submit-feedback');
 
-      const category = String(catEl ? catEl.value : '🎮 ゲームの感想・バランス').trim();
-      const reactionTag = String(tagEl ? tagEl.value : '').trim();
+      const reactionTag = String(APP_STATE.selectedFeedbackReaction || '').trim();
       const message = String(msgEl ? msgEl.value : '').trim();
       const isAnonymous = Boolean(anonEl && anonEl.checked);
+      const category = String(APP_STATE.selectedFeedbackCategory || '🎮 ゲームの感想・バランス').trim();
 
       if (!reactionTag && !message) {
         showToast('リアクションタグを選ぶか、ひとことメッセージを入力してください。', 'error');
@@ -14589,7 +14670,8 @@
           category: category,
           reaction_tag: reactionTag,
           message: message,
-          is_anonymous: isAnonymous
+          is_anonymous: isAnonymous,
+          anonymous: isAnonymous
         });
         if (msgEl) msgEl.value = '';
         closeFeedbackModal();
@@ -14619,13 +14701,13 @@
 
     function renderAdminPrAnnouncementForm() {
       const ann = APP_STATE.homeAnnouncement || {};
+      const enabledChk = document.getElementById('pr-ann-enabled');
       const popupChk = document.getElementById('pr-ann-popup-enabled');
-      const cardChk = document.getElementById('pr-ann-card-enabled');
       const titleInput = document.getElementById('pr-ann-title');
       const bodyInput = document.getElementById('pr-ann-body');
       const linkUrlInput = document.getElementById('pr-ann-link-url');
       const linkLabelInput = document.getElementById('pr-ann-link-label');
-      const metaEl = document.getElementById('pr-ann-updated-meta');
+      const statusBadgeEl = document.getElementById('pr-ann-status-badge');
       const photoInput = document.getElementById('pr-ann-photo-input');
       const previewWrap = document.getElementById('pr-ann-photo-preview-wrap');
       const previewImg = document.getElementById('pr-ann-photo-preview');
@@ -14637,40 +14719,53 @@
       APP_STATE.pendingAnnouncementClearImage = false;
       if (photoInput) photoInput.value = '';
 
-      if (popupChk) popupChk.checked = Boolean(ann.popup_enabled);
-      if (cardChk) cardChk.checked = ann.card_enabled !== undefined ? Boolean(ann.card_enabled) : true;
+      const isCardEnabled = Boolean(ann.enabled || ann.card_enabled);
+      const isPopupEnabled = Boolean(ann.popup_enabled);
+
+      if (enabledChk) enabledChk.checked = isCardEnabled;
+      if (popupChk) popupChk.checked = isPopupEnabled;
       if (titleInput) titleInput.value = ann.title || '';
       if (bodyInput) bodyInput.value = ann.body || '';
       if (linkUrlInput) linkUrlInput.value = ann.link_url || '';
       if (linkLabelInput) linkLabelInput.value = ann.link_label || '';
 
-      if (metaEl) {
-        if (ann.updated_at) {
-          const dt = String(ann.updated_at).slice(0, 16).replace('T', ' ');
-          metaEl.textContent = `最終更新: ${dt}${ann.updated_by ? ' (' + ann.updated_by + ')' : ''}`;
+      if (statusBadgeEl) {
+        const activeFlags = [];
+        if (isCardEnabled) activeFlags.push('📢 ホーム常設ON');
+        if (isPopupEnabled) activeFlags.push('🪟 ポップアップON');
+        const dtSuffix = ann.updated_at
+          ? `（更新: ${String(ann.updated_at).slice(5, 16).replace('T', ' ')}${ann.updated_by ? ' ' + ann.updated_by : ''}）`
+          : '';
+        if (activeFlags.length > 0) {
+          statusBadgeEl.textContent = `${activeFlags.join(' / ')}${dtSuffix}`;
+          statusBadgeEl.className = 'px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300';
         } else {
-          metaEl.textContent = '未設定';
+          statusBadgeEl.textContent = `現在：非表示${dtSuffix}`;
+          statusBadgeEl.className = 'px-3 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-600';
         }
       }
 
       const existingImg = String(ann.image_data_url || ann.image_url || '').trim();
-      if (previewWrap && previewImg && clearBtn) {
+      if (previewWrap && previewImg) {
         if (existingImg) {
           previewImg.src = existingImg;
           previewWrap.classList.remove('hidden');
-          clearBtn.classList.remove('hidden');
         } else {
           previewImg.src = '';
           previewWrap.classList.add('hidden');
-          clearBtn.classList.add('hidden');
         }
+      }
+      if (clearBtn) {
+        clearBtn.classList.toggle('opacity-50', !existingImg);
       }
     }
 
     /**
      * お知らせ写真の選択＆Canvas自動リサイズ圧縮（長辺最大800px / JPEG品質0.7）
+     * onchange="handleAnnouncementPhotoSelect(event)" または input 要素直接渡しの両対応
      */
-    function handleAnnouncementPhotoSelect(inputEl) {
+    function handleAnnouncementPhotoSelect(eventOrEl) {
+      const inputEl = (eventOrEl && eventOrEl.target) ? eventOrEl.target : eventOrEl;
       const file = inputEl && inputEl.files && inputEl.files[0] ? inputEl.files[0] : null;
       if (!file) return;
 
@@ -14711,8 +14806,8 @@
           const clearBtn = document.getElementById('pr-ann-btn-clear-photo');
           if (previewImg) previewImg.src = compressedDataUrl;
           if (previewWrap) previewWrap.classList.remove('hidden');
-          if (clearBtn) clearBtn.classList.remove('hidden');
-          showToast('写真を軽量化しました。「保存・公開する」を押すと反映されます。', 'info');
+          if (clearBtn) clearBtn.classList.remove('opacity-50');
+          showToast('写真を軽量化しました。「📢 お知らせ設定を保存・反映する」を押すと反映されます。', 'info');
         };
         img.onerror = function() {
           showToast('画像の読み込みに失敗しました。別の画像をお試しください。', 'error');
@@ -14736,22 +14831,26 @@
       if (photoInput) photoInput.value = '';
       if (previewImg) previewImg.src = '';
       if (previewWrap) previewWrap.classList.add('hidden');
-      if (clearBtn) clearBtn.classList.add('hidden');
-      showToast('写真をクリアしました。「保存・公開する」を押すと反映されます。', 'info');
+      if (clearBtn) clearBtn.classList.add('opacity-50');
+      showToast('写真をクリアしました。「📢 お知らせ設定を保存・反映する」を押すと反映されます。', 'info');
     }
     window.clearAnnouncementPhoto = clearAnnouncementPhoto;
 
     async function handleSaveHomeAnnouncement(event) {
       event.preventDefault();
+      const cardEnabled = Boolean((document.getElementById('pr-ann-enabled') || {}).checked);
       const popupEnabled = Boolean((document.getElementById('pr-ann-popup-enabled') || {}).checked);
-      const cardEnabled = Boolean((document.getElementById('pr-ann-card-enabled') || {}).checked);
       const title = String((document.getElementById('pr-ann-title') || {}).value || '').trim();
       const body = String((document.getElementById('pr-ann-body') || {}).value || '').trim();
       const linkUrl = String((document.getElementById('pr-ann-link-url') || {}).value || '').trim();
       const linkLabel = String((document.getElementById('pr-ann-link-label') || {}).value || '').trim();
 
-      if ((popupEnabled || cardEnabled) && !title && !body && !APP_STATE.pendingAnnouncementPhotoBase64 && !(APP_STATE.homeAnnouncement && (APP_STATE.homeAnnouncement.image_data_url || APP_STATE.homeAnnouncement.image_url))) {
-        showToast('表示をONにする場合は、タイトル・本文・写真のいずれかを入力してください。', 'error');
+      const hasExistingPhoto =
+        !APP_STATE.pendingAnnouncementClearImage &&
+        Boolean(APP_STATE.homeAnnouncement && (APP_STATE.homeAnnouncement.image_data_url || APP_STATE.homeAnnouncement.image_url));
+
+      if ((popupEnabled || cardEnabled) && !title && !body && !linkUrl && !APP_STATE.pendingAnnouncementPhotoBase64 && !hasExistingPhoto) {
+        showToast('表示をONにする場合は、タイトル・本文・写真・リンクのいずれかを入力してください。', 'error');
         return;
       }
 
@@ -14761,8 +14860,9 @@
 
       try {
         const res = await callGasRpc('updateHomeAnnouncement', {
-          popup_enabled: popupEnabled,
+          enabled: cardEnabled,
           card_enabled: cardEnabled,
+          popup_enabled: popupEnabled,
           title: title,
           body: body,
           link_url: linkUrl,
@@ -14778,10 +14878,15 @@
           if (APP_STATE.user && APP_STATE.user.config) {
             APP_STATE.user.config.homeAnnouncement = res.homeAnnouncement;
           }
+          if (res.homeAnnouncement.id) {
+            try {
+              localStorage.removeItem(HOME_ANNOUNCEMENT_SEEN_PREFIX + res.homeAnnouncement.id);
+            } catch (_) {}
+          }
         }
         renderAdminPrAnnouncementForm();
         renderHomeAnnouncementUI(APP_STATE.user);
-        showToast('📢 ホーム画面お知らせを保存・公開しました！', 'success');
+        showToast('📢 ホーム画面お知らせを保存・反映しました！', 'success');
       } catch (err) {
         showToast(err.message || 'お知らせの保存に失敗しました。', 'error');
       } finally {
@@ -14791,12 +14896,22 @@
     }
     window.handleSaveHomeAnnouncement = handleSaveHomeAnnouncement;
 
+    // -------------------------------------------------------------------------
+    // 🎮 ゲーム幕間ポップアップの管理画面表示・編集・削除・頻度設定（改修3）
+    // -------------------------------------------------------------------------
+
     function renderAdminGameInterstitialsUI() {
       const cfg = window.getDwcGameInterstitialConfig();
-      const chkEl = document.getElementById('pr-interstitial-enabled');
-      const listEl = document.getElementById('pr-interstitial-list');
+      const chkEl = document.getElementById('pr-int-enabled');
+      const intervalEl = document.getElementById('pr-int-interval');
+      const listEl = document.getElementById('pr-int-items-list');
+
       if (chkEl) {
         chkEl.checked = Boolean(cfg.enabled);
+      }
+      if (intervalEl) {
+        const iv = String(Math.max(1, Math.round(Number(cfg.interval_plays) || 2)));
+        intervalEl.value = ['1', '2', '3', '5'].includes(iv) ? iv : '2';
       }
       if (!listEl) return;
 
@@ -14807,38 +14922,112 @@
       }
 
       listEl.innerHTML = items.map(item => {
-        const safeId = escapeHtml(String(item.id || '').replace(/'/g, "\\'"));
-        const hasLink = item.link_url && /^https?:\/\//i.test(String(item.link_url).trim());
+        const safeId = escapeHtml(String(item.id || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+        const isEditing = APP_STATE.editingInterstitialId && String(APP_STATE.editingInterstitialId) === String(item.id);
         return `
-          <div class="rounded-xl border border-orange-200 bg-white p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-            <div class="space-y-1 min-w-0 flex-1">
-              <div class="flex flex-wrap items-center gap-1.5">
-                <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-extrabold text-[10px]">${escapeHtml(item.badge || '🔥 DWC TOPICS')}</span>
-                <span class="text-xs sm:text-sm font-extrabold text-slate-900">${escapeHtml(item.title || '')}</span>
+          <div class="rounded-xl border ${
+            isEditing ? 'border-brand-400 bg-brand-50/40 ring-2 ring-brand-200' : 'border-slate-200 bg-white'
+          } p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs transition">
+            <div class="flex items-start gap-2.5 min-w-0 flex-1">
+              <span class="text-2xl leading-none shrink-0 mt-0.5">${escapeHtml(item.icon || '🐸')}</span>
+              <div class="space-y-0.5 min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-xs sm:text-sm font-extrabold text-slate-900">${escapeHtml(item.title || '')}</span>
+                  ${isEditing ? '<span class="px-2 py-0.5 rounded-full bg-brand-600 text-white text-[10px] font-extrabold">編集中</span>' : ''}
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed whitespace-pre-line">${escapeHtml(item.body || '')}</p>
               </div>
-              <p class="text-xs text-slate-600 leading-relaxed whitespace-pre-line">${escapeHtml(item.body || '')}</p>
-              ${
-                hasLink
-                  ? `<div class="pt-0.5"><a href="${escapeHtml(item.link_url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[11px] font-bold text-brand-600 hover:underline">🔗 ${escapeHtml(item.link_label || item.link_url)} ↗</a></div>`
-                  : ''
-              }
             </div>
-            <button type="button" onclick="deleteGameInterstitialItem('${safeId}')"
-              class="shrink-0 self-end sm:self-center px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition">
-              🗑️ 削除
-            </button>
+            <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+              <button type="button" onclick="startEditGameInterstitialItem('${safeId}')"
+                class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-bold text-xs border border-slate-200 transition">
+                ✏️ 編集
+              </button>
+              <button type="button" onclick="deleteGameInterstitialItem('${safeId}')"
+                class="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition">
+                🗑️ 削除
+              </button>
+            </div>
           </div>
         `;
       }).join('');
     }
 
+    function startEditGameInterstitialItem(itemId) {
+      triggerHaptic(10);
+      const cfg = window.getDwcGameInterstitialConfig();
+      const items = Array.isArray(cfg.items) ? cfg.items : [];
+      const target = items.find(it => String(it.id) === String(itemId));
+      if (!target) return;
+
+      APP_STATE.editingInterstitialId = String(target.id);
+
+      const iconEl = document.getElementById('pr-int-new-icon');
+      const titleEl = document.getElementById('pr-int-new-title');
+      const bodyEl = document.getElementById('pr-int-new-body');
+      const formTitleEl = document.getElementById('pr-int-form-title');
+      const cancelBtnEl = document.getElementById('btn-cancel-int-edit');
+      const saveBtnEl = document.getElementById('btn-save-int-item');
+      const editBoxEl = document.getElementById('pr-int-edit-box');
+
+      if (iconEl) iconEl.value = target.icon || '🐸';
+      if (titleEl) titleEl.value = target.title || '';
+      if (bodyEl) bodyEl.value = target.body || '';
+      if (formTitleEl) formTitleEl.textContent = `✏️ 幕間メッセージを編集中: 「${target.title || ''}」`;
+      if (cancelBtnEl) cancelBtnEl.classList.remove('hidden');
+      if (saveBtnEl) {
+        saveBtnEl.textContent = '💾 変更を上書き保存';
+        saveBtnEl.className = 'px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-xs transition active:scale-[0.99]';
+      }
+      if (editBoxEl) {
+        editBoxEl.className = 'bg-amber-50/70 rounded-2xl p-4 ring-2 ring-amber-300 space-y-3 transition';
+        editBoxEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      if (titleEl) titleEl.focus();
+
+      renderAdminGameInterstitialsUI();
+    }
+    window.startEditGameInterstitialItem = startEditGameInterstitialItem;
+
+    function cancelEditGameInterstitialItem() {
+      APP_STATE.editingInterstitialId = null;
+
+      const iconEl = document.getElementById('pr-int-new-icon');
+      const titleEl = document.getElementById('pr-int-new-title');
+      const bodyEl = document.getElementById('pr-int-new-body');
+      const formTitleEl = document.getElementById('pr-int-form-title');
+      const cancelBtnEl = document.getElementById('btn-cancel-int-edit');
+      const saveBtnEl = document.getElementById('btn-save-int-item');
+      const editBoxEl = document.getElementById('pr-int-edit-box');
+
+      if (iconEl) iconEl.value = '🐸';
+      if (titleEl) titleEl.value = '';
+      if (bodyEl) bodyEl.value = '';
+      if (formTitleEl) formTitleEl.textContent = '＋ 新しい幕間メッセージを追加する';
+      if (cancelBtnEl) cancelBtnEl.classList.add('hidden');
+      if (saveBtnEl) {
+        saveBtnEl.textContent = '＋ このメッセージを追加して保存';
+        saveBtnEl.className = 'px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs shadow-xs transition active:scale-[0.99]';
+      }
+      if (editBoxEl) {
+        editBoxEl.className = 'bg-slate-50 rounded-2xl p-4 ring-1 ring-slate-200/80 space-y-3 transition';
+      }
+
+      renderAdminGameInterstitialsUI();
+    }
+    window.cancelEditGameInterstitialItem = cancelEditGameInterstitialItem;
+
     async function handleToggleGameInterstitialsEnabled(checked) {
       const cfg = window.getDwcGameInterstitialConfig();
       const items = Array.isArray(cfg.items) ? cfg.items : [];
+      const intervalEl = document.getElementById('pr-int-interval');
+      const intervalPlays = Math.max(1, Math.round(Number(intervalEl ? intervalEl.value : cfg.interval_plays) || 2));
+
       showLoader('ゲーム幕間ポップアップの設定を更新しています...');
       try {
         const res = await callGasRpc('updateGameInterstitials', {
           enabled: Boolean(checked),
+          interval_plays: intervalPlays,
           items: items
         });
         if (res && res.gameInterstitials) {
@@ -14848,7 +15037,7 @@
           }
         }
         renderAdminGameInterstitialsUI();
-        showToast(checked ? '🎮 ゲーム2回ごとの幕間ポップアップを【ON】にしました！' : '🎮 ゲーム幕間ポップアップを【OFF】にしました。', 'success');
+        showToast(checked ? `🎮 ゲーム${intervalPlays}回ごとの幕間ポップアップを【ON】にしました！` : '🎮 ゲーム幕間ポップアップを【OFF】にしました。', 'success');
       } catch (err) {
         showToast(err.message || '幕間設定の更新に失敗しました。', 'error');
       } finally {
@@ -14857,20 +15046,49 @@
     }
     window.handleToggleGameInterstitialsEnabled = handleToggleGameInterstitialsEnabled;
 
-    async function handleAddGameInterstitialItem(event) {
-      event.preventDefault();
-      const badgeEl = document.getElementById('pr-int-badge');
-      const titleEl = document.getElementById('pr-int-title');
-      const bodyEl = document.getElementById('pr-int-body');
-      const linkUrlEl = document.getElementById('pr-int-link-url');
-      const linkLabelEl = document.getElementById('pr-int-link-label');
-      const chkEl = document.getElementById('pr-interstitial-enabled');
+    async function handleChangeGameInterstitialInterval(newVal) {
+      const cfg = window.getDwcGameInterstitialConfig();
+      const items = Array.isArray(cfg.items) ? cfg.items : [];
+      const chkEl = document.getElementById('pr-int-enabled');
+      const enabled = chkEl ? Boolean(chkEl.checked) : Boolean(cfg.enabled);
+      const intervalPlays = Math.max(1, Math.round(Number(newVal) || 2));
 
-      const badge = String(badgeEl ? badgeEl.value : '').trim() || '🔥 DWC TOPICS';
+      showLoader('幕間ポップアップの表示頻度を更新しています...');
+      try {
+        const res = await callGasRpc('updateGameInterstitials', {
+          enabled: enabled,
+          interval_plays: intervalPlays,
+          items: items
+        });
+        if (res && res.gameInterstitials) {
+          APP_STATE.gameInterstitials = res.gameInterstitials;
+          if (APP_STATE.user && APP_STATE.user.config) {
+            APP_STATE.user.config.gameInterstitials = res.gameInterstitials;
+          }
+        }
+        renderAdminGameInterstitialsUI();
+        showToast(`🎮 幕間ポップアップの表示頻度を「${intervalPlays}回プレイごと」に設定しました！`, 'success');
+      } catch (err) {
+        showToast(err.message || '表示頻度の更新に失敗しました。', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+    window.handleChangeGameInterstitialInterval = handleChangeGameInterstitialInterval;
+
+    async function handleAddGameInterstitialItem(event) {
+      if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      const iconEl = document.getElementById('pr-int-new-icon');
+      const titleEl = document.getElementById('pr-int-new-title');
+      const bodyEl = document.getElementById('pr-int-new-body');
+      const chkEl = document.getElementById('pr-int-enabled');
+      const intervalEl = document.getElementById('pr-int-interval');
+
+      const icon = String(iconEl ? iconEl.value : '').trim() || '🐸';
       const title = String(titleEl ? titleEl.value : '').trim();
       const body = String(bodyEl ? bodyEl.value : '').trim();
-      const linkUrl = String(linkUrlEl ? linkUrlEl.value : '').trim();
-      const linkLabel = String(linkLabelEl ? linkLabelEl.value : '').trim();
 
       if (!title && !body) {
         showToast('見出しタイトルまたはメッセージ本文を入力してください。', 'error');
@@ -14879,20 +15097,39 @@
 
       const cfg = window.getDwcGameInterstitialConfig();
       const currentItems = Array.isArray(cfg.items) ? cfg.items.slice() : [];
-      currentItems.push({
-        id: 'int_' + Date.now(),
-        badge: badge,
-        title: title,
-        body: body,
-        link_url: linkUrl,
-        link_label: linkLabel
-      });
+      const editingId = APP_STATE.editingInterstitialId;
+      let isUpdatedExisting = false;
+
+      if (editingId) {
+        const idx = currentItems.findIndex(it => String(it.id) === String(editingId));
+        if (idx >= 0) {
+          currentItems[idx] = {
+            id: String(editingId),
+            icon: icon,
+            title: title,
+            body: body
+          };
+          isUpdatedExisting = true;
+        }
+      }
+
+      if (!isUpdatedExisting) {
+        currentItems.push({
+          id: 'int_' + Date.now(),
+          icon: icon,
+          title: title,
+          body: body
+        });
+      }
 
       const enabled = chkEl ? Boolean(chkEl.checked) : Boolean(cfg.enabled);
-      showLoader('幕間メッセージを山札に追加しています...');
+      const intervalPlays = Math.max(1, Math.round(Number(intervalEl ? intervalEl.value : cfg.interval_plays) || 2));
+
+      showLoader(isUpdatedExisting ? '幕間メッセージの変更を保存しています...' : '幕間メッセージを追加して保存しています...');
       try {
         const res = await callGasRpc('updateGameInterstitials', {
           enabled: enabled,
+          interval_plays: intervalPlays,
           items: currentItems
         });
         if (res && res.gameInterstitials) {
@@ -14901,14 +15138,15 @@
             APP_STATE.user.config.gameInterstitials = res.gameInterstitials;
           }
         }
-        if (titleEl) titleEl.value = '';
-        if (bodyEl) bodyEl.value = '';
-        if (linkUrlEl) linkUrlEl.value = '';
-        if (linkLabelEl) linkLabelEl.value = '';
-        renderAdminGameInterstitialsUI();
-        showToast('🎮 幕間メッセージを山札に追加しました！', 'success');
+        cancelEditGameInterstitialItem();
+        showToast(
+          isUpdatedExisting
+            ? '💾 幕間メッセージの変更を上書き保存しました！'
+            : '🎮 新しい幕間メッセージを追加して保存しました！',
+          'success'
+        );
       } catch (err) {
-        showToast(err.message || '幕間メッセージの追加に失敗しました。', 'error');
+        showToast(err.message || '幕間メッセージの保存に失敗しました。', 'error');
       } finally {
         hideLoader();
       }
@@ -14919,11 +15157,18 @@
       const cfg = window.getDwcGameInterstitialConfig();
       const currentItems = Array.isArray(cfg.items) ? cfg.items : [];
       const nextItems = currentItems.filter(it => String(it.id) !== String(itemId));
+      const intervalEl = document.getElementById('pr-int-interval');
+      const intervalPlays = Math.max(1, Math.round(Number(intervalEl ? intervalEl.value : cfg.interval_plays) || 2));
+
+      if (APP_STATE.editingInterstitialId && String(APP_STATE.editingInterstitialId) === String(itemId)) {
+        cancelEditGameInterstitialItem();
+      }
 
       showLoader('幕間メッセージを削除しています...');
       try {
         const res = await callGasRpc('updateGameInterstitials', {
           enabled: Boolean(cfg.enabled),
+          interval_plays: intervalPlays,
           items: nextItems
         });
         if (res && res.gameInterstitials) {
