@@ -285,7 +285,7 @@
 
       <!-- 管理タブ用サブナビ（幹部以上のみ・管理タブ表示中のみ表示・折り返しタイル型グリッドメニュー） -->
       <div id="admin-subnav" class="hidden -mt-2">
-        <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-1.5 bg-white ring-1 ring-slate-200/80 rounded-2xl p-2 shadow-xs">
+        <div class="grid grid-cols-3 gap-1.5 bg-white ring-1 ring-slate-200/80 rounded-2xl p-2 shadow-xs">
           <button type="button" id="tab-btn-admin-dashboard" onclick="switchTab('admin-dashboard')" class="tab-btn flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition">
             <span class="text-base leading-none">📊</span>
             <span class="text-[11px] font-bold whitespace-nowrap">会計</span>
@@ -310,10 +310,17 @@
             <span class="text-base leading-none">👥</span>
             <span class="text-[11px] font-bold whitespace-nowrap">部員・称号</span>
           </button>
-          <button type="button" id="tab-btn-admin-control" onclick="switchTab('admin-control')" class="tab-btn hidden col-span-3 sm:col-span-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition">
-            <span class="text-base leading-none">🛠️</span>
-            <span class="text-[11px] font-bold whitespace-nowrap">システム管理</span>
-          </button>
+          <!-- 3段目：幹部(Manager)時は『📢 広報・意見』が全幅(grid-cols-1)、システム管理者時は『📢 広報・意見』と『🛠️ システム管理』が2等分(grid-cols-2) -->
+          <div id="admin-subnav-bottom-row" class="col-span-3 grid grid-cols-1 gap-1.5">
+            <button type="button" id="tab-btn-admin-pr" onclick="switchTab('admin-pr')" class="tab-btn flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition">
+              <span class="text-base leading-none">📢</span>
+              <span class="text-[11px] font-bold whitespace-nowrap">広報・意見</span>
+            </button>
+            <button type="button" id="tab-btn-admin-control" onclick="switchTab('admin-control')" class="tab-btn hidden flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition">
+              <span class="text-base leading-none">🛠️</span>
+              <span class="text-[11px] font-bold whitespace-nowrap">システム管理</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -321,6 +328,28 @@
       <!-- TAB 0: 🏠 ホーム（マイページ） -->
       <!-- ================================================================= -->
       <section id="tab-home" class="tab-panel space-y-4">
+        <!-- 📢 ホーム画面 常設お知らせカード（改修4-2①：enabled === true かつ タイトルまたは本文がある時のみ表示） -->
+        <div id="home-announcement-card" class="hidden bg-gradient-to-br from-amber-50 via-white to-orange-50/70 ring-2 ring-amber-300/90 rounded-3xl p-4 sm:p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500 text-white text-xs font-extrabold shadow-2xs">
+              <span>📢</span>
+              <span>最新のお知らせ</span>
+            </span>
+            <span id="home-announcement-date" class="text-[11px] font-semibold text-slate-400"></span>
+          </div>
+          <h3 id="home-announcement-title" class="text-base sm:text-lg font-extrabold text-slate-900 leading-snug"></h3>
+          <div id="home-announcement-body" class="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line"></div>
+          <div id="home-announcement-img-wrap" class="hidden pt-1">
+            <img id="home-announcement-img" src="" alt="お知らせ画像" class="w-full max-h-80 object-contain rounded-2xl border border-slate-200 bg-slate-50 shadow-2xs mx-auto" />
+          </div>
+          <div id="home-announcement-link-wrap" class="hidden pt-1">
+            <a id="home-announcement-link" href="#" target="_blank" rel="noopener noreferrer"
+              class="w-full py-3 px-4 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xs transition active:scale-[0.99]">
+              <span id="home-announcement-link-label">📄 資料・リンクを開く ↗</span>
+            </a>
+          </div>
+        </div>
+
         <!-- プロフィール（マイページ）: 氏名・キャンプネーム・称号・学年・メールアドレス・権限バッジ -->
         <div class="bg-gradient-to-br from-brand-600 to-brand-800 text-white rounded-3xl p-5 shadow-md">
           <div class="flex items-start gap-3.5">
@@ -417,6 +446,15 @@
         <div class="grid grid-cols-2 gap-3">
           <button type="button" onclick="switchTab('shift')" class="py-3 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-xs transition active:scale-[0.99]">📝 業務を報告する</button>
           <button type="button" onclick="switchTab('calendar')" class="py-3 rounded-2xl bg-white ring-1 ring-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-bold shadow-xs transition active:scale-[0.99]">📅 シフト表を見る</button>
+        </div>
+
+        <!-- 📮 ご意見・感想ボックス 導線1（ホーム画面下部） -->
+        <div class="bg-gradient-to-r from-indigo-50/80 via-white to-sky-50/80 ring-1 ring-indigo-200/80 rounded-2xl p-3.5 shadow-2xs">
+          <button type="button" onclick="openFeedbackModal('app')"
+            class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-indigo-50/60 ring-1 ring-indigo-200 text-indigo-900 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-2xs transition active:scale-[0.99]">
+            <span>📮</span>
+            <span>アプリ・ゲームの感想やアイデアを送る（一言でも大歓迎！）</span>
+          </button>
         </div>
 
         <!-- 設定エリア（ログアウト） -->
@@ -1620,6 +1658,188 @@
 
       </section>
 
+      <!-- ================================================================= -->
+      <!-- TAB: 📢 広報・ご意見管理パネル（Manager 幹部以上が利用可能・改修6） -->
+      <!-- ================================================================= -->
+      <section id="tab-admin-pr" class="tab-panel hidden space-y-6">
+        <div class="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-2xl p-5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[11px] font-bold mb-1">
+              MANAGER &amp; SYSTEM ADMIN
+            </div>
+            <h2 class="text-base sm:text-lg font-extrabold">📢 広報お知らせ・幕間ポップアップ・ご意見ボックス管理</h2>
+            <p class="text-xs text-white/90 mt-0.5">
+              ホーム画面のお知らせ（写真・PDFリンク・ポップアップ）、ゲーム2回ごとの幕間案内、部員からの感想一覧を管理できます。
+            </p>
+          </div>
+          <button type="button" onclick="loadAdminPrTab()"
+            class="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/25 transition">
+            ↻ 最新状態を再読込
+          </button>
+        </div>
+
+        <!-- カード1: 🏠 ホーム画面のお知らせ＆ポップアップ編集 -->
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-slate-900">1. 🏠 ホーム画面のお知らせ ＆ 全画面ポップアップ編集</h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                ホーム画面最上部に常設表示するお知らせや、アプリを開いた瞬間に1回表示するポップアップ（写真・URL/PDFリンク対応）を設定します。
+              </p>
+            </div>
+            <span id="pr-ann-status-badge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-600">
+              現在：非表示
+            </span>
+          </div>
+
+          <form id="pr-home-announcement-form" onsubmit="handleSaveHomeAnnouncement(event)" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label class="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-amber-50/70 ring-1 ring-amber-200 cursor-pointer select-none">
+                <div>
+                  <div class="text-xs font-extrabold text-amber-950">📢 ホーム画面にお知らせを表示する</div>
+                  <div class="text-[11px] text-amber-800/80 mt-0.5">ONにするとプロフィールカードの上に常設表示されます</div>
+                </div>
+                <input id="pr-ann-enabled" type="checkbox" class="w-5 h-5 rounded border-amber-300 text-amber-600 focus:ring-amber-500 shrink-0" />
+              </label>
+
+              <label class="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-indigo-50/70 ring-1 ring-indigo-200 cursor-pointer select-none">
+                <div>
+                  <div class="text-xs font-extrabold text-indigo-950">🪟 起動時に全画面ポップアップ表示する</div>
+                  <div class="text-[11px] text-indigo-800/80 mt-0.5">ONにすると未読メンバーの起動時に1回ポップアップします</div>
+                </div>
+                <input id="pr-ann-popup-enabled" type="checkbox" class="w-5 h-5 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500 shrink-0" />
+              </label>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">見出しタイトル</label>
+              <input id="pr-ann-title" type="text" maxlength="80" placeholder="例: 🏕️ 春合宿のしおり＆バス集合時間のお知らせ"
+                class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm font-bold focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">本文メッセージ（改行そのまま反映）</label>
+              <textarea id="pr-ann-body" rows="4" placeholder="お知らせの本文を入力してください..."
+                class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/80 p-3.5 rounded-2xl ring-1 ring-slate-200/70">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">🔗 リンクURL / GoogleドライブPDF等の共有URL（任意）</label>
+                <input id="pr-ann-link-url" type="url" placeholder="https://drive.google.com/..."
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono focus:border-brand-600 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">🏷️ リンクボタンの表示名（任意）</label>
+                <input id="pr-ann-link-label" type="text" maxlength="40" placeholder="例: 新歓ビラPDFを見る / 集合場所マップを開く"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold focus:border-brand-600 focus:outline-none" />
+              </div>
+            </div>
+
+            <div class="bg-slate-50/80 p-3.5 rounded-2xl ring-1 ring-slate-200/70 space-y-2.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700">🖼️ 写真・チラシ画像の添付（任意・自動リサイズ圧縮）</label>
+                  <p class="text-[11px] text-slate-500">選択すると自動で横幅最大800px（JPEG 0.7）に軽量化され、Google Driveへ保存＆即時表示されます。</p>
+                </div>
+                <button type="button" onclick="clearAnnouncementPhoto()"
+                  class="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">
+                  🗑️ 写真をクリア
+                </button>
+              </div>
+              <input id="pr-ann-photo-input" type="file" accept="image/*" onchange="handleAnnouncementPhotoSelect(event)"
+                class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100" />
+              <div id="pr-ann-photo-preview-wrap" class="hidden pt-1">
+                <div class="text-[11px] font-bold text-slate-500 mb-1">現在の設定画像プレビュー:</div>
+                <img id="pr-ann-photo-preview" src="" alt="プレビュー" class="max-h-56 rounded-xl border border-slate-200 bg-white object-contain shadow-2xs" />
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <button id="btn-save-home-announcement" type="submit"
+                class="w-full sm:w-auto px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs sm:text-sm shadow-sm transition active:scale-[0.99]">
+                📢 お知らせ設定を保存・反映する
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- カード2: 🎮 ゲーム2回ごとのランダム幕間ポップアップ管理（複数登録） -->
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-slate-900">2. 🎮 ゲーム2回ごとのランダム幕間ポップアップ管理</h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                部員がゲームを2回プレイするごとに、登録リストの中からランダムで1件「ハナコロからのひとこと案内」をポップアップ表示します。
+              </p>
+            </div>
+            <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 ring-1 ring-emerald-200 cursor-pointer select-none">
+              <input id="pr-int-enabled" type="checkbox" onchange="handleToggleGameInterstitialsEnabled(this.checked)"
+                class="w-4 h-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500" />
+              <span class="text-xs font-extrabold text-emerald-900">幕間ポップアップを有効にする</span>
+            </label>
+          </div>
+
+          <div class="space-y-2">
+            <div class="text-xs font-bold text-slate-700">登録中の幕間メッセージ一覧（ランダムで1件表示）</div>
+            <div id="pr-int-items-list" class="space-y-2">
+              <!-- JS (renderAdminGameInterstitialsUI) で描画 -->
+            </div>
+          </div>
+
+          <!-- 新規メッセージ追加フォーム -->
+          <div class="bg-slate-50 rounded-2xl p-4 ring-1 ring-slate-200/80 space-y-3">
+            <div class="text-xs font-extrabold text-slate-800">＋ 新しい幕間メッセージを追加する</div>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">アイコン絵文字</label>
+                <input id="pr-int-new-icon" type="text" maxlength="4" value="🐸"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-center focus:border-brand-600 focus:outline-none" />
+              </div>
+              <div class="sm:col-span-3">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">見出しタイトル</label>
+                <input id="pr-int-new-title" type="text" maxlength="60" placeholder="例: 業務後の交通費請求をお忘れなく！"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-bold focus:border-brand-600 focus:outline-none" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">メッセージ本文</label>
+              <textarea id="pr-int-new-body" rows="2" placeholder="例: 📝 業務が終わったら『報告』タブから交通費請求を忘れずにケロ！"
+                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm focus:border-brand-600 focus:outline-none"></textarea>
+            </div>
+            <div class="flex flex-wrap items-center justify-end gap-2">
+              <button type="button" onclick="handleAddGameInterstitialItem()"
+                class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs shadow-xs transition active:scale-[0.99]">
+                ＋ このメッセージを追加して保存
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- カード3: 📮 部員から届いたご意見・感想一覧 -->
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-slate-900">3. 📮 部員から届いたご意見・感想一覧</h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                ホーム画面やゲーム画面の「ご意見・感想ボックス」から投稿されたリアクション・メッセージを新しい順に表示します（Feedbacksシートに自動保存）。
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="pr-feedbacks-count" class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-extrabold">0 件</span>
+              <button type="button" onclick="loadAdminFeedbacksList()"
+                class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-600 transition">
+                ↻ 更新
+              </button>
+            </div>
+          </div>
+
+          <div id="pr-feedbacks-list" class="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+            <div class="text-xs text-slate-400 py-4 text-center">読み込み中...</div>
+          </div>
+        </div>
+      </section>
+
       <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet" />
@@ -2129,7 +2349,7 @@
             <div class="text-[11px] text-amber-100/90 mt-0.5">戦略に合わせて投入する助燃剤を1つ選べ！</div>
           </div>
           <span id="wc-deck-remain" class="px-2.5 py-1 rounded-full text-[11px] bg-black/55 border border-amber-400/50 text-amber-200 shrink-0">
-            山札: 16枚
+            山札: 19枚
           </span>
         </div>
         <div id="wc-card-choices" class="flex flex-col gap-2.5"></div>
@@ -2199,23 +2419,32 @@
     </div>
 
     <!-- 🎓 ステップ・バイ・ステップ実演コーチング用オーバーレイ（実際のUIをハイライトしながら1つずつ進める） -->
-    <div id="wc-step-coach-overlay" class="hidden fixed inset-0 z-40" style="max-width:520px;margin:0 auto;background:rgba(0,0,0,0.42);">
+    <div id="wc-step-coach-overlay" class="hidden fixed inset-0 z-40 cursor-pointer" style="max-width:520px;margin:0 auto;background:rgba(0,0,0,0.42);">
       <div id="wc-step-coach-pointer" class="hidden wc-coach-arrow z-50">👇</div>
       <div id="wc-step-coach-card-wrap" class="absolute inset-x-3 z-50" style="top:50%;transform:translateY(-50%);">
         <div class="wc-wood-card rounded-3xl border-4 border-yellow-300 p-3.5 sm:p-4 shadow-[0_18px_45px_rgba(0,0,0,0.92)] space-y-2.5">
           <div class="flex items-center justify-between gap-2">
-            <span id="wc-step-coach-badge" class="px-2.5 py-0.5 rounded-full bg-sky-500/35 border border-sky-300/70 text-[10px] text-sky-100">
-              🎓 ハナコロ先生のステップ解説
-            </span>
-            <span class="text-[10px] text-amber-200/80">練習モード（記録除外）</span>
+            <div class="flex items-center gap-1.5 min-w-0">
+              <button id="wc-btn-step-coach-prev" type="button"
+                class="hidden shrink-0 px-2.5 py-1 rounded-xl bg-black/65 hover:bg-black/85 border border-amber-300/70 text-[10px] sm:text-[11px] text-amber-100 font-bold active:scale-95 transition">
+                ◀ 1つ前へ
+              </button>
+              <span id="wc-step-coach-badge" class="px-2.5 py-0.5 rounded-full bg-sky-500/35 border border-sky-300/70 text-[10px] text-sky-100 truncate">
+                🎓 ハナコロ先生のステップ解説
+              </span>
+            </div>
+            <span class="shrink-0 text-[10px] text-amber-200/80">練習モード（記録除外）</span>
           </div>
           <div class="flex items-start gap-2.5">
             <div id="wc-step-coach-avatar" class="w-12 h-12 shrink-0 drop-shadow"></div>
             <div id="wc-step-coach-body" class="text-xs text-amber-50 leading-relaxed text-left flex-1"></div>
           </div>
+          <div id="wc-step-coach-tap-hint" class="pt-1 border-t border-amber-400/25 text-center text-xs sm:text-sm font-black text-yellow-300 animate-pulse select-none">
+            👆 画面のどこかをタップして次へ ▸
+          </div>
           <button id="wc-btn-step-coach-next" type="button"
-            class="wc-arcade-btn w-full py-2.5 rounded-2xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-2 border-yellow-100 text-xs sm:text-sm text-white text-center">
-            <span id="wc-btn-step-coach-label" class="wc-pop-sub">タップで次へ ▸</span>
+            class="hidden wc-arcade-btn w-full py-2.5 rounded-2xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 border-2 border-yellow-100 text-xs sm:text-sm text-white text-center">
+            <span id="wc-btn-step-coach-label" class="wc-pop-sub">👆 画面のどこかをタップして次へ ▸</span>
           </button>
         </div>
       </div>
@@ -2274,6 +2503,42 @@
       </div>
     </div>
 
+    <!-- 🎮 ゲーム2回ごとのランダム幕間ポップアップ（改修4-2②） -->
+    <div id="wc-interstitial-modal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4" style="max-width:520px;margin:0 auto;">
+      <div class="wc-wood-card w-full rounded-3xl border-4 border-yellow-300 p-4 sm:p-5 space-y-3.5 relative shadow-[0_20px_50px_rgba(0,0,0,0.92)]">
+        <div class="flex items-center justify-between gap-2 border-b border-amber-400/35 pb-2">
+          <span id="wc-interstitial-badge" class="px-2.5 py-0.5 rounded-full bg-amber-500/30 border border-yellow-300/60 text-[11px] text-yellow-200 font-bold">
+            🐸 ハナコロからのひとこと案内
+          </span>
+          <button id="wc-btn-interstitial-close" type="button" aria-label="閉じる"
+            class="w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 border-2 border-amber-300/60 text-amber-100 text-lg font-black flex items-center justify-center transition active:scale-95">
+            ×
+          </button>
+        </div>
+        <div class="flex items-start gap-3 bg-black/45 rounded-2xl p-3.5 border border-amber-400/40 text-left">
+          <div id="wc-interstitial-icon" class="text-3xl sm:text-4xl leading-none shrink-0 mt-0.5">📝</div>
+          <div class="min-w-0 flex-1 space-y-1.5">
+            <div id="wc-interstitial-title" class="wc-pop-sub text-sm sm:text-base text-yellow-300 leading-snug">
+              業務後の交通費請求をお忘れなく！
+            </div>
+            <div id="wc-interstitial-body" class="text-xs text-amber-50 leading-relaxed whitespace-pre-line">
+              📝 業務が終わったら『報告』タブから交通費請求を忘れずにケロ！
+            </div>
+            <div id="wc-interstitial-link-wrap" class="hidden pt-1">
+              <a id="wc-interstitial-link" href="#" target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-bold border border-sky-300 shadow transition">
+                <span id="wc-interstitial-link-label">🔗 リンクを開く ↗</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <button id="wc-btn-interstitial-proceed" type="button"
+          class="wc-arcade-btn w-full py-3.5 rounded-2xl bg-gradient-to-b from-emerald-400 via-teal-500 to-emerald-700 border-4 border-yellow-200 text-sm sm:text-base text-white text-center">
+          <span class="wc-pop-sub">✅ 読んだケロ！ゲームへ進む</span>
+        </button>
+      </div>
+    </div>
+
     <!-- ======================================================================
          VIEW 1: ロビー画面（2段タイトル ＋ 前景焚き火バッジ ＋ 1行ボーナスバー ＋ 3タブ切替1列ワイド番付）
          ====================================================================== -->
@@ -2289,8 +2554,12 @@
       </div>
 
       <div class="relative z-10 space-y-2.5">
-        <!-- 上部バー：左上の不要な楕円バッジを削除し、右上の「❓ 遊び方」と「🔊 SOUND」のみ配置 -->
+        <!-- 上部バー：右上の「📮 感想」「❓ 遊び方」「🔊 SOUND」を配置 -->
         <div class="flex items-center justify-end gap-1.5">
+          <button id="wc-btn-lobby-feedback" type="button" onclick="if(typeof openFeedbackModal==='function') openFeedbackModal('game')" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-fuchsia-900/90 hover:bg-fuchsia-800 text-fuchsia-100 border-2 border-fuchsia-400/60 shadow-md">
+            <span>📮</span>
+            <span>感想</span>
+          </button>
           <button id="wc-btn-howto" type="button" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-sky-900/90 hover:bg-sky-800 text-sky-100 border-2 border-sky-400/60 shadow-md">
             <span>❓</span>
             <span>遊び方</span>
@@ -3225,6 +3494,14 @@
             🔥 もう一度燃やす
           </button>
         </div>
+
+        <div class="pt-1 text-center">
+          <button id="wc-btn-result-feedback" type="button" onclick="if(typeof openFeedbackModal==='function') openFeedbackModal('game')"
+            class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/50 hover:bg-black/70 border border-amber-300/45 text-[11px] sm:text-xs text-amber-200 hover:text-yellow-200 transition active:scale-95">
+            <span>💬</span>
+            <span class="underline underline-offset-2">このゲームの感想・一言を開発者に送る（5秒で完了！）</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -3312,7 +3589,7 @@
           }
         ];
 
-        // ★編集ガイド：助燃剤マスターデータ（全16種・山札制）
+        // ★編集ガイド：助燃剤マスターデータ（全19種・山札制）
         // カードの名前や煽り文（desc）を変えたい場合は、下の文字を書き換えてください。
         this.CARDS = [
           // [🌿 安全枠：成功で＋3 COMBOボーナス！]
@@ -3320,25 +3597,28 @@
           { id: 2, category: "safe", badgeLabel: "🌿 安全枠", specInfo: "威力: ★☆☆ ｜ 危険度: 安全（✨成功で+3 COMBO!）", icon: "📰", name: "ボラルの古新聞", desc: "ボランティアルームの隅で眠っていた新聞紙。手堅くコンボ＋3！", baseRate: 85, successMult: 1.5, failMult: 0.85 },
           { id: 3, category: "safe", badgeLabel: "🌿 安全枠", specInfo: "威力: ★☆☆ ｜ 危険度: 安全（✨成功で+3 COMBO!）", icon: "🪨", name: "前回の残り炭", desc: "誰かが消し忘れた炭。火持ち抜群でコンボ倍率稼ぎに最適！", baseRate: 80, successMult: 1.6, failMult: 0.8 },
           { id: 4, category: "safe", badgeLabel: "🌿 安全枠", specInfo: "威力: ★☆☆ ｜ 危険度: 安全（✨成功で+3 COMBO!）", icon: "👕", name: "汗だくの業務Tシャツ", desc: "活動の汗が染み込んで逆に燃える（※臭いがコンボ＋3のおまけ付き）。", baseRate: 75, successMult: 1.8, failMult: 0.75 },
+          { id: 17, category: "safe", badgeLabel: "🌿 安全枠", specInfo: "威力: ★☆☆ ｜ 危険度: 安全（✨成功で+3 COMBO!）", icon: "🧤", name: "穴あき軍手", desc: "薪割りでボロボロになった軍手。木綿100%で意外とよく燃える！", baseRate: 82, successMult: 1.65, failMult: 0.85 },
 
           // [⚡ 勝負枠：万一失敗してもコンボ維持！]
           { id: 5, category: "gamble", badgeLabel: "⚡ 勝負枠", specInfo: "威力: ★★☆ ｜ 危険度: 中（失敗でもコンボ維持）", icon: "🛏️", name: "借りっぱなしのシーツ", desc: "【危険】それ燃やしたら弁償ってレベルじゃないぞ！コンボは守れる！", baseRate: 60, successMult: 2.3, failMult: 0.6 },
           { id: 6, category: "gamble", badgeLabel: "⚡ 勝負枠", specInfo: "威力: ★★☆ ｜ 危険度: 中（失敗でもコンボ維持）", icon: "🥡", name: "ボラルの冷蔵庫の謎タッパー", desc: "いつからあるか誰も知らない…。発酵して可燃ガスが出てる！", baseRate: 50, successMult: 2.8, failMult: 0.5 },
           { id: 7, category: "gamble", badgeLabel: "⚡ 勝負枠", specInfo: "威力: ★★☆ ｜ 危険度: 中（失敗でもコンボ維持）", icon: "🪲", name: "花背のカブトムシ", desc: "夏の夜の王様。網戸に張り付いて離れない！（※燃やさないで！応援熱気！）", baseRate: 45, successMult: 3.2, failMult: 0.5 },
           { id: 8, category: "gamble", badgeLabel: "⚡ 勝負枠", specInfo: "威力: ★★☆ ｜ 危険度: 中（失敗でもコンボ維持）", icon: "🪥", name: "ボラルの洗面所の放置歯ブラシ", desc: "主を失い毛先が開ききった一本。いったい誰のやねん！", baseRate: 40, successMult: 3.6, failMult: 0.4 },
+          { id: 18, category: "gamble", badgeLabel: "⚡ 勝負枠", specInfo: "威力: ★★☆ ｜ 危険度: 中（失敗でもコンボ維持）", icon: "🥾", name: "片方だけの長靴", desc: "乾燥室の奥から発掘された謎の長靴。ゴムの火力は侮れない！", baseRate: 48, successMult: 3.0, failMult: 0.5 },
 
           // [🔥 ロマン枠：超高倍率だが、失敗時は火力が激減しコンボが0に崩壊！]
           { id: 9, category: "roman", badgeLabel: "🔥 ロマン枠", specInfo: "威力: ★★★ ｜ 危険度: 💀超危険（失敗でコンボ0崩壊！）", icon: "🧡", name: "伝統の「オレンジ」", desc: "オレンジ地に水色襟のDWC魂！燃やすな危険、着ろ！熱気は宇宙級！", baseRate: 30, successMult: 4.8, failMult: 0.3 },
           { id: 10, category: "roman", badgeLabel: "🔥 ロマン枠", specInfo: "威力: ★★★ ｜ 危険度: 💀超危険（失敗でコンボ0崩壊！）", icon: "📜", name: "門限破りの反省文（束）", desc: "ボラルで夜更かしした罪の結晶。怨念と後悔でとてつもなく燃える！", baseRate: 25, successMult: 5.5, failMult: 0.25 },
           { id: 11, category: "roman", badgeLabel: "🔥 ロマン枠", specInfo: "威力: ★★★ ｜ 危険度: 💀超危険（失敗でコンボ0崩壊！）", icon: "🐸", name: "野生のハナコロ（黄金）", desc: "花背の守り神カエルが黄金の奇跡を起こす！（※決して燃やしてはいません）", baseRate: 20, successMult: 7.5, failMult: 0.2 },
           { id: 12, category: "roman", badgeLabel: "🔥 ロマン枠", specInfo: "威力: ★★★ ｜ 危険度: 💀超危険（失敗でコンボ0崩壊！）", icon: "📖", name: "ボラルの封印されし秘伝書", desc: "歴代の上回生が引き継いだ禁断のノート。通せば一気に銀河行き！！", baseRate: 15, successMult: 10.0, failMult: 0.1 },
+          { id: 19, category: "roman", badgeLabel: "🔥 ロマン枠", specInfo: "威力: ★★★ ｜ 危険度: 💀超危険（失敗でコンボ0崩壊！）", icon: "🎸", name: "キャンプファイヤーのギター", desc: "歌い継がれた魂の伴奏！燃やすな危険、弾け！情熱の爆炎が上がる！", baseRate: 22, successMult: 6.5, failMult: 0.2 },
 
           // [🌈 伝説枠：うちわ不要で100%確定発動の特殊ルール改変]
           // ★もし飛行機カードを削除したい場合は、下の1行の先頭に「//」をつけてコメントアウトしてください
-          { id: 13, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "🌈確定発動｜火力リセット➔薪火力×3.5倍＆以降ロマン枠確定！", icon: "✈️", name: "飛行機", desc: "とてつもないスピード。あれは幻想だったのか。風圧と引き換えに伝説が始まる…！" },
-          { id: 14, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "🌈確定発動｜火力×1.5倍＆判定1.5倍拡大＆悪天候無効！", icon: "⛑️", name: "メロいヘルメット", desc: "メロ過ぎて雨風も防ぐ無敵の防具。所有者の手により最近割れたらしい。" },
-          { id: 15, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "🌈確定発動｜火力×2.0倍＆天候塗り替え＆専用ボイス発動！", icon: "🖌️", name: "文豪の筆ペン", desc: "運命すら書き換える魂の一筆。花背の空模様そのものを塗り替える！" },
-          { id: 16, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "🌈確定発動｜ノーリスクで火力×3.5倍！（以降冷静モード）", icon: "👃", name: "鼻シュッシュ", desc: "これだけは手離せんからなぁ。視界と鼻腔が突き抜け、圧倒的爽快ブースト！" }
+          { id: 13, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "⚠️現在火力が90%吹き飛ぶ大惨事！以降、薪火力×3.0倍＆次回ロマン枠確定になるが、うちわの風圧が暴走（速度1.35倍）する狂気ルート！", icon: "✈️", name: "飛行機", desc: "⚠️現在火力が90%吹き飛ぶ大惨事！以降、薪火力×3.0倍＆次回ロマン枠確定になるが、うちわの風圧が暴走（速度1.35倍）する狂気ルート！" },
+          { id: 14, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "🌈確定発動｜火力×2.5倍＆即座に【＋5 COMBO】加算＆リング判定1.5倍拡大＆悪天候ペナルティ無効！", icon: "⛑️", name: "メロいヘルメット", desc: "メロ過ぎて雨風も防ぐ無敵の防具。所有者の手により最近割れたらしい。" },
+          { id: 15, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "🌈確定発動｜火力×3.0倍＆天候塗り替え＆専用ボイス発動！", icon: "🖌️", name: "文豪の筆ペン", desc: "運命すら書き換える魂の一筆。花背の空模様そのものを塗り替える！" },
+          { id: 16, category: "legend", badgeLabel: "🌈 伝説枠", specInfo: "🌈確定発動｜ノーリスクで火力×4.2倍！（以降冷静モード）", icon: "👃", name: "鼻シュッシュ", desc: "これだけは手離せんからなぁ。視界と鼻腔が突き抜け、圧倒的爽快ブースト！" }
         ];
 
         // 高度ティア＆獲得称号マスター（Lv.1〜Lv.6）
@@ -3386,9 +3666,12 @@
           coachRushIntroDone: false,
           coachTargets: [],
           stepCoachNextFn: null,
+          stepCoachPrevFn: null,
           stepCoachOpenedAt: 0,
           ringDemoHoldTimer: 0,
           warningHold: false, // 3本目「夕霧ステルス」警告テロップ表示中のゲージ停止
+          sessionPlayLaunchCount: 0,
+          interstitialProceedFn: null,
 
           weather: this.WEATHERS[0],
 
@@ -3452,6 +3735,7 @@
           offeredCards: [],
           selectedCard: null,
           airplaneActive: false,
+          airplaneGuaranteedRomanOnce: false,
           hasHelmet: false,
           calmModeActive: false, // 👃鼻シュッシュ発動後の冷静モード（ロマン・伝説重み×0.2）
 
@@ -3530,10 +3814,24 @@
           stepCoachBadge: q("#wc-step-coach-badge"),
           stepCoachAvatar: q("#wc-step-coach-avatar"),
           stepCoachBody: q("#wc-step-coach-body"),
+          stepCoachTapHint: q("#wc-step-coach-tap-hint"),
+          btnStepCoachPrev: q("#wc-btn-step-coach-prev"),
           btnStepCoachNext: q("#wc-btn-step-coach-next"),
           btnStepCoachLabel: q("#wc-btn-step-coach-label"),
           demoPlayingBanner: q("#wc-demo-playing-banner"),
           demoPlayingText: q("#wc-demo-playing-text"),
+
+          // ゲーム2回ごとのランダム幕間ポップアップ
+          interstitialModal: q("#wc-interstitial-modal"),
+          interstitialBadge: q("#wc-interstitial-badge"),
+          interstitialIcon: q("#wc-interstitial-icon"),
+          interstitialTitle: q("#wc-interstitial-title"),
+          interstitialBody: q("#wc-interstitial-body"),
+          interstitialLinkWrap: q("#wc-interstitial-link-wrap"),
+          interstitialLink: q("#wc-interstitial-link"),
+          interstitialLinkLabel: q("#wc-interstitial-link-label"),
+          btnInterstitialClose: q("#wc-btn-interstitial-close"),
+          btnInterstitialProceed: q("#wc-btn-interstitial-proceed"),
 
           // 実画面ストップ＆矢印コーチング・オーバーレイ
           coachLog: q("#wc-coach-log"),
@@ -4451,12 +4749,13 @@
       openStepCoachModal({
         badge = "🎓 ハナコロ先生のステップ解説",
         html = "",
-        btnLabel = "タップで次へ ▸",
+        btnLabel = "👆 画面のどこかをタップして次へ ▸",
         targets = [],
         roundTargets = [],
         pointerTarget = null,
         cardPos = "auto",
-        onNext = null
+        onNext = null,
+        onPrev = null
       }) {
         if (!this.els.stepCoachOverlay) {
           if (typeof onNext === "function") onNext();
@@ -4475,11 +4774,18 @@
 
         this.state.coachPaused = "step_modal";
         this.state.stepCoachNextFn = onNext;
+        this.state.stepCoachPrevFn = typeof onPrev === "function" ? onPrev : null;
         this.state.stepCoachOpenedAt = performance.now();
 
         if (this.els.stepCoachBadge) this.els.stepCoachBadge.textContent = badge;
         if (this.els.stepCoachBody) this.els.stepCoachBody.innerHTML = html;
         if (this.els.btnStepCoachLabel) this.els.btnStepCoachLabel.textContent = btnLabel;
+        if (this.els.stepCoachTapHint) {
+          this.els.stepCoachTapHint.textContent = "👆 画面のどこかをタップして次へ ▸";
+        }
+        if (this.els.btnStepCoachPrev) {
+          this.els.btnStepCoachPrev.classList.toggle("hidden", typeof onPrev !== "function");
+        }
 
         this.els.stepCoachOverlay.classList.remove("hidden");
 
@@ -4545,11 +4851,15 @@
         if (this.els.stepCoachPointer) {
           this.els.stepCoachPointer.classList.add("hidden");
         }
+        if (this.els.btnStepCoachPrev) {
+          this.els.btnStepCoachPrev.classList.add("hidden");
+        }
         (this.state.coachTargets || []).forEach((el) => {
           el.classList.remove("wc-coach-target", "wc-coach-target-round");
         });
         this.state.coachTargets = [];
         this.state.stepCoachNextFn = null;
+        this.state.stepCoachPrevFn = null;
         if (this.state.coachPaused === "step_modal") {
           this.state.coachPaused = null;
         }
@@ -4566,63 +4876,73 @@
         }
       }
 
+      prevStepCoach() {
+        if (this.state.coachPaused !== "step_modal") return;
+        if (performance.now() - (this.state.stepCoachOpenedAt || 0) < 140) return;
+        const prevFn = this.state.stepCoachPrevFn;
+        if (typeof prevFn !== "function") return;
+        this.closeStepCoachModal();
+        prevFn();
+      }
+
       startPhase1TutorialSteps() {
         const e = this.els;
-        // ステップ1：フェーズ導入
-        this.openStepCoachModal({
-          badge: "🎓 伐採チュートリアル (1/6)",
-          html: "まずは<b>【夕方の薪集め】</b>ケロ！夜のキャンプファイヤーで燃やす『薪』を切り出すぞ！（タップで次へ▸）",
-          btnLabel: "タップで次へ ▸",
-          targets: [],
-          cardPos: "center",
-          onNext: () => {
-            // ステップ2：現在の木 1/3 をハイライト
-            this.openStepCoachModal({
-              badge: "🎓 伐採チュートリアル (2/6)",
-              html: "切れる木は全部で<b>【3本】</b>！つまり3回パワーゲージにチャレンジできるケロ！（タップで次へ▸）",
-              btnLabel: "タップで次へ ▸",
-              targets: [e.logTreeBox],
-              pointerTarget: e.logTreeBox,
-              cardPos: "bottom",
-              onNext: () => {
-                // ステップ3：パワーゲージ枠をハイライト
-                this.openStepCoachModal({
-                  badge: "🎓 伐採チュートリアル (3/6)",
-                  html: "切った位置で獲得できる<b>【🪵薪の本数】</b>が決まるぞ！<br>・〜79%：4本 ／ 80%〜：7本 ／ <b>93%〜99.9%：最大の10本！</b>（タップで次へ▸）",
-                  btnLabel: "タップで次へ ▸",
-                  targets: [e.logGaugeFrame],
-                  pointerTarget: e.logGaugeFrame,
-                  cardPos: "top",
-                  onNext: () => {
-                    // ステップ4：%表示＆乾燥度ヒントをハイライト
-                    this.openStepCoachModal({
-                      badge: "🎓 伐採チュートリアル (4/6)",
-                      html: "さらに右ギリギリ（99%）に近いほど、よく乾いた<b>【☀️高乾燥度の薪】</b>になって、夜の火力が<b>最大4倍</b>に跳ね上がるケロ！（タップで次へ▸）",
-                      btnLabel: "タップで次へ ▸",
-                      targets: [e.logPctText, e.logGaugeFrame],
-                      pointerTarget: e.logPctText,
-                      cardPos: "top",
-                      onNext: () => {
-                        // ステップ5：1周目バッジ＆赤ゾーンをハイライト ➔ お手本バースト実演デモへ
-                        this.openStepCoachModal({
-                          badge: "🎓 伐採チュートリアル (5/6)",
-                          html: "右端の💀赤ゾーンで押すとバースト（0本）！でも押さずに見送れば<b>【2周目➔3周目】</b>と最大3周まで粘れるぞ！実際にだんだん速くなって3周目で爆発する様子を見てみよう！（タップでお手本を見る▸）",
-                          btnLabel: "タップでお手本を見る ▸",
-                          targets: [e.sawLapBadge, e.logGaugeFrame],
-                          pointerTarget: e.sawLapBadge,
-                          cardPos: "top",
-                          onNext: () => {
-                            this.startLoggingOverheatDemo();
-                          }
-                        });
-                      }
-                    });
-                  }
-                });
-              }
-            });
-          }
-        });
+        const step1 = () => {
+          this.openStepCoachModal({
+            badge: "🎓 伐採チュートリアル (1/6)",
+            html: "まずは<b>【夕方の薪集め】</b>ケロ！夜のキャンプファイヤーで燃やす『薪』を切り出すぞ！",
+            targets: [],
+            cardPos: "center",
+            onNext: () => step2()
+          });
+        };
+        const step2 = () => {
+          this.openStepCoachModal({
+            badge: "🎓 伐採チュートリアル (2/6)",
+            html: "切れる木は全部で<b>【3本】</b>！つまり3回パワーゲージにチャレンジできるケロ！",
+            targets: [e.logTreeBox],
+            pointerTarget: e.logTreeBox,
+            cardPos: "bottom",
+            onPrev: () => step1(),
+            onNext: () => step3()
+          });
+        };
+        const step3 = () => {
+          this.openStepCoachModal({
+            badge: "🎓 伐採チュートリアル (3/6)",
+            html: "切った位置で獲得できる<b>【🪵薪の本数】</b>が決まるぞ！<br>・〜79%：4本 ／ 80%〜：7本 ／ <b>93%〜99.9%：最大の10本！</b>",
+            targets: [e.logGaugeFrame],
+            pointerTarget: e.logGaugeFrame,
+            cardPos: "top",
+            onPrev: () => step2(),
+            onNext: () => step4()
+          });
+        };
+        const step4 = () => {
+          this.openStepCoachModal({
+            badge: "🎓 伐採チュートリアル (4/6)",
+            html: "さらに右ギリギリ（99%）に近いほど、よく乾いた<b>【☀️高乾燥度の薪】</b>になって、夜の火力が<b>最大4倍</b>に跳ね上がるケロ！",
+            targets: [e.logPctText, e.logGaugeFrame],
+            pointerTarget: e.logPctText,
+            cardPos: "top",
+            onPrev: () => step3(),
+            onNext: () => step5()
+          });
+        };
+        const step5 = () => {
+          this.openStepCoachModal({
+            badge: "🎓 伐採チュートリアル (5/6)",
+            html: "右端の💀赤ゾーンで押すとバースト（0本）！でも押さずに見送れば<b>【2周目➔3周目】</b>と最大3周まで粘れるぞ！実際にだんだん速くなって3周目で爆発する様子を見てみよう！",
+            targets: [e.sawLapBadge, e.logGaugeFrame],
+            pointerTarget: e.sawLapBadge,
+            cardPos: "top",
+            onPrev: () => step4(),
+            onNext: () => {
+              this.startLoggingOverheatDemo();
+            }
+          });
+        };
+        step1();
       }
 
       startLoggingOverheatDemo() {
@@ -4681,29 +5001,30 @@
 
       startPhase2PreIgnitionSteps() {
         const e = this.els;
-        // ステップ1：現在火力 kcal をハイライト
-        this.openStepCoachModal({
-          badge: "🎓 夜のキャンプファイヤー (1/2)",
-          html: "後半は<b>【夜のキャンプファイヤー】</b>！さっき集めた薪をくべて、この<b>火力（kcal）</b>をどこまで増やせるか競うケロ！（タップで次へ▸）",
-          btnLabel: "タップで次へ ▸",
-          targets: [e.fireKcalBox],
-          pointerTarget: e.fireKcalBox,
-          cardPos: "bottom",
-          onNext: () => {
-            // ステップ2：COMBO＆残り薪をハイライト
-            this.openStepCoachModal({
-              badge: "🎓 夜のキャンプファイヤー (2/2)",
-              html: "タイミングよく薪をくべて<b>【COMBO】</b>が繋がるほど、薪1本の火力がどんどん倍増して炎も進化するぞ！まずは下のボタンを押して種火を灯そう！",
-              btnLabel: "種火を灯すへ ▸",
-              targets: [e.fireComboBox, e.fireWoodLeft, e.btnStoke],
-              pointerTarget: e.fireComboBox,
-              cardPos: "center",
-              onNext: () => {
-                this.state.coachPaused = null;
-              }
-            });
-          }
-        });
+        const step1 = () => {
+          this.openStepCoachModal({
+            badge: "🎓 夜のキャンプファイヤー (1/2)",
+            html: "後半は<b>【夜のキャンプファイヤー】</b>！さっき集めた薪をくべて、この<b>火力（kcal）</b>をどこまで増やせるか競うケロ！",
+            targets: [e.fireKcalBox],
+            pointerTarget: e.fireKcalBox,
+            cardPos: "bottom",
+            onNext: () => step2()
+          });
+        };
+        const step2 = () => {
+          this.openStepCoachModal({
+            badge: "🎓 夜のキャンプファイヤー (2/2)",
+            html: "タイミングよく薪をくべて<b>【COMBO】</b>が繋がるほど、薪1本の火力がどんどん倍増して炎も進化するぞ！まずは下のボタンを押して種火を灯そう！",
+            targets: [e.fireComboBox, e.fireWoodLeft, e.btnStoke],
+            pointerTarget: e.fireComboBox,
+            cardPos: "center",
+            onPrev: () => step1(),
+            onNext: () => {
+              this.state.coachPaused = null;
+            }
+          });
+        };
+        step1();
       }
 
       startPhase2RingDemoStep() {
@@ -4869,7 +5190,16 @@
         this.els.btnIntroNext.addEventListener("click", () => this.advanceIntro());
         this.els.btnIntroStart.addEventListener("click", () => this.advanceIntro());
 
-        // ステップ・バイ・ステップ解説モーダル（ボタンまたはオーバーレイタップで次へ）
+        // ステップ・バイ・ステップ解説モーダル（画面どこでもタップで次へ／左上の[◀ 1つ前へ]で前へ）
+        if (this.els.btnStepCoachPrev) {
+          const onPrevTap = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            this.prevStepCoach();
+          };
+          this.els.btnStepCoachPrev.addEventListener("pointerdown", onPrevTap);
+          this.els.btnStepCoachPrev.addEventListener("click", onPrevTap);
+        }
         if (this.els.btnStepCoachNext) {
           this.els.btnStepCoachNext.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -4877,9 +5207,31 @@
           });
         }
         if (this.els.stepCoachOverlay) {
-          this.els.stepCoachOverlay.addEventListener("click", () => {
+          const onOverlayAdvance = (e) => {
+            if (this.els.btnStepCoachPrev && (e.target === this.els.btnStepCoachPrev || this.els.btnStepCoachPrev.contains(e.target))) {
+              return;
+            }
             this.advanceStepCoach();
-          });
+          };
+          this.els.stepCoachOverlay.addEventListener("pointerdown", onOverlayAdvance);
+          this.els.stepCoachOverlay.addEventListener("click", onOverlayAdvance);
+        }
+
+        // ゲーム2回ごとのランダム幕間ポップアップ閉じる＆進むボタン
+        const closeInterstitialAndProceed = () => {
+          this.playSound("tap");
+          if (this.els.interstitialModal) {
+            this.els.interstitialModal.classList.add("hidden");
+          }
+          const fn = this.state.interstitialProceedFn;
+          this.state.interstitialProceedFn = null;
+          if (typeof fn === "function") fn();
+        };
+        if (this.els.btnInterstitialClose) {
+          this.els.btnInterstitialClose.addEventListener("click", closeInterstitialAndProceed);
+        }
+        if (this.els.btnInterstitialProceed) {
+          this.els.btnInterstitialProceed.addEventListener("click", closeInterstitialAndProceed);
         }
 
         if (this.els.inputCampName) {
@@ -4900,12 +5252,14 @@
         this.els.btnStart.addEventListener("click", () => {
           this.ensureAudio();
           this.playSound("tap");
-          // チュートリアルON時は最初に導入スライド（全2ページ）を表示してから天気予報へ
-          if (this.getTutorialMode()) {
-            this.openIntroModal();
-          } else {
-            this.startNewGame();
-          }
+          this.triggerStartWithInterstitialCheck(() => {
+            // チュートリアルON時は最初に導入スライド（全2ページ）を表示してから天気予報へ
+            if (this.getTutorialMode()) {
+              this.openIntroModal();
+            } else {
+              this.startNewGame();
+            }
+          });
         });
 
         this.els.btnBriefStart.addEventListener("click", () => {
@@ -5018,12 +5372,53 @@
         });
         this.els.btnRetry.addEventListener("click", () => {
           this.playSound("tap");
-          if (this.getTutorialMode()) {
-            this.openIntroModal();
-          } else {
-            this.startNewGame();
-          }
+          this.triggerStartWithInterstitialCheck(() => {
+            if (this.getTutorialMode()) {
+              this.openIntroModal();
+            } else {
+              this.startNewGame();
+            }
+          });
         });
+      }
+
+      /**
+       * ゲーム2回ごとのランダム幕間ポップアップ表示チェック（改修4-2②）
+       */
+      triggerStartWithInterstitialCheck(proceedCallback) {
+        this.state.sessionPlayLaunchCount = (this.state.sessionPlayLaunchCount || 0) + 1;
+        const cfg = typeof window.getDwcGameInterstitialConfig === "function"
+          ? window.getDwcGameInterstitialConfig()
+          : null;
+        const interval = cfg && Number(cfg.interval_plays) > 0 ? Math.max(1, Math.round(Number(cfg.interval_plays))) : 2;
+        const items = cfg && Array.isArray(cfg.items) ? cfg.items.filter(it => it && (it.title || it.body)) : [];
+
+        if (cfg && cfg.enabled && items.length > 0 && this.state.sessionPlayLaunchCount % interval === 0 && this.els.interstitialModal) {
+          const picked = items[Math.floor(Math.random() * items.length)];
+          if (this.els.interstitialBadge) this.els.interstitialBadge.textContent = picked.badge || "🐸 ハナコロからのひとこと案内";
+          if (this.els.interstitialIcon) this.els.interstitialIcon.textContent = picked.icon || "🐸";
+          if (this.els.interstitialTitle) this.els.interstitialTitle.textContent = picked.title || "ハナコロからのお知らせ";
+          if (this.els.interstitialBody) this.els.interstitialBody.textContent = picked.body || "";
+          if (this.els.interstitialLinkWrap && this.els.interstitialLink) {
+            const lUrl = String(picked.link_url || "").trim();
+            if (lUrl && /^https?:\/\//i.test(lUrl)) {
+              this.els.interstitialLink.href = lUrl;
+              if (this.els.interstitialLinkLabel) {
+                this.els.interstitialLinkLabel.textContent = `${picked.link_label || "詳細リンクを開く"} ↗`;
+              }
+              this.els.interstitialLinkWrap.classList.remove("hidden");
+            } else {
+              this.els.interstitialLink.href = "#";
+              this.els.interstitialLinkWrap.classList.add("hidden");
+            }
+          }
+          this.state.interstitialProceedFn = proceedCallback;
+          this.els.interstitialModal.classList.remove("hidden");
+          return;
+        }
+        if (typeof proceedCallback === "function") {
+          proceedCallback();
+        }
       }
 
       abortToLobby() {
@@ -5117,6 +5512,7 @@
 
         this.state.deck = this.CARDS.map((c) => ({ ...c }));
         this.state.airplaneActive = false;
+        this.state.airplaneGuaranteedRomanOnce = false;
         this.state.hasHelmet = false;
         this.state.calmModeActive = false;
 
@@ -5748,7 +6144,7 @@
           buffs.push(`<span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/30 border border-emerald-300 text-emerald-100">🌲神木×2.0</span>`);
         }
         if (this.state.airplaneActive) {
-          buffs.push(`<span class="px-2 py-0.5 rounded-full text-[10px] bg-fuchsia-600/40 border border-fuchsia-300 text-fuchsia-100">✈️薪×3.5＆ロマン確定</span>`);
+          buffs.push(`<span class="px-2 py-0.5 rounded-full text-[10px] bg-fuchsia-600/40 border border-fuchsia-300 text-fuchsia-100">✈️薪×3.0＆ロマンUP</span>`);
         }
         if (this.state.hasHelmet) {
           buffs.push(`<span class="px-2 py-0.5 rounded-full text-[10px] bg-sky-500/35 border border-sky-300 text-sky-100">⛑️判定1.5倍＆悪天候無効</span>`);
@@ -5829,11 +6225,11 @@
           }
 
           // 薪1本の加算火力式：
-          // addedF = (1250 * Q) * (1 + C * 0.15) * accuracyA * (吹雪なら 1.5 : 1.0) * (飛行機バフ中なら 3.5 : 1.0)
+          // addedF = (1250 * Q) * (1 + C * 0.15) * accuracyA * (吹雪なら 1.5 : 1.0) * (飛行機バフ中なら 3.0 : 1.0)
           const Q = this.state.qualityQ;
           const C = this.state.combo;
           const snowMult = this.state.weather.id === "snow" ? 1.5 : 1.0;
-          const airplaneMult = this.state.airplaneActive ? 3.5 : 1.0;
+          const airplaneMult = this.state.airplaneActive ? 3.0 : 1.0;
           const addedF = (1250 * Q) * (1 + C * 0.15) * accuracyA * snowMult * airplaneMult;
 
           this.state.firepower = Number((this.state.firepower + addedF).toFixed(2));
@@ -6080,8 +6476,8 @@
           return true;
         });
 
-        // ✈️飛行機バフ発動中は山札内のロマン枠を確定優先！
-        if (this.state.airplaneActive) {
+        // ✈️飛行機発動直後の1回だけ（airplaneGuaranteedRomanOnce === true）、山札内のロマン枠を確定優先！
+        if (this.state.airplaneGuaranteedRomanOnce) {
           const romanCards = basePool.filter((c) => c.category === "roman");
           if (romanCards.length > 0) return romanCards;
         }
@@ -6092,6 +6488,10 @@
         const base = { safe: 36, gamble: 32, roman: 20, legend: 12 };
         let w = base[category] || 10;
 
+        // ✈️ 飛行機発動後の残り抽選：ロマン枠の出現率を ×1.8倍 に強化！
+        if (category === "roman" && this.state.airplaneActive) {
+          w *= 1.8;
+        }
         // 🌧️ 花背の通り雨：ロマン枠・伝説枠の出現率が 2倍！
         if ((category === "roman" || category === "legend") && this.state.weather.id === "rain") {
           w *= 2.0;
@@ -6104,6 +6504,20 @@
       }
 
       drawCardsFromDeck(count = 3) {
+        // 🎓 チュートリアル1回目の助燃剤チャンスは、うちわスイングを確実に練習できるよう
+        // 「🌿安全枠1枚（id:1優先）・⚡勝負枠1枚（id:5優先）・🔥ロマン枠1枚（id:9優先）」の3枚に完全固定！
+        if (this.state.isTutorialRun && this.state.accelerantCount === 1) {
+          const deck = this.state.deck;
+          const safeCard = deck.find((c) => c.id === 1) || deck.find((c) => c.category === "safe");
+          const gambleCard = deck.find((c) => c.id === 5) || deck.find((c) => c.category === "gamble");
+          const romanCard = deck.find((c) => c.id === 9) || deck.find((c) => c.category === "roman");
+          const fixedCards = [safeCard, gambleCard, romanCard].filter(Boolean);
+          if (fixedCards.length === 3) {
+            return fixedCards;
+          }
+        }
+
+        const wasGuaranteedRomanOnce = Boolean(this.state.airplaneGuaranteedRomanOnce);
         const pool = [...this.getEligibleDeckCards()];
         const chosen = [];
 
@@ -6121,6 +6535,10 @@
           }
           chosen.push(pool[pickedIdx]);
           pool.splice(pickedIdx, 1);
+        }
+
+        if (wasGuaranteedRomanOnce) {
+          this.state.airplaneGuaranteedRomanOnce = false;
         }
         return chosen;
       }
@@ -6145,36 +6563,39 @@
         this.els.deckRemain.textContent = `山札: ${this.state.deck.length}枚`;
         this.renderCardChoices(cards);
 
-        // 🎓 1回目の助燃剤チャンス発生時：カード選択モーダルが開く直前に2ステップで解説
+        // 🎓 1回目の助燃剤チャンス発生時：カード選択モーダルが開く直前に2ステップで解説（[◀ 1つ前へ]対応）
         if (this.state.isTutorialRun && this.state.accelerantCount === 1 && !this.state.coachBoosterIntroDone) {
           this.state.coachBoosterIntroDone = true;
-          this.openStepCoachModal({
-            badge: "🧪 助燃剤チャンス解説 (1/2)",
-            html: "薪を7本くべるごとに<b>【🧪助燃剤チャンス】</b>が発生！全16枚のカードから3枚が登場し、それぞれ『成功確率』と『着火倍率』が違うケロ！（次へ▸）",
-            btnLabel: "次へ ▸",
-            targets: [],
-            cardPos: "center",
-            onNext: () => {
-              this.openStepCoachModal({
-                badge: "🧪 助燃剤チャンス解説 (2/2)｜4つの枠の特徴",
-                html: `
-                  <div class="space-y-1 text-[11px] leading-snug">
-                    <div><span class="text-emerald-300 font-black">🌿 安全枠（超重要！）：</span>手堅く着火し、さらに【＋3 COMBO】が加算される安定成長の要！</div>
-                    <div><span class="text-amber-300 font-black">⚡ 勝負枠：</span>中確率で火力を一気に2倍以上に引き上げる中リスク・中リターン！</div>
-                    <div><span class="text-pink-300 font-black">🔥 ロマン枠：</span>低確率だが成功すれば火力大爆発！ただし失敗すると火力が減り【コンボが0に崩壊】する大博打！</div>
-                    <div><span class="text-yellow-200 font-black">🌈 伝説枠：</span>うちわ扇ぎ不要で100%特殊効果が発動するチート級カード！</div>
-                  </div>
-                `,
-                btnLabel: "カードを選ぶ ▸",
-                targets: [],
-                cardPos: "center",
-                onNext: () => {
-                  this.els.cardModal.classList.remove("hidden");
-                  this.playSound("tap");
-                }
-              });
-            }
-          });
+          const boosterStep1 = () => {
+            this.openStepCoachModal({
+              badge: "🧪 助燃剤チャンス解説 (1/2)",
+              html: "薪を7本くべるごとに<b>【🧪助燃剤チャンス】</b>が発生！全19枚のカードから3枚が登場し、それぞれ『成功確率』と『着火倍率』が違うケロ！",
+              targets: [],
+              cardPos: "center",
+              onNext: () => boosterStep2()
+            });
+          };
+          const boosterStep2 = () => {
+            this.openStepCoachModal({
+              badge: "🧪 助燃剤チャンス解説 (2/2)｜4つの枠の特徴",
+              html: `
+                <div class="space-y-1 text-[11px] leading-snug">
+                  <div><span class="text-emerald-300 font-black">🌿 安全枠（超重要！）：</span>手堅く着火し、さらに【＋3 COMBO】が加算される安定成長の要！</div>
+                  <div><span class="text-amber-300 font-black">⚡ 勝負枠：</span>中確率で火力を一気に2倍以上に引き上げる中リスク・中リターン！</div>
+                  <div><span class="text-pink-300 font-black">🔥 ロマン枠：</span>低確率だが成功すれば火力大爆発！ただし失敗すると火力が減り【コンボが0に崩壊】する大博打！</div>
+                  <div><span class="text-yellow-200 font-black">🌈 伝説枠：</span>うちわ扇ぎ不要で100%特殊効果が発動するチート級カード！</div>
+                </div>
+              `,
+              targets: [],
+              cardPos: "center",
+              onPrev: () => boosterStep1(),
+              onNext: () => {
+                this.els.cardModal.classList.remove("hidden");
+                this.playSound("tap");
+              }
+            });
+          };
+          boosterStep1();
           return;
         }
 
@@ -6598,31 +7019,37 @@
         this.state.stokeImpactTimer = 0.42;
 
         if (card.id === 13) {
-          // ✈️ 飛行機：firepower = Math.max(initialFirepower, firepower * 0.10)、以降薪×3.5倍＆ロマン枠確定
+          // ✈️ 飛行機：firepower = Math.max(initialFirepower, firepower * 0.10)
+          // 以降の薪基礎火力 ×3.0倍 ＆ 次回助燃剤のみロマン枠確定（その後の抽選はロマン重み×1.8倍） ＆ うちわ風圧暴走（速度1.35倍）
           this.state.firepower = Number(Math.max(this.state.initialFirepower, this.state.firepower * 0.10).toFixed(2));
           this.state.displayFirepower = this.state.firepower;
           this.state.airplaneActive = true;
+          this.state.airplaneGuaranteedRomanOnce = true;
           this.showCutin({
             badge: "🌈 LEGENDARY EVENT!!",
             title: "✈️ 飛行機通過！！",
-            quote: "風圧で火力リセット ➔ 以降の薪火力 ×3.5倍 ＆ ロマン枠確定！！",
+            quote: "⚠️現在火力90%消失 ➔ 以降、薪火力×3.0倍＆次回ロマン枠確定＆うちわ速度1.35倍！！",
             theme: "legend"
           });
         } else if (card.id === 14) {
-          // ⛑️ メロいヘルメット：火力×1.5倍 ＆ リング判定1.5倍拡大 ＆ 強風・雨ペナルティ無効
-          this.state.firepower = Number((this.state.firepower * 1.5).toFixed(2));
+          // ⛑️ メロいヘルメット：火力×2.5倍 ＆ 即座に【＋5 COMBO】加算 ＆ リング判定1.5倍拡大 ＆ 悪天候ペナルティ無効
+          this.state.firepower = Number((this.state.firepower * 2.5).toFixed(2));
+          this.state.combo += 5;
+          if (this.state.combo > this.state.maxCombo) {
+            this.state.maxCombo = this.state.combo;
+          }
           this.state.hasHelmet = true;
           this.updateRingTargetZones();
           this.triggerKcalBounce();
           this.showCutin({
             badge: "🌈 LEGENDARY ARMOR!!",
             title: "⛑️ メロいヘルメット装着！！",
-            quote: "火力 ×1.5倍 ＆ 判定1.5倍拡大 ＆ 強風・雨ペナルティ完全無効！",
+            quote: "火力 ×2.5倍 ＆ 即座に【＋5 COMBO】加算 ＆ 判定1.5倍拡大 ＆ 悪天候ペナルティ無効！",
             theme: "legend"
           });
         } else if (card.id === 15) {
-          // 🖌️ 文豪の筆ペン：火力×2.0倍 ＆ 別天候へ塗り替え ＆ 専用ボイス読み上げ（Web Speech API唯一の発動箇所！）
-          this.state.firepower = Number((this.state.firepower * 2.0).toFixed(2));
+          // 🖌️ 文豪の筆ペン：火力×3.0倍 ＆ 別天候へ塗り替え ＆ 専用ボイス読み上げ（Web Speech API唯一の発動箇所！）
+          this.state.firepower = Number((this.state.firepower * 3.0).toFixed(2));
           const candidates = this.WEATHERS.filter((w) => w.id !== this.state.weather.id);
           const nextW = candidates[Math.floor(Math.random() * candidates.length)] || this.WEATHERS[0];
           this.state.weather = nextW;
@@ -6634,18 +7061,18 @@
           this.showCutin({
             badge: "🌈 WEATHER REWRITE!!",
             title: `🖌️ 天候改変：${nextW.icon} ${nextW.name}！`,
-            quote: `「${nextW.quote}」 火力 ×2.0倍！！`,
+            quote: `「${nextW.quote}」 火力 ×3.0倍！！`,
             theme: "legend"
           });
         } else if (card.id === 16) {
-          // 👃 鼻シュッシュ：ノーリスク火力×3.5倍 ＆ 以降ロマン・伝説の抽選重み ×0.2（1/5）
-          this.state.firepower = Number((this.state.firepower * 3.5).toFixed(2));
+          // 👃 鼻シュッシュ：ノーリスク火力×4.2倍 ＆ 以降ロマン・伝説の抽選重み ×0.2（1/5）
+          this.state.firepower = Number((this.state.firepower * 4.2).toFixed(2));
           this.state.calmModeActive = true;
           this.triggerKcalBounce();
           this.showCutin({
             badge: "🌈 REFRESH BOOST!!",
             title: "👃 鼻シュッシュ快感ブースト！！",
-            quote: "ノーリスクで火力 ×3.5倍！！（以降、視界クリアの冷静モード突入）",
+            quote: "ノーリスクで火力 ×4.2倍！！（以降、視界クリアの冷静モード突入）",
             theme: "legend"
           });
         }
@@ -7209,7 +7636,7 @@
               this.showCoach("swing");
             }
           } else if (!this.state.coachPaused) {
-            const swingSpeed = 235;
+            const swingSpeed = 235 * (this.state.airplaneActive ? 1.35 : 1.0);
             this.state.swingVal += this.state.swingDir * swingSpeed * dt;
 
             if (this.state.swingVal >= 100) {
@@ -8364,11 +8791,21 @@
           return;
         }
 
+        let currentRank = 1;
+        let prevVal = null;
+
         list.forEach((row, idx) => {
-          const rank = idx + 1;
+          const val = mode === "total" ? row.totalScore : row.score;
+          if (idx === 0) {
+            currentRank = 1;
+          } else if (val !== prevVal) {
+            currentRank = idx + 1;
+          }
+          prevVal = val;
+
+          const rank = currentRank;
           const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `${rank}位`;
           const isMe = row.userId === this.state.userId;
-          const val = mode === "total" ? row.totalScore : row.score;
           const tierObj = this.getTierForScore(row.score);
           const tierIcon = tierObj.icon;
           const tierLabel = row.tierName || tierObj.name;
@@ -8587,6 +9024,116 @@
   </main>
 
   <!-- ===================================================================== -->
+  <!-- 📢 ホーム画面 全画面ポップアップお知らせモーダル（改修4-2①：背景暗転＋大きな×ボタン） -->
+  <!-- ===================================================================== -->
+  <div id="home-announcement-modal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) dismissHomeAnnouncementModal()">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl ring-2 ring-amber-300 overflow-hidden my-auto animate-fade-in">
+      <div class="bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-3.5 flex items-center justify-between gap-2 text-white">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-xl leading-none">📢</span>
+          <span class="text-sm sm:text-base font-extrabold truncate">DWCからのお知らせ</span>
+        </div>
+        <button type="button" onclick="dismissHomeAnnouncementModal()" aria-label="閉じる"
+          class="shrink-0 w-10 h-10 rounded-full bg-black/20 hover:bg-black/35 text-white text-2xl font-black flex items-center justify-center transition active:scale-95">
+          &times;
+        </button>
+      </div>
+      <div class="p-5 sm:p-6 space-y-4 max-h-[80dvh] overflow-y-auto">
+        <h3 id="modal-announcement-title" class="text-base sm:text-lg font-extrabold text-slate-900 leading-snug"></h3>
+        <div id="modal-announcement-body" class="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line"></div>
+        <div id="modal-announcement-img-wrap" class="hidden">
+          <img id="modal-announcement-img" src="" alt="お知らせ画像" class="w-full max-h-80 object-contain rounded-2xl border border-slate-200 bg-slate-50 mx-auto" />
+        </div>
+        <div id="modal-announcement-link-wrap" class="hidden pt-1">
+          <a id="modal-announcement-link" href="#" target="_blank" rel="noopener noreferrer"
+            class="w-full py-3.5 px-4 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-sm transition active:scale-[0.99]">
+            <span id="modal-announcement-link-label">📄 資料・リンクを開く ↗</span>
+          </a>
+        </div>
+        <div class="pt-2 border-t border-slate-100">
+          <button type="button" onclick="dismissHomeAnnouncementModal()"
+            class="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs sm:text-sm transition active:scale-[0.99]">
+            ✅ 確認しました（閉じる）
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 📮 ご意見・感想ボックス モーダル（改修5：返信不要・メール枠消費ゼロ・リアクションタグ付き） -->
+  <!-- ===================================================================== -->
+  <div id="feedback-modal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeFeedbackModal()">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl ring-1 ring-slate-200 overflow-hidden my-auto animate-fade-in">
+      <div class="bg-gradient-to-r from-indigo-600 to-brand-600 px-5 py-3.5 flex items-center justify-between gap-2 text-white">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-xl leading-none">📮</span>
+          <span class="text-sm sm:text-base font-extrabold truncate">ご意見・感想ボックス</span>
+        </div>
+        <button type="button" onclick="closeFeedbackModal()" aria-label="閉じる"
+          class="shrink-0 w-10 h-10 rounded-full bg-black/20 hover:bg-black/35 text-white text-2xl font-black flex items-center justify-center transition active:scale-95">
+          &times;
+        </button>
+      </div>
+
+      <form id="feedback-form" onsubmit="handleSubmitFeedback(event)" class="p-5 sm:p-6 space-y-4 max-h-[82dvh] overflow-y-auto">
+        <div class="bg-indigo-50/80 border border-indigo-200/80 rounded-2xl p-3.5 text-xs text-indigo-950 leading-relaxed">
+          『ゲームが面白い／難しい』『ここが使いやすい／使いにくい』など、どんな軽い一言でも開発者・幹部のめちゃくちゃな励みになります！（※ご意見専用ボックスのため個別の返信は行いません。シフトや会計の質問・連絡はLINEへお願いします）
+        </div>
+
+        <div>
+          <label class="block text-xs font-extrabold text-slate-700 mb-2">👆 ワンタップ・リアクション（1つ選択）</label>
+          <div id="feedback-reaction-tags" class="flex flex-wrap gap-1.5">
+            <button type="button" data-reaction="🔥 ゲーム面白い！" onclick="selectFeedbackReactionTag('🔥 ゲーム面白い！')"
+              class="px-3 py-1.5 rounded-full text-xs font-extrabold bg-indigo-600 text-white ring-2 ring-indigo-300 shadow-2xs transition">
+              🔥 ゲーム面白い！
+            </button>
+            <button type="button" data-reaction="🤣 バカゲーすぎるw" onclick="selectFeedbackReactionTag('🤣 バカゲーすぎるw')"
+              class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 hover:bg-indigo-50 transition">
+              🤣 バカゲーすぎるw
+            </button>
+            <button type="button" data-reaction="⚖️ ゲームバランスについて" onclick="selectFeedbackReactionTag('⚖️ ゲームバランスについて')"
+              class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 hover:bg-indigo-50 transition">
+              ⚖️ ゲームバランスについて
+            </button>
+            <button type="button" data-reaction="📱 アプリ便利！" onclick="selectFeedbackReactionTag('📱 アプリ便利！')"
+              class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 hover:bg-indigo-50 transition">
+              📱 アプリ便利！
+            </button>
+            <button type="button" data-reaction="💡 機能アイデア・要望" onclick="selectFeedbackReactionTag('💡 機能アイデア・要望')"
+              class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 hover:bg-indigo-50 transition">
+              💡 機能アイデア・要望
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-extrabold text-slate-700 mb-1.5">💬 一言メッセージ・感想・アイデア（任意・リアクションのみでも送信OK！）</label>
+          <textarea id="feedback-message-input" rows="3" maxlength="800"
+            placeholder="例: 飛行機カードヤバすぎて笑いましたw / 〇〇の画面がもっとこうなると嬉しいです！"
+            class="w-full rounded-2xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 focus:outline-none"></textarea>
+        </div>
+
+        <label class="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80 cursor-pointer select-none">
+          <input id="feedback-anonymous-chk" type="checkbox" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+          <span class="text-xs font-bold text-slate-700">匿名で送る（チェックを外すと氏名・学年付きで届きます）</span>
+        </label>
+
+        <div class="flex items-center gap-2.5 pt-1">
+          <button type="button" onclick="closeFeedbackModal()"
+            class="px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-xs sm:text-sm transition">
+            閉じる
+          </button>
+          <button id="btn-submit-feedback" type="submit"
+            class="flex-1 py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs sm:text-sm shadow-sm transition active:scale-[0.99]">
+            📮 感想・アイデアを送信する
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
   <!-- ボトムナビゲーション（スマホアプリ風・画面下部固定） -->
   <!-- ===================================================================== -->
   <nav id="main-nav" class="hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 shadow-[0_-4px_16px_rgba(15,23,42,0.06)]" style="padding-bottom: calc(env(safe-area-inset-bottom) + 16px);">
@@ -8642,6 +9189,14 @@
       ],
       adminLineUrl: 'https://line.me/ti/p/',
       gameReleaseMode: 'managers_only',
+      homeAnnouncement: null,
+      gameInterstitials: null,
+      feedbacksList: [],
+      pendingAnnouncementPhotoBase64: '',
+      pendingAnnouncementPhotoMime: '',
+      pendingAnnouncementPhotoName: '',
+      pendingAnnouncementClearImage: false,
+      currentModalAnnouncementId: '',
       plannedMembersForDate: [],
       pendingLoginEmail: '',
       lastAdminTab: ''
@@ -9222,6 +9777,12 @@
         if (authContext.config.gameReleaseMode) {
           APP_STATE.gameReleaseMode = authContext.config.gameReleaseMode === 'public' ? 'public' : 'managers_only';
         }
+        if (authContext.config.homeAnnouncement) {
+          APP_STATE.homeAnnouncement = authContext.config.homeAnnouncement;
+        }
+        if (authContext.config.gameInterstitials) {
+          APP_STATE.gameInterstitials = authContext.config.gameInterstitials;
+        }
       }
 
       if (!authContext || !authContext.tokenValid) {
@@ -9301,6 +9862,7 @@
         'tab-btn-admin-lottery': isManagerPlus,
         'tab-btn-admin-shift-edit': isManagerPlus,
         'tab-btn-admin-members': isManagerPlus,
+        'tab-btn-admin-pr': isManagerPlus,
         // システム管理パネルは System Admin のみ
         'tab-btn-admin-control': isSysAdmin
       };
@@ -9309,6 +9871,12 @@
         if (!el) return;
         el.classList.toggle('hidden', !adminTabVisibility[id]);
       });
+      const bottomRowEl = document.getElementById('admin-subnav-bottom-row');
+      if (bottomRowEl) {
+        bottomRowEl.className = isSysAdmin
+          ? 'col-span-3 sm:col-span-2 grid grid-cols-2 gap-1.5'
+          : 'col-span-3 sm:col-span-2 grid grid-cols-1 gap-1.5';
+      }
 
       // スプレッドシート直接リンク設定 (Manager以上)
       if (isManagerPlus) {
@@ -9445,6 +10013,8 @@
 
       // 獲得バッジ・称号コレクション描画
       renderHomeBadgesCollection(ctx);
+      // ホーム画面お知らせ（常設カード＆未読時のポップアップモーダル）描画
+      renderHomeAnnouncementUI(ctx);
       syncGameUserData();
     }
 
@@ -9681,6 +10251,12 @@
           if (ctx.config && ctx.config.gameReleaseMode) {
             APP_STATE.gameReleaseMode = ctx.config.gameReleaseMode === 'public' ? 'public' : 'managers_only';
           }
+          if (ctx.config && ctx.config.homeAnnouncement) {
+            APP_STATE.homeAnnouncement = ctx.config.homeAnnouncement;
+          }
+          if (ctx.config && ctx.config.gameInterstitials) {
+            APP_STATE.gameInterstitials = ctx.config.gameInterstitials;
+          }
           syncGameTabVisibility();
           if (Array.isArray(ctx.badges_master)) {
             APP_STATE.badgesMaster = ctx.badges_master;
@@ -9875,7 +10451,7 @@
     // =========================================================================
 
     const NAV_TAB_KEYS = ['home', 'calendar', 'shift', 'leaderboard', 'game'];
-    const ADMIN_TAB_KEYS = ['admin-dashboard', 'admin-budget', 'admin-direct', 'admin-lottery', 'admin-shift-edit', 'admin-members', 'admin-control'];
+    const ADMIN_TAB_KEYS = ['admin-dashboard', 'admin-budget', 'admin-direct', 'admin-lottery', 'admin-shift-edit', 'admin-members', 'admin-pr', 'admin-control'];
 
     const TAB_PANEL_IDS = {
       'home': 'tab-home',
@@ -9889,6 +10465,7 @@
       'admin-lottery': 'tab-admin-lottery',
       'admin-shift-edit': 'tab-admin-shift-edit',
       'admin-members': 'tab-admin-members',
+      'admin-pr': 'tab-admin-pr',
       'admin-control': 'tab-admin-control'
     };
 
@@ -9997,8 +10574,7 @@
         const btn = document.getElementById(`tab-btn-${key}`);
         if (!btn) return;
         const wasHidden = btn.classList.contains('hidden');
-        const spanClass = key === 'admin-control' ? ' col-span-3 sm:col-span-1' : '';
-        btn.className = (key === tabName ? SUBNAV_ACTIVE : SUBNAV_IDLE) + spanClass + (wasHidden ? ' hidden' : '');
+        btn.className = (key === tabName ? SUBNAV_ACTIVE : SUBNAV_IDLE) + (wasHidden ? ' hidden' : '');
       });
 
       if (tabName !== 'game') {
@@ -10027,6 +10603,8 @@
         window.loadAdminShiftEditTab();
       } else if (tabName === 'admin-members' && typeof window.loadAdminMembersTab === 'function') {
         window.loadAdminMembersTab();
+      } else if (tabName === 'admin-pr' && typeof window.loadAdminPrTab === 'function') {
+        window.loadAdminPrTab();
       } else if (tabName === 'admin-control' && typeof window.loadAdminControlPanel === 'function') {
         window.loadAdminControlPanel();
       }
@@ -11121,12 +11699,16 @@
         }
 
         tbody.innerHTML = '';
+        let currentRank = 1;
         members.forEach((m, i) => {
-          const rank = i + 1;
+          if (i > 0 && Number(m.reward_points || 0) < Number(members[i - 1].reward_points || 0)) {
+            currentRank = i + 1;
+          }
+          const rank = currentRank;
           let rankBadge = `<span class="font-bold text-slate-500">${rank}</span>`;
-          if (rank === 1) rankBadge = '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-700 font-extrabold text-xs">1</span>';
-          else if (rank === 2) rankBadge = '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-extrabold text-xs">2</span>';
-          else if (rank === 3) rankBadge = '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 text-orange-800 font-extrabold text-xs">3</span>';
+          if (rank === 1) rankBadge = '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-700 font-extrabold text-xs">🥇 1</span>';
+          else if (rank === 2) rankBadge = '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-extrabold text-xs">🥈 2</span>';
+          else if (rank === 3) rankBadge = '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 text-orange-800 font-extrabold text-xs">🥉 3</span>';
 
           const gradeChip = m.grade
             ? `<span class="ml-1.5 text-xs text-slate-400 font-normal">(${escapeHtml(m.grade)})</span>`
@@ -13776,6 +14358,641 @@
         hideLoader();
       }
     }
+
+    // =========================================================================
+    // 8. 📢 ホーム画面お知らせ（ポップアップ＆常設カード）＆ 🎮 ゲーム幕間設定 ＆ 📮 ご意見ボックス（改修4・5・6）
+    // =========================================================================
+
+    const HOME_ANNOUNCEMENT_SEEN_PREFIX = 'dwc_ann_seen_';
+
+    /**
+     * ゲームの幕間ポップアップ設定を LimitCampfireGame 側へ提供するグローバル関数
+     */
+    window.getDwcGameInterstitialConfig = function() {
+      return (
+        APP_STATE.gameInterstitials ||
+        (APP_STATE.user && APP_STATE.user.config && APP_STATE.user.config.gameInterstitials) ||
+        { enabled: false, items: [] }
+      );
+    };
+
+    /**
+     * ホーム画面のお知らせ（②常設バナーカード ＆ ①未読時の全画面ポップアップモーダル）を描画・制御する
+     */
+    function renderHomeAnnouncementUI(ctx) {
+      const ann =
+        (ctx && ctx.config && ctx.config.homeAnnouncement) ||
+        APP_STATE.homeAnnouncement ||
+        {};
+      APP_STATE.homeAnnouncement = ann;
+
+      const title = String(ann.title || '').trim();
+      const body = String(ann.body || '').trim();
+      const imgSrc = String(ann.image_data_url || ann.image_url || '').trim();
+      const linkUrl = String(ann.link_url || '').trim();
+      const linkLabel = String(ann.link_label || '📄 資料・リンクを開く').trim();
+      const hasContent = Boolean(title || body || imgSrc || linkUrl);
+
+      // ② ホーム最上部の常設お知らせカード (#home-announcement-card)
+      const cardEl = document.getElementById('home-announcement-card');
+      if (cardEl) {
+        if (ann.card_enabled && hasContent) {
+          cardEl.classList.remove('hidden');
+          const titleEl = document.getElementById('home-announcement-title');
+          const bodyEl = document.getElementById('home-announcement-body');
+          const updatedEl = document.getElementById('home-announcement-updated');
+          const imgWrapEl = document.getElementById('home-announcement-img-wrap');
+          const imgEl = document.getElementById('home-announcement-img');
+          const linkWrapEl = document.getElementById('home-announcement-link-wrap');
+          const linkEl = document.getElementById('home-announcement-link');
+          const linkLabelEl = document.getElementById('home-announcement-link-label');
+
+          if (titleEl) titleEl.textContent = title || 'DWCからのお知らせ';
+          if (bodyEl) {
+            bodyEl.textContent = body;
+            bodyEl.classList.toggle('hidden', !body);
+          }
+          if (updatedEl) {
+            updatedEl.textContent = ann.updated_at ? String(ann.updated_at).slice(0, 10).replace(/-/g, '/') : '';
+          }
+          if (imgWrapEl && imgEl) {
+            if (imgSrc) {
+              imgEl.src = imgSrc;
+              imgWrapEl.classList.remove('hidden');
+            } else {
+              imgEl.src = '';
+              imgWrapEl.classList.add('hidden');
+            }
+          }
+          if (linkWrapEl && linkEl) {
+            if (linkUrl && /^https?:\/\//i.test(linkUrl)) {
+              linkEl.href = linkUrl;
+              if (linkLabelEl) linkLabelEl.textContent = `${linkLabel} ↗`;
+              linkWrapEl.classList.remove('hidden');
+            } else {
+              linkEl.href = '#';
+              linkWrapEl.classList.add('hidden');
+            }
+          }
+        } else {
+          cardEl.classList.add('hidden');
+        }
+      }
+
+      // ① 全画面ポップアップモーダル (#home-announcement-modal)
+      const modalEl = document.getElementById('home-announcement-modal');
+      const annId = String(ann.id || '').trim();
+      if (modalEl && ann.popup_enabled && hasContent && annId) {
+        let alreadySeen = false;
+        try {
+          alreadySeen = localStorage.getItem(HOME_ANNOUNCEMENT_SEEN_PREFIX + annId) === '1';
+        } catch (_) {}
+
+        if (!alreadySeen) {
+          APP_STATE.currentModalAnnouncementId = annId;
+          const mTitleEl = document.getElementById('modal-announcement-title');
+          const mBodyEl = document.getElementById('modal-announcement-body');
+          const mImgWrapEl = document.getElementById('modal-announcement-img-wrap');
+          const mImgEl = document.getElementById('modal-announcement-img');
+          const mLinkWrapEl = document.getElementById('modal-announcement-link-wrap');
+          const mLinkEl = document.getElementById('modal-announcement-link');
+          const mLinkLabelEl = document.getElementById('modal-announcement-link-label');
+
+          if (mTitleEl) mTitleEl.textContent = title || 'DWCからのお知らせ';
+          if (mBodyEl) {
+            mBodyEl.textContent = body;
+            mBodyEl.classList.toggle('hidden', !body);
+          }
+          if (mImgWrapEl && mImgEl) {
+            if (imgSrc) {
+              mImgEl.src = imgSrc;
+              mImgWrapEl.classList.remove('hidden');
+            } else {
+              mImgEl.src = '';
+              mImgWrapEl.classList.add('hidden');
+            }
+          }
+          if (mLinkWrapEl && mLinkEl) {
+            if (linkUrl && /^https?:\/\//i.test(linkUrl)) {
+              mLinkEl.href = linkUrl;
+              if (mLinkLabelEl) mLinkLabelEl.textContent = `${linkLabel} ↗`;
+              mLinkWrapEl.classList.remove('hidden');
+            } else {
+              mLinkEl.href = '#';
+              mLinkWrapEl.classList.add('hidden');
+            }
+          }
+          modalEl.classList.remove('hidden');
+        }
+      }
+    }
+
+    /**
+     * ホーム全画面お知らせモーダルを閉じ、同じお知らせIDの既読フラグを localStorage に保存する
+     */
+    function dismissHomeAnnouncementModal() {
+      triggerHaptic(15);
+      const modalEl = document.getElementById('home-announcement-modal');
+      if (modalEl) {
+        modalEl.classList.add('hidden');
+      }
+      const annId =
+        APP_STATE.currentModalAnnouncementId ||
+        (APP_STATE.homeAnnouncement && APP_STATE.homeAnnouncement.id) ||
+        '';
+      if (annId) {
+        try {
+          localStorage.setItem(HOME_ANNOUNCEMENT_SEEN_PREFIX + annId, '1');
+        } catch (_) {}
+      }
+    }
+    window.dismissHomeAnnouncementModal = dismissHomeAnnouncementModal;
+
+    // -------------------------------------------------------------------------
+    // 📮 ご意見・感想ボックス モーダル制御（改修5）
+    // -------------------------------------------------------------------------
+
+    function openFeedbackModal(defaultCategory) {
+      triggerHaptic(15);
+      const modalEl = document.getElementById('feedback-modal');
+      if (!modalEl) return;
+
+      const catSelect = document.getElementById('feedback-category');
+      if (catSelect && defaultCategory) {
+        if (defaultCategory === 'game') {
+          catSelect.value = '🎮 ゲームの感想・バランス';
+        } else if (defaultCategory === 'app') {
+          catSelect.value = '📱 アプリの使いやすさ・機能要望';
+        } else {
+          catSelect.value = defaultCategory;
+        }
+      }
+
+      const tagInput = document.getElementById('feedback-reaction-tag');
+      if (tagInput && !tagInput.value) {
+        selectFeedbackReactionTag('🔥 神ゲー・楽しい！');
+      }
+
+      modalEl.classList.remove('hidden');
+    }
+    window.openFeedbackModal = openFeedbackModal;
+
+    function closeFeedbackModal() {
+      triggerHaptic(10);
+      const modalEl = document.getElementById('feedback-modal');
+      if (modalEl) {
+        modalEl.classList.add('hidden');
+      }
+    }
+    window.closeFeedbackModal = closeFeedbackModal;
+
+    function selectFeedbackReactionTag(tagText) {
+      triggerHaptic(10);
+      const tagInput = document.getElementById('feedback-reaction-tag');
+      const currentVal = tagInput ? tagInput.value : '';
+      const nextVal = currentVal === tagText ? '' : String(tagText || '');
+      if (tagInput) {
+        tagInput.value = nextVal;
+      }
+      document.querySelectorAll('.feedback-tag-btn').forEach(btn => {
+        const isSelected = btn.getAttribute('data-tag') === nextVal;
+        btn.className = isSelected
+          ? 'feedback-tag-btn px-3 py-1.5 rounded-full border border-indigo-600 bg-indigo-600 text-white text-xs font-extrabold shadow-2xs transition'
+          : 'feedback-tag-btn px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold hover:bg-indigo-50 hover:border-indigo-300 transition';
+      });
+    }
+    window.selectFeedbackReactionTag = selectFeedbackReactionTag;
+
+    async function handleSubmitFeedback(event) {
+      event.preventDefault();
+      const catEl = document.getElementById('feedback-category');
+      const tagEl = document.getElementById('feedback-reaction-tag');
+      const msgEl = document.getElementById('feedback-message');
+      const anonEl = document.getElementById('feedback-anonymous');
+      const submitBtn = document.getElementById('btn-submit-feedback');
+
+      const category = String(catEl ? catEl.value : '🎮 ゲームの感想・バランス').trim();
+      const reactionTag = String(tagEl ? tagEl.value : '').trim();
+      const message = String(msgEl ? msgEl.value : '').trim();
+      const isAnonymous = Boolean(anonEl && anonEl.checked);
+
+      if (!reactionTag && !message) {
+        showToast('リアクションタグを選ぶか、ひとことメッセージを入力してください。', 'error');
+        return;
+      }
+
+      if (submitBtn) submitBtn.disabled = true;
+      showLoader('ご意見・感想を送信しています...');
+
+      try {
+        await callGasRpc('submitFeedback', {
+          category: category,
+          reaction_tag: reactionTag,
+          message: message,
+          is_anonymous: isAnonymous
+        });
+        if (msgEl) msgEl.value = '';
+        closeFeedbackModal();
+        showToast('📮 ご意見・感想を送信しました！温かい声をありがとうございます！', 'success');
+        if (APP_STATE.currentTab === 'admin-pr') {
+          await loadAdminFeedbacksList();
+        }
+      } catch (err) {
+        showToast(err.message || '送信に失敗しました。', 'error');
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        hideLoader();
+      }
+    }
+    window.handleSubmitFeedback = handleSubmitFeedback;
+
+    // -------------------------------------------------------------------------
+    // 📢 幹部用『広報・ご意見』管理タブ (#tab-admin-pr / 改修6)
+    // -------------------------------------------------------------------------
+
+    window.loadAdminPrTab = async function() {
+      if (!currentUserIsManagerOrAbove()) return;
+      renderAdminPrAnnouncementForm();
+      renderAdminGameInterstitialsUI();
+      await loadAdminFeedbacksList();
+    };
+
+    function renderAdminPrAnnouncementForm() {
+      const ann = APP_STATE.homeAnnouncement || {};
+      const popupChk = document.getElementById('pr-ann-popup-enabled');
+      const cardChk = document.getElementById('pr-ann-card-enabled');
+      const titleInput = document.getElementById('pr-ann-title');
+      const bodyInput = document.getElementById('pr-ann-body');
+      const linkUrlInput = document.getElementById('pr-ann-link-url');
+      const linkLabelInput = document.getElementById('pr-ann-link-label');
+      const metaEl = document.getElementById('pr-ann-updated-meta');
+      const photoInput = document.getElementById('pr-ann-photo-input');
+      const previewWrap = document.getElementById('pr-ann-photo-preview-wrap');
+      const previewImg = document.getElementById('pr-ann-photo-preview');
+      const clearBtn = document.getElementById('pr-ann-btn-clear-photo');
+
+      APP_STATE.pendingAnnouncementPhotoBase64 = '';
+      APP_STATE.pendingAnnouncementPhotoMime = '';
+      APP_STATE.pendingAnnouncementPhotoName = '';
+      APP_STATE.pendingAnnouncementClearImage = false;
+      if (photoInput) photoInput.value = '';
+
+      if (popupChk) popupChk.checked = Boolean(ann.popup_enabled);
+      if (cardChk) cardChk.checked = ann.card_enabled !== undefined ? Boolean(ann.card_enabled) : true;
+      if (titleInput) titleInput.value = ann.title || '';
+      if (bodyInput) bodyInput.value = ann.body || '';
+      if (linkUrlInput) linkUrlInput.value = ann.link_url || '';
+      if (linkLabelInput) linkLabelInput.value = ann.link_label || '';
+
+      if (metaEl) {
+        if (ann.updated_at) {
+          const dt = String(ann.updated_at).slice(0, 16).replace('T', ' ');
+          metaEl.textContent = `最終更新: ${dt}${ann.updated_by ? ' (' + ann.updated_by + ')' : ''}`;
+        } else {
+          metaEl.textContent = '未設定';
+        }
+      }
+
+      const existingImg = String(ann.image_data_url || ann.image_url || '').trim();
+      if (previewWrap && previewImg && clearBtn) {
+        if (existingImg) {
+          previewImg.src = existingImg;
+          previewWrap.classList.remove('hidden');
+          clearBtn.classList.remove('hidden');
+        } else {
+          previewImg.src = '';
+          previewWrap.classList.add('hidden');
+          clearBtn.classList.add('hidden');
+        }
+      }
+    }
+
+    /**
+     * お知らせ写真の選択＆Canvas自動リサイズ圧縮（長辺最大800px / JPEG品質0.7）
+     */
+    function handleAnnouncementPhotoSelect(inputEl) {
+      const file = inputEl && inputEl.files && inputEl.files[0] ? inputEl.files[0] : null;
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const dataUrl = String(ev.target.result || '');
+        const img = new Image();
+        img.onload = function() {
+          const maxDim = 800;
+          let w = img.width || 800;
+          let h = img.height || 600;
+          if (w > maxDim || h > maxDim) {
+            if (w >= h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx2d = canvas.getContext('2d');
+          ctx2d.fillStyle = '#ffffff';
+          ctx2d.fillRect(0, 0, w, h);
+          ctx2d.drawImage(img, 0, 0, w, h);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          const base64Part = compressedDataUrl.split(',')[1] || '';
+
+          APP_STATE.pendingAnnouncementPhotoBase64 = base64Part;
+          APP_STATE.pendingAnnouncementPhotoMime = 'image/jpeg';
+          APP_STATE.pendingAnnouncementPhotoName = (file.name || 'announcement.jpg').replace(/\.[^.]+$/, '') + '.jpg';
+          APP_STATE.pendingAnnouncementClearImage = false;
+
+          const previewWrap = document.getElementById('pr-ann-photo-preview-wrap');
+          const previewImg = document.getElementById('pr-ann-photo-preview');
+          const clearBtn = document.getElementById('pr-ann-btn-clear-photo');
+          if (previewImg) previewImg.src = compressedDataUrl;
+          if (previewWrap) previewWrap.classList.remove('hidden');
+          if (clearBtn) clearBtn.classList.remove('hidden');
+          showToast('写真を軽量化しました。「保存・公開する」を押すと反映されます。', 'info');
+        };
+        img.onerror = function() {
+          showToast('画像の読み込みに失敗しました。別の画像をお試しください。', 'error');
+        };
+        img.src = dataUrl;
+      };
+      reader.readAsDataURL(file);
+    }
+    window.handleAnnouncementPhotoSelect = handleAnnouncementPhotoSelect;
+
+    function clearAnnouncementPhoto() {
+      APP_STATE.pendingAnnouncementPhotoBase64 = '';
+      APP_STATE.pendingAnnouncementPhotoMime = '';
+      APP_STATE.pendingAnnouncementPhotoName = '';
+      APP_STATE.pendingAnnouncementClearImage = true;
+
+      const photoInput = document.getElementById('pr-ann-photo-input');
+      const previewWrap = document.getElementById('pr-ann-photo-preview-wrap');
+      const previewImg = document.getElementById('pr-ann-photo-preview');
+      const clearBtn = document.getElementById('pr-ann-btn-clear-photo');
+      if (photoInput) photoInput.value = '';
+      if (previewImg) previewImg.src = '';
+      if (previewWrap) previewWrap.classList.add('hidden');
+      if (clearBtn) clearBtn.classList.add('hidden');
+      showToast('写真をクリアしました。「保存・公開する」を押すと反映されます。', 'info');
+    }
+    window.clearAnnouncementPhoto = clearAnnouncementPhoto;
+
+    async function handleSaveHomeAnnouncement(event) {
+      event.preventDefault();
+      const popupEnabled = Boolean((document.getElementById('pr-ann-popup-enabled') || {}).checked);
+      const cardEnabled = Boolean((document.getElementById('pr-ann-card-enabled') || {}).checked);
+      const title = String((document.getElementById('pr-ann-title') || {}).value || '').trim();
+      const body = String((document.getElementById('pr-ann-body') || {}).value || '').trim();
+      const linkUrl = String((document.getElementById('pr-ann-link-url') || {}).value || '').trim();
+      const linkLabel = String((document.getElementById('pr-ann-link-label') || {}).value || '').trim();
+
+      if ((popupEnabled || cardEnabled) && !title && !body && !APP_STATE.pendingAnnouncementPhotoBase64 && !(APP_STATE.homeAnnouncement && (APP_STATE.homeAnnouncement.image_data_url || APP_STATE.homeAnnouncement.image_url))) {
+        showToast('表示をONにする場合は、タイトル・本文・写真のいずれかを入力してください。', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-save-home-announcement');
+      if (btn) btn.disabled = true;
+      showLoader('ホーム画面お知らせを保存しています...');
+
+      try {
+        const res = await callGasRpc('updateHomeAnnouncement', {
+          popup_enabled: popupEnabled,
+          card_enabled: cardEnabled,
+          title: title,
+          body: body,
+          link_url: linkUrl,
+          link_label: linkLabel,
+          image_base64: APP_STATE.pendingAnnouncementPhotoBase64 || '',
+          image_mime_type: APP_STATE.pendingAnnouncementPhotoMime || 'image/jpeg',
+          image_file_name: APP_STATE.pendingAnnouncementPhotoName || 'announcement.jpg',
+          clear_image: Boolean(APP_STATE.pendingAnnouncementClearImage)
+        });
+
+        if (res && res.homeAnnouncement) {
+          APP_STATE.homeAnnouncement = res.homeAnnouncement;
+          if (APP_STATE.user && APP_STATE.user.config) {
+            APP_STATE.user.config.homeAnnouncement = res.homeAnnouncement;
+          }
+        }
+        renderAdminPrAnnouncementForm();
+        renderHomeAnnouncementUI(APP_STATE.user);
+        showToast('📢 ホーム画面お知らせを保存・公開しました！', 'success');
+      } catch (err) {
+        showToast(err.message || 'お知らせの保存に失敗しました。', 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+        hideLoader();
+      }
+    }
+    window.handleSaveHomeAnnouncement = handleSaveHomeAnnouncement;
+
+    function renderAdminGameInterstitialsUI() {
+      const cfg = window.getDwcGameInterstitialConfig();
+      const chkEl = document.getElementById('pr-interstitial-enabled');
+      const listEl = document.getElementById('pr-interstitial-list');
+      if (chkEl) {
+        chkEl.checked = Boolean(cfg.enabled);
+      }
+      if (!listEl) return;
+
+      const items = Array.isArray(cfg.items) ? cfg.items : [];
+      if (items.length === 0) {
+        listEl.innerHTML = '<div class="p-4 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-slate-200">登録されている幕間メッセージはありません。下のフォームから追加してください。</div>';
+        return;
+      }
+
+      listEl.innerHTML = items.map(item => {
+        const safeId = escapeHtml(String(item.id || '').replace(/'/g, "\\'"));
+        const hasLink = item.link_url && /^https?:\/\//i.test(String(item.link_url).trim());
+        return `
+          <div class="rounded-xl border border-orange-200 bg-white p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div class="space-y-1 min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-extrabold text-[10px]">${escapeHtml(item.badge || '🔥 DWC TOPICS')}</span>
+                <span class="text-xs sm:text-sm font-extrabold text-slate-900">${escapeHtml(item.title || '')}</span>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed whitespace-pre-line">${escapeHtml(item.body || '')}</p>
+              ${
+                hasLink
+                  ? `<div class="pt-0.5"><a href="${escapeHtml(item.link_url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[11px] font-bold text-brand-600 hover:underline">🔗 ${escapeHtml(item.link_label || item.link_url)} ↗</a></div>`
+                  : ''
+              }
+            </div>
+            <button type="button" onclick="deleteGameInterstitialItem('${safeId}')"
+              class="shrink-0 self-end sm:self-center px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition">
+              🗑️ 削除
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function handleToggleGameInterstitialsEnabled(checked) {
+      const cfg = window.getDwcGameInterstitialConfig();
+      const items = Array.isArray(cfg.items) ? cfg.items : [];
+      showLoader('ゲーム幕間ポップアップの設定を更新しています...');
+      try {
+        const res = await callGasRpc('updateGameInterstitials', {
+          enabled: Boolean(checked),
+          items: items
+        });
+        if (res && res.gameInterstitials) {
+          APP_STATE.gameInterstitials = res.gameInterstitials;
+          if (APP_STATE.user && APP_STATE.user.config) {
+            APP_STATE.user.config.gameInterstitials = res.gameInterstitials;
+          }
+        }
+        renderAdminGameInterstitialsUI();
+        showToast(checked ? '🎮 ゲーム2回ごとの幕間ポップアップを【ON】にしました！' : '🎮 ゲーム幕間ポップアップを【OFF】にしました。', 'success');
+      } catch (err) {
+        showToast(err.message || '幕間設定の更新に失敗しました。', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+    window.handleToggleGameInterstitialsEnabled = handleToggleGameInterstitialsEnabled;
+
+    async function handleAddGameInterstitialItem(event) {
+      event.preventDefault();
+      const badgeEl = document.getElementById('pr-int-badge');
+      const titleEl = document.getElementById('pr-int-title');
+      const bodyEl = document.getElementById('pr-int-body');
+      const linkUrlEl = document.getElementById('pr-int-link-url');
+      const linkLabelEl = document.getElementById('pr-int-link-label');
+      const chkEl = document.getElementById('pr-interstitial-enabled');
+
+      const badge = String(badgeEl ? badgeEl.value : '').trim() || '🔥 DWC TOPICS';
+      const title = String(titleEl ? titleEl.value : '').trim();
+      const body = String(bodyEl ? bodyEl.value : '').trim();
+      const linkUrl = String(linkUrlEl ? linkUrlEl.value : '').trim();
+      const linkLabel = String(linkLabelEl ? linkLabelEl.value : '').trim();
+
+      if (!title && !body) {
+        showToast('見出しタイトルまたはメッセージ本文を入力してください。', 'error');
+        return;
+      }
+
+      const cfg = window.getDwcGameInterstitialConfig();
+      const currentItems = Array.isArray(cfg.items) ? cfg.items.slice() : [];
+      currentItems.push({
+        id: 'int_' + Date.now(),
+        badge: badge,
+        title: title,
+        body: body,
+        link_url: linkUrl,
+        link_label: linkLabel
+      });
+
+      const enabled = chkEl ? Boolean(chkEl.checked) : Boolean(cfg.enabled);
+      showLoader('幕間メッセージを山札に追加しています...');
+      try {
+        const res = await callGasRpc('updateGameInterstitials', {
+          enabled: enabled,
+          items: currentItems
+        });
+        if (res && res.gameInterstitials) {
+          APP_STATE.gameInterstitials = res.gameInterstitials;
+          if (APP_STATE.user && APP_STATE.user.config) {
+            APP_STATE.user.config.gameInterstitials = res.gameInterstitials;
+          }
+        }
+        if (titleEl) titleEl.value = '';
+        if (bodyEl) bodyEl.value = '';
+        if (linkUrlEl) linkUrlEl.value = '';
+        if (linkLabelEl) linkLabelEl.value = '';
+        renderAdminGameInterstitialsUI();
+        showToast('🎮 幕間メッセージを山札に追加しました！', 'success');
+      } catch (err) {
+        showToast(err.message || '幕間メッセージの追加に失敗しました。', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+    window.handleAddGameInterstitialItem = handleAddGameInterstitialItem;
+
+    async function deleteGameInterstitialItem(itemId) {
+      const cfg = window.getDwcGameInterstitialConfig();
+      const currentItems = Array.isArray(cfg.items) ? cfg.items : [];
+      const nextItems = currentItems.filter(it => String(it.id) !== String(itemId));
+
+      showLoader('幕間メッセージを削除しています...');
+      try {
+        const res = await callGasRpc('updateGameInterstitials', {
+          enabled: Boolean(cfg.enabled),
+          items: nextItems
+        });
+        if (res && res.gameInterstitials) {
+          APP_STATE.gameInterstitials = res.gameInterstitials;
+          if (APP_STATE.user && APP_STATE.user.config) {
+            APP_STATE.user.config.gameInterstitials = res.gameInterstitials;
+          }
+        }
+        renderAdminGameInterstitialsUI();
+        showToast('幕間メッセージを削除しました。', 'info');
+      } catch (err) {
+        showToast(err.message || '削除に失敗しました。', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+    window.deleteGameInterstitialItem = deleteGameInterstitialItem;
+
+    async function loadAdminFeedbacksList() {
+      const listEl = document.getElementById('pr-feedbacks-list');
+      const countEl = document.getElementById('pr-feedbacks-count');
+      if (!listEl) return;
+
+      listEl.innerHTML = renderSkeletonCards(2);
+      try {
+        const res = await callGasRpc('getFeedbacks', {});
+        const feedbacks = res && Array.isArray(res.feedbacks) ? res.feedbacks : [];
+        APP_STATE.feedbacksList = feedbacks;
+
+        if (countEl) {
+          countEl.textContent = `全 ${feedbacks.length} 件`;
+        }
+
+        if (feedbacks.length === 0) {
+          listEl.innerHTML = '<div class="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-slate-200">まだご意見・感想は届いていません。</div>';
+          return;
+        }
+
+        listEl.innerHTML = feedbacks.map(fb => {
+          const dt = String(fb.created_at || '').slice(0, 16).replace('T', ' ');
+          const userLabel = fb.user_name ? `${fb.user_name}${fb.user_grade ? ' (' + fb.user_grade + ')' : ''}` : '匿名部員';
+          const tagHtml = fb.reaction_tag
+            ? `<span class="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-extrabold text-[11px]">${escapeHtml(fb.reaction_tag)}</span>`
+            : '';
+          const catHtml = fb.category
+            ? `<span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px]">${escapeHtml(fb.category)}</span>`
+            : '';
+          return `
+            <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-1.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  ${catHtml}
+                  ${tagHtml}
+                </div>
+                <span class="text-[11px] font-semibold text-slate-400">${escapeHtml(dt)} ・ ${escapeHtml(userLabel)}</span>
+              </div>
+              ${
+                fb.message
+                  ? `<p class="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed whitespace-pre-line pt-0.5">${escapeHtml(fb.message)}</p>`
+                  : ''
+              }
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        listEl.innerHTML = `<div class="p-4 text-center text-xs text-rose-500">ご意見一覧の取得に失敗しました: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+    window.loadAdminFeedbacksList = loadAdminFeedbacksList;
   </script>
 </body>
 </html>
