@@ -194,8 +194,117 @@
           </details>
         </div>
 
+        <!-- パターン①: LINEアプリ内ブラウザ検知時の完全ブロック＆脱出ガイドカード -->
+        <div id="line-browser-escape-card" class="hidden space-y-4">
+          <div class="bg-rose-50 border-2 border-rose-400 rounded-2xl p-4 space-y-3 shadow-xs">
+            <div class="flex items-start gap-2.5">
+              <span class="text-xl leading-none shrink-0">🚨</span>
+              <h3 class="text-sm sm:text-base font-extrabold text-rose-900 leading-snug">
+                LINEの画面内ではログインできません
+              </h3>
+            </div>
+            <p class="text-xs sm:text-sm font-bold text-rose-800 leading-relaxed bg-white/90 rounded-xl p-3 border border-rose-200">
+              LINE内のままだと毎回ログインが消えてしまいます。右下の『🧭（コンパス）』または右上の『︙』➔【デフォルトのブラウザで開く】をタップしてください！
+            </p>
+            <div class="bg-rose-100/70 rounded-xl p-3 text-[11px] text-rose-900 space-y-1 font-semibold">
+              <div>① 画面右下（または右上）のメニューアイコンをタップ</div>
+              <div>② <strong>「デフォルトのブラウザで開く」</strong>（Safari / Chrome）を選択</div>
+              <div>③ 開いたブラウザで<strong>「ホーム画面に追加」</strong>してからログイン！</div>
+            </div>
+            <button type="button" onclick="copyCleanAppUrl()"
+              class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs sm:text-sm shadow-sm transition active:scale-[0.99] flex items-center justify-center gap-1.5">
+              <span>📋 うまく開けない場合はURLをコピー（SafariやChromeに貼り付け）</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Step 1: メールアドレス入力フォーム -->
         <form id="pin-request-form" onsubmit="handleRequestPin(event)" class="space-y-4">
+          <!-- パターン②: 外部ブラウザ（非standalone）起動時の行動経済学ナッジ「3秒ホーム画面追加ガイド」 -->
+          <div id="pwa-nudge-guide-card" class="hidden bg-gradient-to-br from-orange-50 via-amber-50/70 to-sky-50/60 border-2 border-brand-400/90 rounded-2xl p-4 space-y-3 shadow-xs">
+            <div class="flex items-start gap-2">
+              <span class="text-lg leading-none shrink-0 mt-0.5">⚡</span>
+              <div class="space-y-1">
+                <h3 class="text-xs sm:text-sm font-black text-slate-900 leading-snug">
+                  次回から入力0秒！先に『ホーム画面に追加』してください
+                </h3>
+                <p class="text-[11px] sm:text-xs font-bold text-rose-700 bg-white/90 border border-rose-200/80 rounded-xl p-2.5 leading-relaxed">
+                  ⚠️ メールアドレスを入力する前にホーム画面へ追加してください！（※ログインした後に追加すると、もう一度PINコード発行が必要になってしまいます。先に追加しておけば、今後9カ月間ログイン不要です！）
+                </p>
+              </div>
+            </div>
+
+            <!-- 端末別 3ステップ図解切り替えタブ -->
+            <div class="grid grid-cols-3 gap-1 bg-slate-200/75 p-1 rounded-xl text-[11px] font-extrabold">
+              <button type="button" id="pwa-guide-tab-ios" onclick="switchPwaGuideTab('ios')"
+                class="py-1.5 px-2 rounded-lg transition bg-white text-slate-900 shadow-2xs">
+                🍎 iPhone
+              </button>
+              <button type="button" id="pwa-guide-tab-android" onclick="switchPwaGuideTab('android')"
+                class="py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900">
+                🤖 Android
+              </button>
+              <button type="button" id="pwa-guide-tab-other" onclick="switchPwaGuideTab('other')"
+                class="py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900">
+                🌐 その他
+              </button>
+            </div>
+
+            <!-- 🍎 iPhone (Safari / Chrome) 手順パネル -->
+            <div id="pwa-guide-panel-ios" class="bg-white/95 rounded-xl p-3 border border-brand-200/80 space-y-2 text-xs text-slate-800">
+              <div class="font-extrabold text-[11px] text-brand-700">【🍎 iPhone (Safari / Chrome) の3秒手順】</div>
+              <ol class="space-y-1.5 text-[11px] sm:text-xs font-semibold leading-relaxed">
+                <li class="flex items-start gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 1</span>
+                  <span>画面下（または右上）の<strong>「⬆️（四角から上矢印の共有マーク）」</strong>をタップ</span>
+                </li>
+                <li class="flex items-start gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 2</span>
+                  <span>メニューをスクロールして<strong>「➕ ホーム画面に追加」</strong>をタップ</span>
+                </li>
+                <li class="flex items-start gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 3</span>
+                  <span>右上の「追加」を押し、スマホのホーム画面にできた<strong>「DWC管理」アイコン</strong>から開く！</span>
+                </li>
+              </ol>
+            </div>
+
+            <!-- 🤖 Android (Chrome / 標準ブラウザ) 手順パネル -->
+            <div id="pwa-guide-panel-android" class="hidden bg-white/95 rounded-xl p-3 border border-brand-200/80 space-y-2.5 text-xs text-slate-800">
+              <div class="font-extrabold text-[11px] text-brand-700">【🤖 Android (Chrome / 標準ブラウザ)】</div>
+              <button type="button" id="btn-pwa-native-install" onclick="triggerNativePwaInstall()"
+                class="hidden w-full py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-amber-500 hover:from-brand-700 hover:to-amber-600 text-white font-black text-xs sm:text-sm shadow-md transition active:scale-[0.99] flex items-center justify-center gap-1.5">
+                <span>📲 ワンタップでホーム画面に追加する</span>
+              </button>
+              <ol class="space-y-1.5 text-[11px] sm:text-xs font-semibold leading-relaxed">
+                <li class="flex items-start gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 1</span>
+                  <span>画面右上の<strong>「︙（または右下の≡）」</strong>をタップ</span>
+                </li>
+                <li class="flex items-start gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 2</span>
+                  <span><strong>「ホーム画面に追加（またはアプリをインストール）」</strong>をタップ</span>
+                </li>
+                <li class="flex items-start gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 3</span>
+                  <span>スマホのホーム画面のアイコンから開く！</span>
+                </li>
+              </ol>
+            </div>
+
+            <!-- 🌐 Yahoo!ブラウザー等で追加ボタンがない人向けパネル -->
+            <div id="pwa-guide-panel-other" class="hidden bg-white/95 rounded-xl p-3 border border-brand-200/80 space-y-2.5 text-xs text-slate-800">
+              <div class="font-extrabold text-[11px] text-brand-700">【🌐 Yahoo!ブラウザー等で追加ボタンがない人】</div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                一部のアプリ内ブラウザや検索アプリでは「ホーム画面に追加」が表示されない場合があります。下のボタンでURLをコピーし、<strong>Safari</strong> または <strong>Chrome</strong> に貼り付けて開いてください。
+              </p>
+              <button type="button" onclick="copyCleanAppUrl()"
+                class="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-2xs transition active:scale-[0.99]">
+                📋 URLをコピーしてSafari / Chromeで開く
+              </button>
+            </div>
+          </div>
+
           <!-- 大学メールアドレス禁止の注意書きバナー -->
           <div class="bg-amber-50 border border-amber-200/90 rounded-xl px-3.5 py-2.5 text-xs font-bold text-amber-900 leading-relaxed">
             ⚠️ 大学のメールアドレスではなく、Gmail等の個人メールアドレスを入力してください
@@ -209,8 +318,19 @@
               class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
           </div>
 
+          <!-- 離脱防止の柔軟ロック（非standalone時のみ表示、standalone時は非表示で即送信可能） -->
+          <div id="pwa-nudge-confirm-wrap" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-3">
+            <label class="flex items-start gap-2.5 cursor-pointer select-none">
+              <input id="chk-pwa-nudge-confirm" type="checkbox" onchange="syncPwaNudgePinButtonState()"
+                class="mt-0.5 w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 shrink-0" />
+              <span class="text-xs font-bold text-slate-800 leading-snug">
+                ☑️ ホーム画面に追加しました（または事情によりブラウザのまま利用する）
+              </span>
+            </label>
+          </div>
+
           <button id="btn-request-pin" type="submit"
-            class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-sm transition active:scale-[0.99]">
+            class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold text-sm shadow-sm transition active:scale-[0.99]">
             4桁のPINコードをメールで受け取る
           </button>
         </form>
@@ -219,6 +339,17 @@
         <form id="pin-verify-form" onsubmit="handleVerifyPin(event)" class="hidden space-y-4">
           <div class="bg-brand-50/70 rounded-xl p-3 text-xs text-brand-900">
             <span id="pin-sent-email" class="font-bold underline"></span> 宛にPINコードを送信しました（10分間有効）。
+          </div>
+
+          <!-- PINコード未着・迷惑メール対策の案内ボックス -->
+          <div class="bg-amber-50/90 border border-amber-300 rounded-xl p-3.5 text-xs text-amber-950 space-y-1.5 leading-relaxed shadow-2xs">
+            <div class="font-extrabold text-amber-900">📩 1分経ってもメールが届かない場合：</div>
+            <p class="font-semibold">
+              ①<strong>『迷惑メール』フォルダ</strong>やGmailの<strong>『プロモーション』『すべてのメール』</strong>を必ず確認してください（<strong>『DWC』</strong>で検索すると見つかります）。
+            </p>
+            <p class="font-semibold text-rose-800">
+              ② <strong>大学のメールアドレス（@mail.doshisha.ac.jp 等）</strong>は学内フィルターでブロックされるため届きません。左下の戻るボタンからGmail等の個人アドレスで再送してください。
+            </p>
           </div>
 
           <div>
@@ -1135,6 +1266,57 @@
           </div>
 
           <form id="lottery-form" onsubmit="handleRunShiftLottery(event)" class="space-y-5">
+            <!-- 🎯 自動補充抽選の対象学年フィルター（卒業生・OBOG・院生等は自動除外） -->
+            <div class="bg-amber-50/70 ring-1 ring-amber-200/80 rounded-2xl p-4 space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="text-xs sm:text-sm font-extrabold text-slate-900">
+                  🎯 自動補充抽選の対象学年（チェックを外した学年・卒業生はランダム補充から除外されます）
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                  <span class="text-[10px] font-bold text-slate-500 mr-0.5">クイック選択:</span>
+                  <button type="button" onclick="setLotteryTargetGradesPreset(['1回生', '2回生'])"
+                    class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-300 text-[11px] font-extrabold text-slate-700 shadow-2xs transition">
+                    1・2回生のみ
+                  </button>
+                  <button type="button" onclick="setLotteryTargetGradesPreset(['1回生', '2回生', '3回生'])"
+                    class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-300 text-[11px] font-extrabold text-slate-700 shadow-2xs transition">
+                    1〜3回生
+                  </button>
+                  <button type="button" onclick="setLotteryTargetGradesPreset(['1回生'])"
+                    class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-300 text-[11px] font-extrabold text-slate-700 shadow-2xs transition">
+                    1回生のみ
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none hover:border-brand-300 transition shadow-2xs">
+                  <input type="checkbox" value="1回生" checked
+                    class="lottery-target-grade-chk w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
+                  <span class="text-xs font-extrabold text-slate-800">1回生</span>
+                </label>
+                <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none hover:border-brand-300 transition shadow-2xs">
+                  <input type="checkbox" value="2回生" checked
+                    class="lottery-target-grade-chk w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
+                  <span class="text-xs font-extrabold text-slate-800">2回生</span>
+                </label>
+                <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none hover:border-brand-300 transition shadow-2xs">
+                  <input type="checkbox" value="3回生"
+                    class="lottery-target-grade-chk w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
+                  <span class="text-xs font-extrabold text-slate-800">3回生 <span class="text-[10px] font-normal text-slate-400">(4〜7月既定ON)</span></span>
+                </label>
+                <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none hover:border-brand-300 transition shadow-2xs">
+                  <input type="checkbox" value="4回生"
+                    class="lottery-target-grade-chk w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
+                  <span class="text-xs font-extrabold text-slate-800">4回生</span>
+                </label>
+              </div>
+
+              <p class="text-[11px] text-slate-500 leading-relaxed">
+                ※卒業生・OB/OG・院生・その他は常にランダム自動補充から除外されます。ただし、除外学年や卒業生でも各日程の「立候補者」欄に明示的に名前を入力した場合は有効な立候補者として確定・抽選されます。
+              </p>
+            </div>
+
             <!-- 動的日程ブロック一覧コンテナ -->
             <div id="lottery-blocks-container" class="space-y-4">
               <!-- JS (initShiftLotteryBlocks / addShiftLotteryBlock) で日程ブロックを動的生成 -->
@@ -9704,8 +9886,199 @@
     }
 
     // =========================================================================
-    // 3. 初期化・認証フロー (SWRローカルキャッシュ即時起動対応)
+    // 3. 初期化・認証フロー (SWRローカルキャッシュ即時起動 ＆ LINE/PWA環境検知ガイド対応)
     // =========================================================================
+
+    window.__deferredPwaPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', event => {
+      event.preventDefault();
+      window.__deferredPwaPrompt = event;
+      const nativeBtn = document.getElementById('btn-pwa-native-install');
+      if (nativeBtn) {
+        nativeBtn.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      window.__deferredPwaPrompt = null;
+      const nativeBtn = document.getElementById('btn-pwa-native-install');
+      if (nativeBtn) {
+        nativeBtn.classList.add('hidden');
+      }
+    });
+
+    /**
+     * 1. 環境検知ロジック（LINE内ブラウザ / スタンドアロンPWA起動済み / 端末OS）
+     */
+    function detectInstallEnvironment() {
+      const ua = String((typeof navigator !== 'undefined' && navigator.userAgent) || '');
+      const isLine = /Line\//i.test(ua);
+      const isStandalone =
+        (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) ||
+        window.navigator.standalone === true;
+      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+      const isAndroid = /Android/i.test(ua);
+      return {
+        isLine,
+        isStandalone,
+        isIOS,
+        isAndroid,
+        canPromptNativeInstall: Boolean(window.__deferredPwaPrompt)
+      };
+    }
+
+    /**
+     * 3ステップ図解タブ（iPhone / Android / その他）の切り替え
+     * @param {'ios'|'android'|'other'} tabKey
+     */
+    function switchPwaGuideTab(tabKey) {
+      const keys = ['ios', 'android', 'other'];
+      keys.forEach(k => {
+        const btn = document.getElementById(`pwa-guide-tab-${k}`);
+        const panel = document.getElementById(`pwa-guide-panel-${k}`);
+        const isActive = k === tabKey;
+        if (btn) {
+          btn.className = isActive
+            ? 'py-1.5 px-2 rounded-lg transition bg-white text-slate-900 shadow-2xs font-extrabold'
+            : 'py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900 font-bold';
+        }
+        if (panel) {
+          panel.classList.toggle('hidden', !isActive);
+        }
+      });
+
+      const nativeBtn = document.getElementById('btn-pwa-native-install');
+      if (nativeBtn) {
+        nativeBtn.classList.toggle('hidden', !window.__deferredPwaPrompt);
+      }
+    }
+
+    /**
+     * Android Chrome等のネイティブPWAインストールプロンプトを発火する
+     */
+    async function triggerNativePwaInstall() {
+      const promptEvent = window.__deferredPwaPrompt;
+      if (!promptEvent) {
+        showToast('ブラウザ右上（または右下）のメニューから「ホーム画面に追加」を選択してください。', 'info');
+        return;
+      }
+      try {
+        promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          window.__deferredPwaPrompt = null;
+          const nativeBtn = document.getElementById('btn-pwa-native-install');
+          if (nativeBtn) nativeBtn.classList.add('hidden');
+          const chk = document.getElementById('chk-pwa-nudge-confirm');
+          if (chk) {
+            chk.checked = true;
+            syncPwaNudgePinButtonState();
+          }
+          showToast('ホーム画面に追加しました！ホーム画面のアイコンから起動してください。', 'success');
+        }
+      } catch (_) {}
+    }
+
+    /**
+     * 現在のURLから ?openExternalBrowser=1 を除いたクリーンURLをクリップボードにコピーする
+     */
+    async function copyCleanAppUrl() {
+      const DEFAULT_PUBLIC_URL = 'https://dwc-manager.github.io/dwc-system/';
+      let rawUrl = String((window.location && window.location.href) || '').trim();
+      let cleanUrl = DEFAULT_PUBLIC_URL;
+
+      if (/^https?:\/\//i.test(rawUrl)) {
+        try {
+          const u = new URL(rawUrl);
+          u.searchParams.delete('openExternalBrowser');
+          cleanUrl = u.toString();
+        } catch (_) {
+          cleanUrl = rawUrl
+            .replace(/([?&])openExternalBrowser=1(&|$)/g, (m, p1, p2) => (p1 === '?' && p2 === '&' ? '?' : p2 ? p1 : ''))
+            .replace(/[?&]$/, '');
+        }
+      }
+
+      try {
+        await navigator.clipboard.writeText(cleanUrl);
+        showToast('URLをコピーしました！SafariやChromeのアドレスバーに貼り付けて開いてください。', 'success');
+      } catch (_) {
+        const tempInput = document.createElement('input');
+        tempInput.value = cleanUrl;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast('URLをコピーしました！SafariやChromeのアドレスバーに貼り付けて開いてください。', 'success');
+      }
+    }
+
+    /**
+     * 非standalone時の「ホーム画面に追加しました」確認チェックボックスとPIN送信ボタンの有効状態を同期
+     */
+    function syncPwaNudgePinButtonState() {
+      const env = detectInstallEnvironment();
+      const btn = document.getElementById('btn-request-pin');
+      const chk = document.getElementById('chk-pwa-nudge-confirm');
+      if (!btn) return;
+
+      if (env.isStandalone) {
+        btn.disabled = false;
+      } else {
+        btn.disabled = !(chk && chk.checked);
+      }
+    }
+
+    /**
+     * ログイン画面表示時にLINE内ブラウザ / 非standalone / standaloneを自動判定してUIを切り替える
+     */
+    function applyLoginEnvironmentGuide() {
+      const env = detectInstallEnvironment();
+      const lineEscapeCard = document.getElementById('line-browser-escape-card');
+      const pinRequestForm = document.getElementById('pin-request-form');
+      const pinVerifyForm = document.getElementById('pin-verify-form');
+      const pwaNudgeCard = document.getElementById('pwa-nudge-guide-card');
+      const pwaConfirmWrap = document.getElementById('pwa-nudge-confirm-wrap');
+      const nativeBtn = document.getElementById('btn-pwa-native-install');
+
+      if (env.isLine) {
+        // パターン①: LINEアプリ内ブラウザ -> #pin-request-form を隠し、脱出ガイドを表示
+        if (lineEscapeCard) lineEscapeCard.classList.remove('hidden');
+        if (pinRequestForm) pinRequestForm.classList.add('hidden');
+        if (pinVerifyForm) pinVerifyForm.classList.add('hidden');
+        return;
+      }
+
+      if (lineEscapeCard) lineEscapeCard.classList.add('hidden');
+      if (pinVerifyForm && !pinVerifyForm.classList.contains('hidden')) {
+        // 既にPIN入力ステップ表示中の場合はそのまま維持
+      } else if (pinRequestForm) {
+        pinRequestForm.classList.remove('hidden');
+      }
+
+      if (env.isStandalone) {
+        // ホーム画面のアイコンから起動済み -> ガイドもチェックボックスも一切表示せず即入力・送信可能
+        if (pwaNudgeCard) pwaNudgeCard.classList.add('hidden');
+        if (pwaConfirmWrap) pwaConfirmWrap.classList.add('hidden');
+      } else {
+        // パターン②: 外部ブラウザ（非standalone） -> 3秒ホーム画面追加ガイド＆確認チェックを表示
+        if (pwaNudgeCard) pwaNudgeCard.classList.remove('hidden');
+        if (pwaConfirmWrap) pwaConfirmWrap.classList.remove('hidden');
+        if (nativeBtn) {
+          nativeBtn.classList.toggle('hidden', !env.canPromptNativeInstall);
+        }
+        if (env.isAndroid) {
+          switchPwaGuideTab('android');
+        } else if (env.isIOS) {
+          switchPwaGuideTab('ios');
+        } else {
+          switchPwaGuideTab('ios');
+        }
+      }
+
+      syncPwaNudgePinButtonState();
+    }
 
     window.addEventListener('DOMContentLoaded', initApp);
 
@@ -9832,11 +10205,13 @@
       document.getElementById('app-container').classList.add('hidden');
       document.getElementById('registration-view').classList.add('hidden');
       document.getElementById('login-view').classList.remove('hidden');
+      applyLoginEnvironmentGuide();
     }
 
     function backToEmailStep() {
       document.getElementById('pin-verify-form').classList.add('hidden');
       document.getElementById('pin-request-form').classList.remove('hidden');
+      applyLoginEnvironmentGuide();
     }
 
     /**
@@ -9844,6 +10219,19 @@
      */
     async function handleRequestPin(event) {
       event.preventDefault();
+      const env = detectInstallEnvironment();
+      if (env.isLine) {
+        showToast('LINE内ブラウザではログインできません。SafariやChromeで開いてください。', 'error');
+        return;
+      }
+      if (!env.isStandalone) {
+        const chk = document.getElementById('chk-pwa-nudge-confirm');
+        if (chk && !chk.checked) {
+          showToast('先にホーム画面へ追加し、確認チェックボックスにチェックを入れてください。', 'info');
+          return;
+        }
+      }
+
       const email = document.getElementById('login-email').value.trim().toLowerCase();
       if (!email) {
         showToast('メールアドレスを入力してください。', 'error');
@@ -9865,7 +10253,7 @@
       } catch (err) {
         showToast(err.message || 'PINコード送信に失敗しました。', 'error');
       } finally {
-        btn.disabled = false;
+        syncPwaNudgePinButtonState();
         hideLoader();
       }
     }
@@ -12927,10 +13315,64 @@
       return { startDate, endDate, label };
     }
 
+    let LOTTERY_TARGET_GRADES_INITIALIZED = false;
+
+    /**
+     * シフト一括抽選の「自動補充対象学年」のスマート初期値を設定する
+     * - 1回生・2回生: デフォルト ON
+     * - 3回生: 4月〜7月はデフォルト ON、8月〜12月・1月〜3月はデフォルト OFF
+     * - 4回生: デフォルト常に OFF
+     */
+    function initShiftLotteryTargetGrades(forceReset = false) {
+      if (LOTTERY_TARGET_GRADES_INITIALIZED && !forceReset) return;
+      const checkboxes = Array.from(document.querySelectorAll('.lottery-target-grade-chk'));
+      if (checkboxes.length === 0) return;
+
+      const currentMonth = new Date().getMonth() + 1;
+      const isSpringSummerFor3rd = currentMonth >= 4 && currentMonth <= 7;
+
+      checkboxes.forEach(chk => {
+        const val = String(chk.value || '').trim();
+        if (val === '1回生' || val === '2回生') {
+          chk.checked = true;
+        } else if (val === '3回生') {
+          chk.checked = isSpringSummerFor3rd;
+        } else if (val === '4回生') {
+          chk.checked = false;
+        }
+      });
+
+      LOTTERY_TARGET_GRADES_INITIALIZED = true;
+    }
+
+    /**
+     * 自動補充対象学年のワンタッププリセット切替（「1・2回生のみ」「1〜3回生」「1回生のみ」）
+     * @param {Array<string>} targetGrades
+     */
+    function setLotteryTargetGradesPreset(targetGrades) {
+      const targetSet = new Set(Array.isArray(targetGrades) ? targetGrades : []);
+      const checkboxes = Array.from(document.querySelectorAll('.lottery-target-grade-chk'));
+      checkboxes.forEach(chk => {
+        chk.checked = targetSet.has(String(chk.value || '').trim());
+      });
+      LOTTERY_TARGET_GRADES_INITIALIZED = true;
+    }
+
+    /**
+     * 現在チェックされている自動補充対象学年の配列を取得する
+     * @return {Array<string>}
+     */
+    function getSelectedLotteryTargetGrades() {
+      return Array.from(document.querySelectorAll('.lottery-target-grade-chk:checked'))
+        .map(chk => String(chk.value || '').trim())
+        .filter(Boolean);
+    }
+
     /**
      * シフト抽選画面の初期日程ブロックを1件生成する
      */
     function initShiftLotteryBlocks() {
+      initShiftLotteryTargetGrades(false);
       const container = document.getElementById('lottery-blocks-container');
       if (!container) return;
       if (container.querySelectorAll('.lottery-shift-block').length > 0) return;
@@ -13284,6 +13726,12 @@
     async function handleRunShiftLottery(event) {
       event.preventDefault();
 
+      const targetGrades = getSelectedLotteryTargetGrades();
+      if (targetGrades.length === 0) {
+        showToast('自動補充抽選の対象学年を1つ以上選択してください。', 'error');
+        return;
+      }
+
       const blockEls = Array.from(document.querySelectorAll('#lottery-blocks-container .lottery-shift-block'));
       if (blockEls.length === 0) {
         showToast('抽選対象の日程ブロックを1件以上追加してください。', 'error');
@@ -13327,6 +13775,7 @@
       try {
         const result = await callGasRpc('drawMultipleShiftsLottery', {
           shifts: shiftsPayload,
+          target_grades: targetGrades,
           register_to_sheets: registerToSheets
         });
 
@@ -13369,7 +13818,11 @@
       const regText = result.registered_to_sheets
         ? ' / ✅ Planned_Shifts & Shift_Calendar へ出力済'
         : ' / ※シート未保存（プレビューのみ）';
-      meta.textContent = `対象日程数: ${shifts.length} 日程 / 直近2カ月集計基準日: ${result.cutoff_date} 以降${regText}`;
+      const targetGradesText =
+        Array.isArray(result.target_grades) && result.target_grades.length > 0
+          ? ` / 自動補充対象: ${result.target_grades.join('・')}`
+          : '';
+      meta.textContent = `対象日程数: ${shifts.length} 日程${targetGradesText} / 直近2カ月集計基準日: ${result.cutoff_date} 以降${regText}`;
 
       const maxWinners = Math.max(
         1,
