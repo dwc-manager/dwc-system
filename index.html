@@ -61,6 +61,34 @@
     .dwc-modal-spring {
       animation: dwcModalSpringIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
+    /* 改修4: 心地よい「ぷにっ」とするスプリング押下感（transition: all 0.15s ease / active:scale-[0.97] active:shadow-inner） */
+    .dwc-spring-press {
+      transition: all 0.15s ease;
+    }
+    .dwc-spring-press:active {
+      transform: scale(0.97);
+      box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.12);
+    }
+    /* 改修5: メダルショーケース用 装着中メイン称号の黄金グロス・シマー演出 */
+    @keyframes dwcMedalShimmer {
+      0% { transform: translateX(-140%) skewX(-22deg); }
+      45%, 100% { transform: translateX(240%) skewX(-22deg); }
+    }
+    .dwc-medal-shimmer {
+      position: relative;
+      overflow: hidden;
+    }
+    .dwc-medal-shimmer::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 42%;
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 100%);
+      animation: dwcMedalShimmer 3.6s ease-in-out infinite;
+      pointer-events: none;
+    }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans CJK JP", "Yu Gothic", sans-serif;
       background-color: #f8fafc;
@@ -220,89 +248,123 @@
 
         <!-- Step 1: メールアドレス入力フォーム -->
         <form id="pin-request-form" onsubmit="handleRequestPin(event)" class="space-y-4">
-          <!-- パターン②: 外部ブラウザ（非standalone）起動時の行動経済学ナッジ「3秒ホーム画面追加ガイド」 -->
+          <!-- パターン②: 外部ブラウザ（非standalone）起動時の「ホーム画面追加ガイド」（4層構造・全端末自動判定・ロック解除） -->
           <div id="pwa-nudge-guide-card" class="hidden bg-gradient-to-br from-orange-50 via-amber-50/70 to-sky-50/60 border-2 border-brand-400/90 rounded-2xl p-4 space-y-3 shadow-xs">
-            <div class="flex items-start gap-2">
-              <span class="text-lg leading-none shrink-0 mt-0.5">⚡</span>
-              <div class="space-y-1">
-                <h3 class="text-xs sm:text-sm font-black text-slate-900 leading-snug">
-                  次回から入力0秒！先に『ホーム画面に追加』してください
-                </h3>
-                <p class="text-[11px] sm:text-xs font-bold text-rose-700 bg-white/90 border border-rose-200/80 rounded-xl p-2.5 leading-relaxed">
-                  ⚠️ メールアドレスを入力する前にホーム画面へ追加してください！（※ログインした後に追加すると、もう一度PINコード発行が必要になってしまいます。先に追加しておけば、今後9カ月間ログイン不要です！）
-                </p>
+            <!-- 1. 最上部ピルバッジ ＆ 太字大見出し -->
+            <div class="space-y-1.5">
+              <div class="inline-flex items-center px-2.5 py-1 rounded-full bg-gradient-to-r from-brand-600 to-amber-500 text-white text-[10px] sm:text-[11px] font-extrabold shadow-2xs">
+                ✨ ホーム画面に追加するとアプリ化して全機能がフルで使えます！
               </div>
+              <h3 class="text-sm sm:text-base font-black text-slate-900 leading-snug">
+                📲 次回から入力0秒！3秒で追加できます
+              </h3>
             </div>
 
-            <!-- 端末別 3ステップ図解切り替えタブ -->
-            <div class="grid grid-cols-3 gap-1 bg-slate-200/75 p-1 rounded-xl text-[11px] font-extrabold">
-              <button type="button" id="pwa-guide-tab-ios" onclick="switchPwaGuideTab('ios')"
-                class="py-1.5 px-2 rounded-lg transition bg-white text-slate-900 shadow-2xs">
-                🍎 iPhone
+            <!-- 2. 全端末・全ブラウザ自動判定タブ（4区分） -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 bg-slate-200/75 p-1 rounded-xl text-[11px] font-extrabold">
+              <button type="button" id="pwa-guide-tab-ios-safari" onclick="switchPwaGuideTab('ios-safari')"
+                class="dwc-spring-press py-1.5 px-2 rounded-lg transition bg-white text-slate-900 shadow-2xs">
+                🍎 iPhone (Safari)
+              </button>
+              <button type="button" id="pwa-guide-tab-ios-chrome" onclick="switchPwaGuideTab('ios-chrome')"
+                class="dwc-spring-press py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900">
+                🍎 iPhone (Chrome)
               </button>
               <button type="button" id="pwa-guide-tab-android" onclick="switchPwaGuideTab('android')"
-                class="py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900">
+                class="dwc-spring-press py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900">
                 🤖 Android
               </button>
               <button type="button" id="pwa-guide-tab-other" onclick="switchPwaGuideTab('other')"
-                class="py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900">
+                class="dwc-spring-press py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900">
                 🌐 その他
               </button>
             </div>
 
-            <!-- 🍎 iPhone (Safari / Chrome) 手順パネル -->
-            <div id="pwa-guide-panel-ios" class="bg-white/95 rounded-xl p-3 border border-brand-200/80 space-y-2 text-xs text-slate-800">
-              <div class="font-extrabold text-[11px] text-brand-700">【🍎 iPhone (Safari / Chrome) の3秒手順】</div>
-              <ol class="space-y-1.5 text-[11px] sm:text-xs font-semibold leading-relaxed">
-                <li class="flex items-start gap-1.5">
-                  <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 1</span>
-                  <span>画面下（または右上）の<strong>「⬆️（四角から上矢印の共有マーク）」</strong>をタップ</span>
-                </li>
-                <li class="flex items-start gap-1.5">
-                  <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 2</span>
-                  <span>メニューをスクロールして<strong>「➕ ホーム画面に追加」</strong>をタップ</span>
-                </li>
-                <li class="flex items-start gap-1.5">
-                  <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 3</span>
-                  <span>右上の「追加」を押し、スマホのホーム画面にできた<strong>「DWC管理」アイコン</strong>から開く！</span>
-                </li>
-              </ol>
+            <!-- ① 🍎 iPhone (Safari) 3ステップ ビジュアルミニカード -->
+            <div id="pwa-guide-panel-ios-safari" class="space-y-1.5">
+              <div class="bg-white rounded-xl px-3 py-2 border border-brand-200/80 shadow-2xs flex items-center gap-2 text-xs text-slate-800">
+                <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 1</span>
+                <span class="font-semibold">画面下（または右上）の<strong>「⬆️ 共有」</strong></span>
+              </div>
+              <div class="bg-white rounded-xl px-3 py-2 border border-brand-200/80 shadow-2xs flex items-center gap-2 text-xs text-slate-800">
+                <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 2</span>
+                <span class="font-semibold">スクロールして<strong>「➕ ホーム画面に追加」</strong></span>
+              </div>
+              <div class="bg-white rounded-xl px-3 py-2 border border-brand-200/80 shadow-2xs flex items-center gap-2 text-xs text-slate-800">
+                <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 3</span>
+                <span class="font-semibold"><strong>追加したアイコンから起動！</strong></span>
+              </div>
             </div>
 
-            <!-- 🤖 Android (Chrome / 標準ブラウザ) 手順パネル -->
-            <div id="pwa-guide-panel-android" class="hidden bg-white/95 rounded-xl p-3 border border-brand-200/80 space-y-2.5 text-xs text-slate-800">
-              <div class="font-extrabold text-[11px] text-brand-700">【🤖 Android (Chrome / 標準ブラウザ)】</div>
+            <!-- ② 🍎 iPhone (Chrome) 3ステップ ビジュアルミニカード -->
+            <div id="pwa-guide-panel-ios-chrome" class="hidden space-y-1.5">
+              <div class="bg-white rounded-xl px-3 py-2 border border-brand-200/80 shadow-2xs flex items-center gap-2 text-xs text-slate-800">
+                <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 1</span>
+                <span class="font-semibold">右上アドレスバー横の<strong>「⬆️ 共有」</strong></span>
+              </div>
+              <div class="bg-white rounded-xl px-3 py-2 border border-brand-200/80 shadow-2xs flex items-center gap-2 text-xs text-slate-800">
+                <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 2</span>
+                <span class="font-semibold"><strong>「➕ ホーム画面に追加」</strong></span>
+              </div>
+              <div class="bg-white rounded-xl px-3 py-2 border border-brand-200/80 shadow-2xs flex items-center gap-2 text-xs text-slate-800">
+                <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 3</span>
+                <span class="font-semibold"><strong>追加したアイコンから起動！</strong></span>
+              </div>
+            </div>
+
+            <!-- ③ 🤖 Android 3ステップ ビジュアルミニカード -->
+            <div id="pwa-guide-panel-android" class="hidden space-y-1.5">
               <button type="button" id="btn-pwa-native-install" onclick="triggerNativePwaInstall()"
-                class="hidden w-full py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-amber-500 hover:from-brand-700 hover:to-amber-600 text-white font-black text-xs sm:text-sm shadow-md transition active:scale-[0.99] flex items-center justify-center gap-1.5">
+                class="dwc-spring-press hidden w-full py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-amber-500 hover:from-brand-700 hover:to-amber-600 text-white font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-1.5">
                 <span>📲 ワンタップでホーム画面に追加する</span>
               </button>
-              <ol class="space-y-1.5 text-[11px] sm:text-xs font-semibold leading-relaxed">
-                <li class="flex items-start gap-1.5">
-                  <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 1</span>
-                  <span>画面右上の<strong>「︙（または右下の≡）」</strong>をタップ</span>
-                </li>
-                <li class="flex items-start gap-1.5">
-                  <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 2</span>
-                  <span><strong>「ホーム画面に追加（またはアプリをインストール）」</strong>をタップ</span>
-                </li>
-                <li class="flex items-start gap-1.5">
-                  <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 3</span>
-                  <span>スマホのホーム画面のアイコンから開く！</span>
-                </li>
-              </ol>
+              <div class="bg-white rounded-xl px-3 py-2 border border-brand-200/80 shadow-2xs flex items-center gap-2 text-xs text-slate-800">
+                <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 1</span>
+                <span class="font-semibold">右上の<strong>「︙」</strong>（または右下の<strong>「≡」</strong>）</span>
+              </div>
+              <div class="bg-white rounded-xl px-3 py-2 border border-brand-200/80 shadow-2xs flex items-center gap-2 text-xs text-slate-800">
+                <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 2</span>
+                <span class="font-semibold"><strong>「ホーム画面に追加 / アプリをインストール」</strong></span>
+              </div>
+              <div class="bg-white rounded-xl px-3 py-2 border border-brand-200/80 shadow-2xs flex items-center gap-2 text-xs text-slate-800">
+                <span class="px-1.5 py-0.5 rounded bg-brand-600 text-white font-black text-[10px] shrink-0">STEP 3</span>
+                <span class="font-semibold"><strong>アイコンから起動！</strong></span>
+              </div>
             </div>
 
-            <!-- 🌐 Yahoo!ブラウザー等で追加ボタンがない人向けパネル -->
-            <div id="pwa-guide-panel-other" class="hidden bg-white/95 rounded-xl p-3 border border-brand-200/80 space-y-2.5 text-xs text-slate-800">
-              <div class="font-extrabold text-[11px] text-brand-700">【🌐 Yahoo!ブラウザー等で追加ボタンがない人】</div>
+            <!-- ④ 🌐 その他ブラウザ向けパネル -->
+            <div id="pwa-guide-panel-other" class="hidden bg-white rounded-xl p-3 border border-brand-200/80 shadow-2xs space-y-2 text-xs text-slate-800">
               <p class="text-[11px] text-slate-600 leading-relaxed">
-                一部のアプリ内ブラウザや検索アプリでは「ホーム画面に追加」が表示されない場合があります。下のボタンでURLをコピーし、<strong>Safari</strong> または <strong>Chrome</strong> に貼り付けて開いてください。
+                検索アプリや一部のブラウザでは「ホーム画面に追加」が表示されない場合があります。URLをコピーして <strong>Safari</strong> または <strong>Chrome</strong> で開いてください。
               </p>
               <button type="button" onclick="copyCleanAppUrl()"
-                class="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-2xs transition active:scale-[0.99]">
-                📋 URLをコピーしてSafari / Chromeで開く
+                class="dwc-spring-press w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-2xs">
+                📋 URLをコピーする
               </button>
             </div>
+
+            <!-- 3. ステップ直下の控えめな補足（11pxグレー文字） -->
+            <p class="text-[11px] text-slate-500 leading-relaxed">
+              💡 やり方が分からない・追加できない場合は、そのまま下の欄にメールアドレスを入力してログインしてもご利用いただけます
+            </p>
+
+            <!-- 4. 救済アコーディオン（<details> 折りたたみ） -->
+            <details class="group bg-white/80 rounded-xl border border-slate-200/80 px-3 py-2 text-xs">
+              <summary class="list-none flex items-center justify-between gap-2 cursor-pointer select-none font-bold text-slate-700 text-[11px]">
+                <span>❓ ボタンが見つからない・Yahoo!等の別ブラウザの方はこちら</span>
+                <span class="text-slate-400 transition-transform group-open:rotate-180">▼</span>
+              </summary>
+              <div class="mt-2 pt-2 border-t border-slate-200/70 space-y-2 text-[11px] text-slate-600 leading-relaxed">
+                <ul class="space-y-1 font-semibold">
+                  <li>・古いiOSや設定によっては、画面右上／右下に<strong>「⬆️」</strong>があります</li>
+                  <li>・Yahoo!ブラウザー等には追加機能がないため、下のボタンでURLをコピーしてSafari/Chromeで開くか、そのまま下でログインしてください</li>
+                </ul>
+                <button type="button" onclick="copyCleanAppUrl()"
+                  class="dwc-spring-press w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-2xs">
+                  📋 URLをコピーする
+                </button>
+              </div>
+            </details>
           </div>
 
           <!-- 大学メールアドレス禁止の注意書きバナー -->
@@ -318,19 +380,8 @@
               class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
           </div>
 
-          <!-- 離脱防止の柔軟ロック（非standalone時のみ表示、standalone時は非表示で即送信可能） -->
-          <div id="pwa-nudge-confirm-wrap" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-3">
-            <label class="flex items-start gap-2.5 cursor-pointer select-none">
-              <input id="chk-pwa-nudge-confirm" type="checkbox" onchange="syncPwaNudgePinButtonState()"
-                class="mt-0.5 w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 shrink-0" />
-              <span class="text-xs font-bold text-slate-800 leading-snug">
-                ☑️ ホーム画面に追加しました（または事情によりブラウザのまま利用する）
-              </span>
-            </label>
-          </div>
-
           <button id="btn-request-pin" type="submit"
-            class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold text-sm shadow-sm transition active:scale-[0.99]">
+            class="dwc-spring-press w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold text-sm shadow-sm">
             4桁のPINコードをメールで受け取る
           </button>
         </form>
@@ -361,7 +412,7 @@
           </div>
 
           <button id="btn-verify-pin" type="submit"
-            class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-sm transition active:scale-[0.99]">
+            class="dwc-spring-press w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-sm">
             ログインする
           </button>
 
@@ -425,8 +476,25 @@
             </select>
           </div>
 
+          <!-- 改修6: 初回プロフィール登録時の「🏕️ キャンプネーム」入力対応 -->
+          <div class="space-y-2 bg-slate-50/80 rounded-xl p-3.5 border border-slate-200/80">
+            <label for="reg-camp-name" class="block text-xs font-bold text-slate-700">
+              🏕️ キャンプネーム（ランキング・ゲーム表示名）
+            </label>
+            <input id="reg-camp-name" type="text" maxlength="30" placeholder="例: たきびまる"
+              class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed transition" />
+            <label class="flex items-center gap-2 cursor-pointer select-none pt-0.5">
+              <input id="reg-camp-name-later" type="checkbox" onchange="toggleRegCampNameLater(this.checked)"
+                class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 shrink-0" />
+              <span class="text-xs font-semibold text-slate-700">まだ決まっていない（あとでマイページから設定する）</span>
+            </label>
+            <p class="text-[11px] text-slate-500">
+              ※登録後もマイページの『⚙️設定』からいつでも変更できます
+            </p>
+          </div>
+
           <button id="btn-register-submit" type="submit"
-            class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-sm transition active:scale-[0.99]">
+            class="dwc-spring-press w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-sm">
             登録して利用開始する
           </button>
         </form>
@@ -488,27 +556,11 @@
       <!-- TAB 0: 🏠 ホーム（マイページ） -->
       <!-- ================================================================= -->
       <section id="tab-home" class="tab-panel space-y-4">
-        <!-- 📢 ホーム画面 常設お知らせカード（改修4-2①：enabled === true かつ タイトルまたは本文がある時のみ表示） -->
-        <div id="home-announcement-card" class="hidden bg-gradient-to-br from-amber-50 via-white to-orange-50/70 ring-2 ring-amber-300/90 rounded-3xl p-4 sm:p-5 shadow-sm space-y-3">
-          <div class="flex items-center justify-between gap-2 flex-wrap">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500 text-white text-xs font-extrabold shadow-2xs">
-              <span>📢</span>
-              <span>最新のお知らせ</span>
-            </span>
-            <span id="home-announcement-date" class="text-[11px] font-semibold text-slate-400"></span>
-          </div>
-          <h3 id="home-announcement-title" class="text-base sm:text-lg font-extrabold text-slate-900 leading-snug"></h3>
-          <div id="home-announcement-body" class="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line"></div>
-          <div id="home-announcement-img-wrap" class="hidden pt-1">
-            <img id="home-announcement-img" src="" alt="お知らせ画像" class="w-full max-h-80 object-contain rounded-2xl border border-slate-200 bg-slate-50 shadow-2xs mx-auto" />
-          </div>
-          <div id="home-announcement-link-wrap" class="hidden pt-1">
-            <a id="home-announcement-link" href="#" target="_blank" rel="noopener noreferrer"
-              class="w-full py-3 px-4 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xs transition active:scale-[0.99]">
-              <span id="home-announcement-link-label">📄 資料・リンクを開く ↗</span>
-            </a>
-          </div>
-        </div>
+        <!-- 改修2: お知らせON時に会員証パス直上に表示する1行スリム通知ピル -->
+        <button id="home-announcement-mini-pill" type="button" onclick="scrollToHomeAnnouncementCard()"
+          class="hidden dwc-spring-press w-full py-2 px-3.5 rounded-full bg-gradient-to-r from-amber-500 via-brand-500 to-amber-500 text-white text-xs font-extrabold shadow-xs flex items-center justify-center gap-1.5">
+          <span>📢 最新のお知らせがあります（タップして確認 👇）</span>
+        </button>
 
         <!-- 🪪 DWC デジタル会員証パス（Apple Wallet / クレジットカード風横長プレミアムパス） -->
         <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-[#1e293b] text-white rounded-3xl p-5 sm:p-6 shadow-xl ring-1 ring-white/10">
@@ -532,15 +584,20 @@
               <span class="text-[10px] font-black tracking-[0.2em] text-sky-300/90 uppercase">DWC DIGITAL MEMBER PASS</span>
             </div>
             <button id="btn-toggle-pass-settings" type="button" onclick="togglePassSettingsDrawer()"
-              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-[11px] font-bold text-slate-200 transition active:scale-95">
+              class="dwc-spring-press inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-[11px] font-bold text-slate-200">
               <span>⚙️</span>
               <span>設定</span>
             </button>
           </div>
 
-          <!-- 会員プロフィール本体 -->
+          <!-- 会員プロフィール本体（改修8: アバターアイコン着せ替え対応） -->
           <div class="relative z-10 flex items-start gap-3.5">
-            <div class="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500/30 to-sky-500/30 ring-1 ring-white/20 flex items-center justify-center text-2xl shadow-inner">👤</div>
+            <button id="home-pass-avatar-btn" type="button" onclick="togglePassAvatarPicker()"
+              title="タップしてアバターアイコンを着せ替え"
+              class="dwc-spring-press relative shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500/30 to-sky-500/30 hover:from-brand-500/45 hover:to-sky-500/45 ring-1 ring-white/25 flex items-center justify-center text-2xl shadow-inner cursor-pointer">
+              <span id="home-pass-avatar-icon">👤</span>
+              <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-slate-900/90 ring-1 ring-white/30 flex items-center justify-center text-[10px] leading-none shadow">✏️</span>
+            </button>
             <div class="min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-2">
                 <div id="home-user-name" class="text-xl sm:text-2xl font-extrabold leading-tight truncate tracking-tight">-</div>
@@ -554,6 +611,17 @@
                 <span id="header-role-badge" class="hidden px-2.5 py-0.5 rounded-full text-xs font-bold"></span>
                 <span id="header-user-info" class="text-[11px] font-mono text-slate-300/80 truncate ml-1">-</span>
               </div>
+            </div>
+          </div>
+
+          <!-- 改修8: アバター絵文字16種着せ替えセレクター（タップで即時展開・通信遅延ゼロ） -->
+          <div id="home-pass-avatar-picker" class="hidden relative z-20 mt-3 p-3 rounded-2xl bg-slate-950/90 backdrop-blur-md ring-1 ring-white/20 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] font-extrabold text-sky-200">🎨 パスのアバターアイコンを選択（タップで即時変更）</span>
+              <button type="button" onclick="togglePassAvatarPicker(false)" class="text-xs font-bold text-slate-400 hover:text-white px-1.5">✕</button>
+            </div>
+            <div id="home-pass-avatar-grid" class="grid grid-cols-8 gap-1.5">
+              <!-- JS (renderPassAvatarPickerGrid) で16種を描画 -->
             </div>
           </div>
 
@@ -575,21 +643,33 @@
             </div>
           </div>
 
+          <!-- 改修3: デジタル会員証パス内「🚪 BOX入退室（新町学生会館 350）」直通スマートボタン -->
+          <a id="home-box-entry-link" href="https://www.club-circles.doshisha.ac.jp/begin/login" target="_blank" rel="noopener noreferrer"
+            class="relative z-10 mt-3 dwc-spring-press bg-white/[0.09] hover:bg-white/[0.15] ring-1 ring-white/15 rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-2 min-w-0">
+              <span class="text-xs sm:text-sm font-extrabold text-white whitespace-nowrap">🚪 BOX入退室ログイン</span>
+              <span class="px-2 py-0.5 rounded-full bg-sky-400/20 ring-1 ring-sky-300/40 text-sky-200 text-[10px] sm:text-[11px] font-extrabold whitespace-nowrap">
+                📍 新町学生会館 350
+              </span>
+            </div>
+            <span class="shrink-0 text-xs font-extrabold text-amber-300 whitespace-nowrap">開く ↗</span>
+          </a>
+
           <!-- ⚙️ 設定ドロワー（右上の「⚙️ 設定」タップ時にカード下部へスマート展開） -->
           <div id="home-pass-settings-drawer" class="hidden relative z-10 mt-4 pt-3.5 border-t border-white/15 space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex flex-wrap items-center gap-2">
                 <button type="button" onclick="toggleCampNameForm()"
-                  class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-xs font-bold text-amber-200 transition">
+                  class="dwc-spring-press px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-xs font-bold text-amber-200">
                   🏕️ キャンプネーム変更
                 </button>
                 <button type="button" onclick="toggleEmailChangeForm()"
-                  class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-xs font-bold text-sky-200 transition">
+                  class="dwc-spring-press px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-xs font-bold text-sky-200">
                   ✉️ メールアドレス変更
                 </button>
               </div>
               <button id="btn-logout" type="button" onclick="handleLogout()"
-                class="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/35 ring-1 ring-rose-400/40 text-xs font-bold text-rose-200 transition">
+                class="dwc-spring-press px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/35 ring-1 ring-rose-400/40 text-xs font-bold text-rose-200">
                 🚪 ログアウト
               </button>
             </div>
@@ -599,7 +679,7 @@
               <input id="camp-name-input" type="text" maxlength="30" placeholder="キャンプネーム（ゲーム・ランキング表示名）"
                 class="flex-1 rounded-xl border border-white/30 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-400" />
               <div class="flex gap-2">
-                <button id="btn-camp-name-save" type="submit" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold text-sm shadow-xs active:scale-[0.99] transition">保存</button>
+                <button id="btn-camp-name-save" type="submit" class="dwc-spring-press flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold text-sm shadow-xs">保存</button>
                 <button type="button" onclick="toggleCampNameForm(false)" class="px-4 py-2.5 rounded-xl bg-white/15 text-white font-semibold text-sm transition">キャンセル</button>
               </div>
             </form>
@@ -609,10 +689,32 @@
               <input id="email-change-input" type="email" required autocomplete="email" placeholder="新しいメールアドレス"
                 class="flex-1 rounded-xl border border-white/30 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-400" />
               <div class="flex gap-2">
-                <button id="btn-email-change-save" type="submit" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-extrabold text-sm shadow-xs active:scale-[0.99] transition">保存</button>
+                <button id="btn-email-change-save" type="submit" class="dwc-spring-press flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-extrabold text-sm shadow-xs">保存</button>
                 <button type="button" onclick="toggleEmailChangeForm(false)" class="px-4 py-2.5 rounded-xl bg-white/15 text-white font-semibold text-sm transition">キャンセル</button>
               </div>
             </form>
+          </div>
+        </div>
+
+        <!-- 📢 ホーム画面 常設お知らせカード（改修2：デジタル会員証パスのすぐ下に配置） -->
+        <div id="home-announcement-card" class="hidden bg-gradient-to-br from-amber-50 via-white to-orange-50/70 ring-2 ring-amber-300/90 rounded-3xl p-4 sm:p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500 text-white text-xs font-extrabold shadow-2xs">
+              <span>📢</span>
+              <span>最新のお知らせ</span>
+            </span>
+            <span id="home-announcement-date" class="text-[11px] font-semibold text-slate-400"></span>
+          </div>
+          <h3 id="home-announcement-title" class="text-base sm:text-lg font-extrabold text-slate-900 leading-snug"></h3>
+          <div id="home-announcement-body" class="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line"></div>
+          <div id="home-announcement-img-wrap" class="hidden pt-1">
+            <img id="home-announcement-img" src="" alt="お知らせ画像" class="w-full max-h-80 object-contain rounded-2xl border border-slate-200 bg-slate-50 shadow-2xs mx-auto" />
+          </div>
+          <div id="home-announcement-link-wrap" class="hidden pt-1">
+            <a id="home-announcement-link" href="#" target="_blank" rel="noopener noreferrer"
+              class="dwc-spring-press w-full py-3 px-4 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xs">
+              <span id="home-announcement-link-label">📄 資料・リンクを開く ↗</span>
+            </a>
           </div>
         </div>
 
@@ -626,7 +728,7 @@
           </div>
         </div>
 
-        <!-- 🎖️ 獲得バッジ・称号コレクション (要件⑤) -->
+        <!-- 🎖️ 獲得バッジ・称号コレクション (改修5：メダルショーケースデザイン) -->
         <div class="bg-white ring-1 ring-slate-200/80 rounded-2xl p-5 shadow-xs space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -854,17 +956,46 @@
       <!-- ================================================================= -->
       <section id="tab-leaderboard" class="tab-panel hidden space-y-4">
         <p class="text-[11px] text-slate-500 bg-slate-100/80 rounded-xl px-3.5 py-2">※最新データを取得するため、読み込みに数秒かかる場合があります</p>
-        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 sm:p-6 shadow-xs">
-          <div class="flex items-center justify-between gap-2 mb-4">
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+          <div class="flex items-center justify-between gap-2">
             <div>
               <h2 class="text-base sm:text-lg font-bold text-slate-900">🏆 業務参加回数(2026年9月1日～)</h2>
               <p id="leaderboard-subtitle" class="text-xs text-slate-400 mt-0.5">
                 業務への累計参加回数ランキング
               </p>
             </div>
-            <button type="button" onclick="loadLeaderboard()" class="shrink-0 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50">
+            <button type="button" onclick="loadLeaderboard()" class="dwc-spring-press shrink-0 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50">
               ↻ 更新
             </button>
+          </div>
+
+          <!-- 改修10: 学年別切り替えピルタブ（5種・初期選択 [🏆 総合（現役）]） -->
+          <div id="leaderboard-grade-tabs" class="flex flex-wrap items-center gap-1.5 bg-slate-100/90 p-1.5 rounded-2xl">
+            <button type="button" data-lb-grade="ALL" onclick="setLeaderboardGradeFilter('ALL')"
+              class="dwc-spring-press flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-brand-600 to-amber-500 text-white shadow-xs whitespace-nowrap">
+              🏆 総合（現役）
+            </button>
+            <button type="button" data-lb-grade="1回生" onclick="setLeaderboardGradeFilter('1回生')"
+              class="dwc-spring-press flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-bold bg-white/80 hover:bg-white text-slate-700 whitespace-nowrap">
+              🌱 1回生
+            </button>
+            <button type="button" data-lb-grade="2回生" onclick="setLeaderboardGradeFilter('2回生')"
+              class="dwc-spring-press flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-bold bg-white/80 hover:bg-white text-slate-700 whitespace-nowrap">
+              🌿 2回生
+            </button>
+            <button type="button" data-lb-grade="3回生" onclick="setLeaderboardGradeFilter('3回生')"
+              class="dwc-spring-press flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-bold bg-white/80 hover:bg-white text-slate-700 whitespace-nowrap">
+              🌲 3回生
+            </button>
+            <button type="button" data-lb-grade="4回生" onclick="setLeaderboardGradeFilter('4回生')"
+              class="dwc-spring-press flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-bold bg-white/80 hover:bg-white text-slate-700 whitespace-nowrap">
+              🎓 4回生
+            </button>
+          </div>
+
+          <!-- 改修10: 自分の現在の順位（総合 ＆ 学年内）常設ハイライトバー -->
+          <div id="leaderboard-my-rank-bar" class="bg-gradient-to-r from-brand-50 via-amber-50/80 to-sky-50/70 ring-1 ring-brand-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-extrabold text-slate-900 shadow-2xs">
+            🌟 あなたの現在の順位を集計中...
           </div>
 
           <div class="overflow-x-auto">
@@ -1578,17 +1709,7 @@
             </div>
           </div>
 
-          <!-- 🔒 未獲得の成長系バッジ（参加回数・ゲームスコア）のマイページシルエット表示トグル -->
-          <label class="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-sky-50/70 ring-1 ring-sky-200/80 cursor-pointer select-none">
-            <div>
-              <div class="text-xs font-extrabold text-slate-900">🔒 未獲得の成長系バッジ（参加回数・ゲームスコア）をマイページにシルエット表示する</div>
-              <div class="text-[11px] text-slate-600 mt-0.5">ONにすると、自力で達成可能な未獲得バッジのみ「🔒 ？？？（獲得条件）」としてマイページに表示されます（※手動授与・初期登録・他学年は非表示のまま）</div>
-            </div>
-            <input id="ctrl-toggle-show-locked-badges" type="checkbox" onchange="handleToggleShowLockedBadges(this.checked)"
-              class="w-5 h-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 shrink-0" />
-          </label>
-
-          <!-- (A) バッジマスタ新規作成 / 編集フォーム -->
+          <!-- (A) バッジマスタ新規作成 / 編集フォーム（改修1: バッジごとの個別シルエット表示設定対応） -->
           <form id="badge-master-form" onsubmit="handleUpsertBadgeMaster(event)" class="bg-slate-50/70 ring-1 ring-slate-200/60 rounded-xl p-4 space-y-3">
             <div class="text-xs font-extrabold text-slate-800">✨ 新規バッジ・称号の登録 / 更新</div>
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
@@ -1616,7 +1737,7 @@
               </div>
               <div class="min-w-0">
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">判定種別 (condition_type)</label>
-                <select id="bm-condition-type"
+                <select id="bm-condition-type" onchange="handleBmConditionTypeChange()"
                   class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold">
                   <option value="manual">手動授与のみ (manual)</option>
                   <option value="reward_count">累計参加回数 (reward_count)</option>
@@ -1631,10 +1752,18 @@
                   class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-right font-bold" />
               </div>
             </div>
+            <!-- 改修1: バッジごとの個別シルエット表示設定チェックボックス -->
+            <label class="flex items-start gap-2.5 p-2.5 rounded-xl bg-sky-50/80 ring-1 ring-sky-200/80 cursor-pointer select-none">
+              <input id="bm-show-silhouette" type="checkbox"
+                class="mt-0.5 w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 shrink-0" />
+              <span class="text-xs font-bold text-slate-800 leading-snug">
+                ☑️ 未獲得のメンバーにも『🔒 ？？？』としてマイページにシルエット表示する（獲得条件をチラ見せする）
+              </span>
+            </label>
             <div class="flex items-center justify-between gap-2 pt-1">
               <span class="text-[11px] text-slate-400">※下の一覧をタップすると既存バッジを編集できます</span>
               <button id="btn-save-badge-master" type="submit"
-                class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-xs transition">
+                class="dwc-spring-press px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-xs">
                 バッジ定義を保存する
               </button>
             </div>
@@ -9909,7 +10038,7 @@
     });
 
     /**
-     * 1. 環境検知ロジック（LINE内ブラウザ / スタンドアロンPWA起動済み / 端末OS）
+     * 1. 環境検知ロジック（LINE内ブラウザ / スタンドアロンPWA起動済み / 4端末・ブラウザ区分）
      */
     function detectInstallEnvironment() {
       const ua = String((typeof navigator !== 'undefined' && navigator.userAgent) || '');
@@ -9918,30 +10047,37 @@
         (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) ||
         window.navigator.standalone === true;
       const isIOS = /iPhone|iPad|iPod/i.test(ua);
+      const isIOSChrome = isIOS && /CriOS/i.test(ua);
       const isAndroid = /Android/i.test(ua);
+      const isOtherAppBrowser = /YJApp|Yahoo|GSA\/|FBAN|FBAV|Instagram/i.test(ua);
+      const isIOSSafari = isIOS && !isIOSChrome && !isOtherAppBrowser;
       return {
         isLine,
         isStandalone,
         isIOS,
+        isIOSChrome,
+        isIOSSafari,
         isAndroid,
+        isOtherAppBrowser,
         canPromptNativeInstall: Boolean(window.__deferredPwaPrompt)
       };
     }
 
     /**
-     * 3ステップ図解タブ（iPhone / Android / その他）の切り替え
-     * @param {'ios'|'android'|'other'} tabKey
+     * 4区分（ios-safari / ios-chrome / android / other）の手順タブ切り替え
+     * @param {'ios-safari'|'ios-chrome'|'android'|'other'|'ios'} tabKey
      */
     function switchPwaGuideTab(tabKey) {
-      const keys = ['ios', 'android', 'other'];
+      const normalizedKey = tabKey === 'ios' ? 'ios-safari' : (tabKey || 'ios-safari');
+      const keys = ['ios-safari', 'ios-chrome', 'android', 'other'];
       keys.forEach(k => {
         const btn = document.getElementById(`pwa-guide-tab-${k}`);
         const panel = document.getElementById(`pwa-guide-panel-${k}`);
-        const isActive = k === tabKey;
+        const isActive = k === normalizedKey;
         if (btn) {
           btn.className = isActive
-            ? 'py-1.5 px-2 rounded-lg transition bg-white text-slate-900 shadow-2xs font-extrabold'
-            : 'py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900 font-bold';
+            ? 'dwc-spring-press py-1.5 px-2 rounded-lg transition bg-white text-slate-900 shadow-2xs font-extrabold'
+            : 'dwc-spring-press py-1.5 px-2 rounded-lg transition text-slate-600 hover:text-slate-900 font-bold';
         }
         if (panel) {
           panel.classList.toggle('hidden', !isActive);
@@ -9970,11 +10106,6 @@
           window.__deferredPwaPrompt = null;
           const nativeBtn = document.getElementById('btn-pwa-native-install');
           if (nativeBtn) nativeBtn.classList.add('hidden');
-          const chk = document.getElementById('chk-pwa-nudge-confirm');
-          if (chk) {
-            chk.checked = true;
-            syncPwaNudgePinButtonState();
-          }
           showToast('ホーム画面に追加しました！ホーム画面のアイコンから起動してください。', 'success');
         }
       } catch (_) {}
@@ -10015,18 +10146,12 @@
     }
 
     /**
-     * 非standalone時の「ホーム画面に追加しました」確認チェックボックスとPIN送信ボタンの有効状態を同期
+     * PIN送信ボタンの状態同期（チェックボックスロック撤廃により常時有効化）
      */
     function syncPwaNudgePinButtonState() {
-      const env = detectInstallEnvironment();
       const btn = document.getElementById('btn-request-pin');
-      const chk = document.getElementById('chk-pwa-nudge-confirm');
-      if (!btn) return;
-
-      if (env.isStandalone) {
+      if (btn) {
         btn.disabled = false;
-      } else {
-        btn.disabled = !(chk && chk.checked);
       }
     }
 
@@ -10039,7 +10164,6 @@
       const pinRequestForm = document.getElementById('pin-request-form');
       const pinVerifyForm = document.getElementById('pin-verify-form');
       const pwaNudgeCard = document.getElementById('pwa-nudge-guide-card');
-      const pwaConfirmWrap = document.getElementById('pwa-nudge-confirm-wrap');
       const nativeBtn = document.getElementById('btn-pwa-native-install');
 
       if (env.isLine) {
@@ -10058,22 +10182,24 @@
       }
 
       if (env.isStandalone) {
-        // ホーム画面のアイコンから起動済み -> ガイドもチェックボックスも一切表示せず即入力・送信可能
+        // ホーム画面のアイコンから起動済み -> ガイドを表示せず即入力・送信可能
         if (pwaNudgeCard) pwaNudgeCard.classList.add('hidden');
-        if (pwaConfirmWrap) pwaConfirmWrap.classList.add('hidden');
       } else {
-        // パターン②: 外部ブラウザ（非standalone） -> 3秒ホーム画面追加ガイド＆確認チェックを表示
+        // パターン②: 外部ブラウザ（非standalone） -> 4区分自動判定の3秒ホーム画面追加ガイドを表示（PIN送信は常時可能）
         if (pwaNudgeCard) pwaNudgeCard.classList.remove('hidden');
-        if (pwaConfirmWrap) pwaConfirmWrap.classList.remove('hidden');
         if (nativeBtn) {
           nativeBtn.classList.toggle('hidden', !env.canPromptNativeInstall);
         }
-        if (env.isAndroid) {
+        if (env.isOtherAppBrowser) {
+          switchPwaGuideTab('other');
+        } else if (env.isAndroid) {
           switchPwaGuideTab('android');
+        } else if (env.isIOSChrome) {
+          switchPwaGuideTab('ios-chrome');
         } else if (env.isIOS) {
-          switchPwaGuideTab('ios');
+          switchPwaGuideTab('ios-safari');
         } else {
-          switchPwaGuideTab('ios');
+          switchPwaGuideTab('ios-safari');
         }
       }
 
@@ -10224,14 +10350,6 @@
         showToast('LINE内ブラウザではログインできません。SafariやChromeで開いてください。', 'error');
         return;
       }
-      if (!env.isStandalone) {
-        const chk = document.getElementById('chk-pwa-nudge-confirm');
-        if (chk && !chk.checked) {
-          showToast('先にホーム画面へ追加し、確認チェックボックスにチェックを入れてください。', 'info');
-          return;
-        }
-      }
-
       const email = document.getElementById('login-email').value.trim().toLowerCase();
       if (!email) {
         showToast('メールアドレスを入力してください。', 'error');
@@ -10301,6 +10419,9 @@
       event.preventDefault();
       const name = document.getElementById('reg-name').value.trim();
       const grade = document.getElementById('reg-grade').value.trim();
+      const laterChk = document.getElementById('reg-camp-name-later');
+      const campInput = document.getElementById('reg-camp-name');
+      const campName = (laterChk && laterChk.checked) ? '' : String(campInput ? campInput.value : '').trim();
 
       if (!name || !grade) {
         showToast('氏名と学年を入力してください。', 'error');
@@ -10314,7 +10435,8 @@
       try {
         const updatedContext = await callGasRpc('registerNewUser', {
           name: name,
-          grade: grade
+          grade: grade,
+          camp_name: campName
         });
         if (updatedContext && updatedContext.token) {
           localStorage.setItem(SESSION_TOKEN_KEY, updatedContext.token);
@@ -10328,6 +10450,24 @@
         hideLoader();
       }
     }
+
+    /**
+     * 初回登録フォーム: 「まだ決まっていない」チェックでキャンプネーム入力欄を無効化・クリア
+     */
+    function toggleRegCampNameLater(checked) {
+      const input = document.getElementById('reg-camp-name');
+      const chk = document.getElementById('reg-camp-name-later');
+      const isLater = typeof checked === 'boolean' ? checked : Boolean(chk && chk.checked);
+      if (!input) return;
+      if (isLater) {
+        input.value = '';
+        input.disabled = true;
+      } else {
+        input.disabled = false;
+        input.focus();
+      }
+    }
+    window.toggleRegCampNameLater = toggleRegCampNameLater;
 
     /**
      * ログアウト処理
@@ -10547,6 +10687,77 @@
 
     const LOCKED_BADGE_CONFIG_ID = '__config_show_locked__';
 
+    // 改修8: アバターアイコン着せ替え（通信ゼロ・localStorage保存）
+    const PASS_AVATAR_STORAGE_KEY = 'dwc_my_pass_avatar_v1';
+    const PASS_AVATAR_EMOJIS = ['👤', '🏕️', '🔥', '🐸', '🐺', '🦊', '🐻', '🦁', '🦌', '🌲', '⛰️', '🎸', '👑', '🚀', '🛸', '⚡'];
+
+    function getSavedPassAvatar() {
+      try {
+        const v = localStorage.getItem(PASS_AVATAR_STORAGE_KEY);
+        return v && PASS_AVATAR_EMOJIS.includes(v) ? v : '👤';
+      } catch (_) {
+        return '👤';
+      }
+    }
+
+    function loadSavedPassAvatar() {
+      const iconEl = document.getElementById('home-pass-avatar-icon');
+      if (iconEl) iconEl.textContent = getSavedPassAvatar();
+      renderPassAvatarPickerGrid();
+    }
+
+    function renderPassAvatarPickerGrid() {
+      const gridEl = document.getElementById('home-pass-avatar-grid');
+      if (!gridEl) return;
+      const current = getSavedPassAvatar();
+      gridEl.innerHTML = PASS_AVATAR_EMOJIS.map(emoji => {
+        const isSel = emoji === current;
+        return `
+          <button type="button" onclick="selectPassAvatar('${emoji}')"
+            class="dwc-spring-press aspect-square rounded-xl flex items-center justify-center text-xl ${
+              isSel
+                ? 'bg-gradient-to-br from-amber-300/90 to-brand-500/90 ring-2 ring-amber-200 shadow-md'
+                : 'bg-white/10 hover:bg-white/20 ring-1 ring-white/15'
+            }">${emoji}</button>
+        `;
+      }).join('');
+    }
+
+    function togglePassAvatarPicker(forceState) {
+      triggerHaptic(10);
+      const picker = document.getElementById('home-pass-avatar-picker');
+      if (!picker) return;
+      const show = typeof forceState === 'boolean' ? forceState : picker.classList.contains('hidden');
+      if (show) renderPassAvatarPickerGrid();
+      picker.classList.toggle('hidden', !show);
+    }
+    window.togglePassAvatarPicker = togglePassAvatarPicker;
+
+    function selectPassAvatar(emoji) {
+      triggerHaptic(15);
+      if (!PASS_AVATAR_EMOJIS.includes(emoji)) return;
+      try {
+        localStorage.setItem(PASS_AVATAR_STORAGE_KEY, emoji);
+      } catch (_) {}
+      const iconEl = document.getElementById('home-pass-avatar-icon');
+      if (iconEl) iconEl.textContent = emoji;
+      renderPassAvatarPickerGrid();
+      togglePassAvatarPicker(false);
+    }
+    window.selectPassAvatar = selectPassAvatar;
+
+    /**
+     * お知らせ通知ピルタップ時に常設お知らせカードへスムーズスクロール
+     */
+    function scrollToHomeAnnouncementCard() {
+      triggerHaptic(10);
+      const cardEl = document.getElementById('home-announcement-card');
+      if (cardEl && !cardEl.classList.contains('hidden')) {
+        cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+    window.scrollToHomeAnnouncementCard = scrollToHomeAnnouncementCard;
+
     /**
      * Badges_Master 内の予約レコード (__config_show_locked__) から未獲得シルエット表示設定を取得
      */
@@ -10615,6 +10826,7 @@
       setText('home-user-name', ctx.name || '-');
       setText('home-user-grade', ctx.grade || '学年未設定');
       setText('home-user-role', roleDisplayName(ctx.role) || 'Member');
+      loadSavedPassAvatar();
       animateNumberCountUp('home-reward-points', Number(ctx.reward_points || 0), { useLocale: false });
 
       // キャンプネーム表示
@@ -10661,7 +10873,7 @@
           const rowsHtml = shifts.map((s, i) => {
             const gcalUrl = buildGoogleCalendarUrlForShift(s);
             return `
-              <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 ${
+              <div class="dwc-spring-press flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 ${
                 i === 0 ? 'bg-brand-50/90 ring-1 ring-brand-200' : 'bg-slate-50 ring-1 ring-slate-200/60'
               } rounded-xl px-3.5 py-2.5">
                 <div class="flex items-center gap-2 min-w-0">
@@ -10762,14 +10974,11 @@
           ];
 
       const earnedBadges = badges.filter(b => evaluateUserBadgeEarned(b, ctx));
-      const showLocked = isShowLockedBadgesEnabled();
-      const lockedGrowthBadges = showLocked
-        ? badges.filter(b => {
-            if (evaluateUserBadgeEarned(b, ctx)) return false;
-            const cType = String(b.condition_type || 'manual').trim();
-            return cType === 'reward_count' || cType === 'attendance' || cType === 'game_score' || cType === 'campfire_score';
-          })
-        : [];
+      // 改修1: バッジごとの show_silhouette 設定に従って未獲得シルエットを表示
+      const lockedSilhouetteBadges = badges.filter(b => {
+        if (evaluateUserBadgeEarned(b, ctx)) return false;
+        return isBadgeSilhouetteEnabled(b);
+      });
 
       const currentSelectedTitle = String(ctx && ctx.selected_title ? ctx.selected_title : '').trim();
 
@@ -10777,7 +10986,7 @@
         countLabel.textContent = `${earnedBadges.length} 個獲得中`;
       }
 
-      if (earnedBadges.length === 0 && lockedGrowthBadges.length === 0) {
+      if (earnedBadges.length === 0 && lockedSilhouetteBadges.length === 0) {
         gridEl.innerHTML = `
           <div class="col-span-full rounded-xl bg-slate-50 border border-slate-200/80 p-4 text-center text-xs text-slate-500">
             まだ獲得したバッジはありません。業務参加やゲームでバッジを集めよう！
@@ -10796,49 +11005,66 @@
         return `
           <button type="button"
             onclick="handleSelectMyTitle('${safeTitle}')"
-            class="text-left rounded-xl p-3 transition flex items-start gap-2.5 ${
+            class="dwc-spring-press ${isEquipped ? 'dwc-medal-shimmer' : ''} relative text-left rounded-2xl p-3 flex items-start gap-3 ${
               isEquipped
-                ? 'bg-amber-50 ring-2 ring-amber-400 shadow-xs'
-                : 'bg-white ring-1 ring-slate-200 hover:bg-brand-50/50 hover:ring-brand-300'
+                ? 'bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-100 ring-2 ring-amber-400 shadow-md'
+                : 'bg-gradient-to-br from-white via-amber-50/60 to-orange-50/60 ring-1 ring-amber-200/80 hover:ring-amber-400 shadow-2xs'
             }">
-            <span class="text-2xl leading-none shrink-0 mt-0.5">${escapeHtml(bIcon)}</span>
+            <span class="shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-yellow-200 via-amber-400 to-orange-500 ring-2 ring-amber-300 shadow-[inset_0_2px_3px_rgba(255,255,255,0.7),0_3px_6px_rgba(180,83,9,0.35)] flex items-center justify-center text-2xl leading-none">${escapeHtml(bIcon)}</span>
             <div class="min-w-0 flex-1">
+              ${isEquipped ? '<span class="inline-block mb-0.5 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-black tracking-wider shadow-2xs">👑 MAIN TITLE</span>' : ''}
               <div class="flex items-center justify-between gap-1">
-                <span class="text-xs font-extrabold text-slate-900 truncate">${escapeHtml(bName)}</span>
-                ${
-                  isEquipped
-                    ? '<span class="shrink-0 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold">装着中</span>'
-                    : '<span class="shrink-0 text-[10px] font-bold text-brand-600">装着する</span>'
-                }
+                <span class="text-xs sm:text-sm font-extrabold text-slate-900 truncate">${escapeHtml(bName)}</span>
+                ${isEquipped ? '' : '<span class="shrink-0 text-[10px] font-bold text-brand-600">装着する</span>'}
               </div>
-              <p class="text-[10px] text-slate-500 mt-0.5 leading-snug">${escapeHtml(b.description || '')}</p>
+              <p class="text-[10px] text-slate-600 mt-0.5 leading-snug">${escapeHtml(b.description || '')}</p>
             </div>
           </button>
         `;
       }).join('');
 
-      const lockedHtml = lockedGrowthBadges.map(b => {
+      const lockedHtml = lockedSilhouetteBadges.map(b => {
         const cType = String(b.condition_type || '').trim();
-        const defaultCond =
-          cType === 'game_score' || cType === 'campfire_score'
-            ? `『宇宙まで燃えろ！花背ファイヤー』でスコア ${Number(b.threshold || 0).toLocaleString()} kcal突破`
-            : `花背業務に累計 ${b.threshold} 回参加`;
+        let defaultCond;
+        if (cType === 'game_score' || cType === 'campfire_score') {
+          defaultCond = `『宇宙まで燃えろ！花背ファイヤー』でスコア ${Number(b.threshold || 0).toLocaleString()} kcal突破`;
+        } else if (cType === 'reward_count' || cType === 'attendance') {
+          defaultCond = `花背業務に累計 ${b.threshold} 回参加`;
+        } else if (cType === 'grade') {
+          defaultCond = `${b.threshold} になると獲得`;
+        } else if (cType === 'early_adopter') {
+          defaultCond = '初期に登録したメンバーのみ獲得';
+        } else {
+          defaultCond = '幹部から特別に授与されるバッジ';
+        }
         const condText = String(b.description || defaultCond).trim();
         return `
-          <div class="rounded-xl p-3 bg-slate-100/80 border border-dashed border-slate-300/90 text-slate-400 flex items-start gap-2.5 select-none opacity-80">
-            <span class="text-2xl leading-none shrink-0 mt-0.5 grayscale opacity-60">🔒</span>
+          <div class="rounded-2xl p-3 bg-gradient-to-br from-slate-200/80 via-slate-100/80 to-slate-200/70 backdrop-blur-sm ring-1 ring-slate-300/80 border border-dashed border-slate-400/60 flex items-start gap-3 select-none">
+            <span class="shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-slate-400/80 to-slate-600/80 ring-2 ring-slate-300/70 shadow-inner flex items-center justify-center text-xl leading-none">🔒</span>
             <div class="min-w-0 flex-1">
               <div class="flex items-center justify-between gap-1">
-                <span class="text-xs font-extrabold text-slate-500 truncate">🔒 ？？？</span>
-                <span class="shrink-0 px-1.5 py-0.5 rounded bg-slate-200 text-slate-500 text-[9px] font-bold">未獲得</span>
+                <span class="text-xs sm:text-sm font-extrabold text-slate-600 truncate">🔒 ？？？</span>
+                <span class="shrink-0 px-1.5 py-0.5 rounded bg-slate-300/80 text-slate-600 text-[9px] font-bold">未獲得</span>
               </div>
-              <p class="text-[10px] text-slate-500 mt-0.5 leading-snug">獲得条件：${escapeHtml(condText)}</p>
+              <p class="text-[10px] text-slate-600 mt-0.5 leading-snug">獲得条件：${escapeHtml(condText)}</p>
             </div>
           </div>
         `;
       }).join('');
 
       gridEl.innerHTML = earnedHtml + lockedHtml;
+    }
+
+    /**
+     * バッジ個別のシルエット表示設定を判定する
+     * show_silhouette が明示されていればそれに従い、未指定の場合は参加回数・ゲームスコア系のみデフォルトON
+     */
+    function isBadgeSilhouetteEnabled(badge) {
+      if (!badge) return false;
+      if (badge.show_silhouette === true || badge.show_silhouette === 'true') return true;
+      if (badge.show_silhouette === false || badge.show_silhouette === 'false') return false;
+      const cType = String(badge.condition_type || 'manual').trim();
+      return cType === 'reward_count' || cType === 'attendance' || cType === 'game_score' || cType === 'campfire_score';
     }
 
     /**
@@ -11069,7 +11295,7 @@
             }).join('');
 
         return `
-          <div style="animation-delay: ${Math.min(staggerIdx * 0.025, 0.35)}s;" class="dwc-stagger-item rounded-2xl p-4 transition ${
+          <div style="animation-delay: ${Math.min(staggerIdx * 0.025, 0.35)}s;" class="dwc-stagger-item dwc-spring-press rounded-2xl p-4 transition ${
             hasMe
               ? 'bg-brand-50/40 ring-2 ring-brand-400 shadow-xs'
               : 'bg-white ring-1 ring-slate-200/80 shadow-2xs'
@@ -11204,10 +11430,10 @@
       'admin-control': '幹部管理パネル'
     };
 
-    const NAV_BTN_ACTIVE = 'tab-btn flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-2xl transition-all duration-200 bg-gradient-to-tr from-brand-600 to-amber-500 text-white shadow-md scale-[1.02] ring-1 ring-sky-300/60';
-    const NAV_BTN_IDLE = 'tab-btn flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-2xl transition-all duration-200 text-slate-400 hover:text-slate-200';
-    const SUBNAV_ACTIVE = 'tab-btn flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition bg-brand-600 text-white shadow-xs';
-    const SUBNAV_IDLE = 'tab-btn flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition bg-slate-50 ring-1 ring-slate-200/70 text-slate-600 hover:bg-slate-100';
+    const NAV_BTN_ACTIVE = 'tab-btn dwc-spring-press flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-2xl transition-all duration-200 bg-gradient-to-tr from-brand-600 to-amber-500 text-white shadow-md scale-[1.02] ring-1 ring-sky-300/60';
+    const NAV_BTN_IDLE = 'tab-btn dwc-spring-press flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-2xl transition-all duration-200 text-slate-400 hover:text-slate-200';
+    const SUBNAV_ACTIVE = 'tab-btn dwc-spring-press flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition bg-brand-600 text-white shadow-xs';
+    const SUBNAV_IDLE = 'tab-btn dwc-spring-press flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-center transition bg-slate-50 ring-1 ring-slate-200/70 text-slate-600 hover:bg-slate-100';
 
     /**
      * ボトムナビの「🎮 ゲーム」ボタン (#tab-btn-game) およびシステム管理パネルの公開状態UIを同期する
@@ -12489,96 +12715,203 @@
     // 6. 🏆 リーダーボード (一般メンバー時は次回優先カウント列の <th> / <td> を一切描画しない)
     // =========================================================================
 
+    let LEADERBOARD_CACHE = null;
+    let LEADERBOARD_GRADE_FILTER = 'ALL';
+    const LEADERBOARD_GRADE_TABS = ['ALL', '1回生', '2回生', '3回生', '4回生'];
+
+    /**
+     * 卒業生（grade に '卒業' / 'OB' / 'OG' を含む）判定
+     */
+    function isGraduateGrade(grade) {
+      return /卒業|OB|OG/i.test(String(grade || ''));
+    }
+
+    /**
+     * ランキング用ピルタブの見た目を現在のフィルタに同期
+     */
+    function syncLeaderboardGradeTabs() {
+      const container = document.getElementById('leaderboard-grade-tabs');
+      if (!container) return;
+      container.querySelectorAll('button[data-lb-grade]').forEach(btn => {
+        const isActive = btn.getAttribute('data-lb-grade') === LEADERBOARD_GRADE_FILTER;
+        btn.className = isActive
+          ? 'dwc-spring-press flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-brand-600 to-amber-500 text-white shadow-xs whitespace-nowrap'
+          : 'dwc-spring-press flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-bold bg-white/80 hover:bg-white text-slate-700 whitespace-nowrap';
+      });
+    }
+
+    /**
+     * 学年フィルターピルタブ切り替え（通信なし・キャッシュ済みデータを再描画）
+     */
+    function setLeaderboardGradeFilter(grade) {
+      triggerHaptic(10);
+      LEADERBOARD_GRADE_FILTER = LEADERBOARD_GRADE_TABS.includes(grade) ? grade : 'ALL';
+      syncLeaderboardGradeTabs();
+      if (LEADERBOARD_CACHE) {
+        renderLeaderboardView();
+      }
+    }
+    window.setLeaderboardGradeFilter = setLeaderboardGradeFilter;
+
+    /**
+     * 同順位は同ランクとする競技方式（1,1,3...）で順位を付与する
+     */
+    function assignCompetitionRanks(list) {
+      let currentRank = 1;
+      return list.map((m, i) => {
+        if (i > 0 && Number(m.reward_points || 0) < Number(list[i - 1].reward_points || 0)) {
+          currentRank = i + 1;
+        }
+        return { member: m, rank: currentRank };
+      });
+    }
+
     async function loadLeaderboard() {
-      const theadRow = document.getElementById('leaderboard-thead-row');
       const tbody = document.getElementById('leaderboard-tbody');
       tbody.innerHTML = renderSkeletonTableRows(6, 3);
+      syncLeaderboardGradeTabs();
 
       try {
         const data = await callGasRpc('getLeaderboard');
-        const isAdminView = Boolean(data && data.is_admin_view && currentUserIsManagerOrAbove());
-        const members = (data && Array.isArray(data.members)) ? data.members : [];
-
-        // ヘッダー列の構築: 一般メンバーには「次回優先カウント」の <th> を一切DOMに出力しない
-        if (isAdminView) {
-          document.getElementById('leaderboard-subtitle').textContent =
-            '業務参加回数ランキングです（幹部表示: 次回優先カウントも表示中）。';
-          theadRow.innerHTML = `
-            <th class="py-2.5 px-3">順位</th>
-            <th class="py-2.5 px-3">氏名 / 称号</th>
-            <th class="py-2.5 px-3 text-right">参加回数 (貢献度)</th>
-            <th class="py-2.5 px-3 text-right text-rose-600">次回優先カウント</th>
-          `;
-        } else {
-          document.getElementById('leaderboard-subtitle').textContent =
-            '業務への累計参加回数ランキングです。たくさん参加してバッジや称号を獲得しましょう！';
-          theadRow.innerHTML = `
-            <th class="py-2.5 px-3">順位</th>
-            <th class="py-2.5 px-3">氏名 / 称号</th>
-            <th class="py-2.5 px-3 text-right">参加回数 (貢献度)</th>
-          `;
-        }
-
-        if (members.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="${isAdminView ? 4 : 3}" class="py-6 text-center text-xs text-slate-400">データがありません。</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = '';
-        let currentRank = 1;
-        members.forEach((m, i) => {
-          if (i > 0 && Number(m.reward_points || 0) < Number(members[i - 1].reward_points || 0)) {
-            currentRank = i + 1;
-          }
-          const rank = currentRank;
-          let rankBadge = `<span class="font-bold text-slate-500 pl-1">${rank}</span>`;
-          let rowFrameClass = 'hover:bg-slate-50/80 transition';
-          let pointsClass = 'text-brand-700';
-
-          if (rank === 1) {
-            rankBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-xs shadow-2xs ring-1 ring-amber-300">👑 🥇 1位</span>';
-            rowFrameClass = 'bg-gradient-to-r from-amber-50/90 via-yellow-50/50 to-white border-l-4 border-l-amber-400 hover:from-amber-100/80 transition';
-            pointsClass = 'text-amber-700 text-base';
-          } else if (rank === 2) {
-            rankBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-gradient-to-r from-slate-200 to-slate-300 text-slate-800 font-extrabold text-xs shadow-2xs ring-1 ring-slate-300">🥈 2位</span>';
-            rowFrameClass = 'bg-gradient-to-r from-slate-100/90 via-slate-50/50 to-white border-l-4 border-l-slate-400 hover:from-slate-200/60 transition';
-            pointsClass = 'text-slate-800';
-          } else if (rank === 3) {
-            rankBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-200 to-amber-200 text-orange-950 font-extrabold text-xs shadow-2xs ring-1 ring-orange-300">🥉 3位</span>';
-            rowFrameClass = 'bg-gradient-to-r from-orange-50/85 via-amber-50/40 to-white border-l-4 border-l-orange-400 hover:from-orange-100/60 transition';
-            pointsClass = 'text-orange-800';
-          }
-
-          const gradeChip = m.grade
-            ? `<span class="ml-1.5 text-xs text-slate-400 font-normal">(${escapeHtml(m.grade)})</span>`
-            : '';
-          const titleChip = m.selected_title
-            ? `<span class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 ring-1 ring-amber-200">🎖️ ${escapeHtml(m.selected_title)}</span>`
-            : '';
-
-          const tr = document.createElement('tr');
-          tr.className = `${rowFrameClass} dwc-stagger-item`;
-          tr.style.animationDelay = `${Math.min(i, 15) * 0.025}s`;
-
-          // 一般メンバー時は次回優先カウント列の <td> も一切DOMに出力しない
-          let rowHtml = `
-            <td class="py-3 px-3 whitespace-nowrap">${rankBadge}</td>
-            <td class="py-3 px-3 font-semibold text-slate-800">${escapeHtml(m.name)}${gradeChip}${titleChip}</td>
-            <td class="py-3 px-3 text-right font-extrabold ${pointsClass}">${Number(m.reward_points || 0)} 回</td>
-          `;
-
-          if (isAdminView) {
-            const pCount = Number(m.penalty_points || 0);
-            const pStyle = pCount > 0 ? 'text-rose-600 font-extrabold' : 'text-slate-400 font-medium';
-            rowHtml += `<td class="py-3 px-3 text-right ${pStyle}">${pCount} 回</td>`;
-          }
-
-          tr.innerHTML = rowHtml;
-          tbody.appendChild(tr);
-        });
+        LEADERBOARD_CACHE = {
+          isAdminView: Boolean(data && data.is_admin_view && currentUserIsManagerOrAbove()),
+          members: (data && Array.isArray(data.members)) ? data.members : []
+        };
+        renderLeaderboardView();
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-xs text-rose-500">ランキングの取得に失敗しました: ${escapeHtml(err.message)}</td></tr>`;
       }
+    }
+
+    /**
+     * キャッシュ済みデータから ランキング表 ＆ マイランクバー を描画する
+     * - 卒業生は自動除外
+     * - 一般Member時は次回優先カウント列の <th> / <td> を一切DOMに出力しない
+     */
+    function renderLeaderboardView() {
+      if (!LEADERBOARD_CACHE) return;
+      const theadRow = document.getElementById('leaderboard-thead-row');
+      const tbody = document.getElementById('leaderboard-tbody');
+      const subtitleEl = document.getElementById('leaderboard-subtitle');
+      const myRankBar = document.getElementById('leaderboard-my-rank-bar');
+      const isAdminView = LEADERBOARD_CACHE.isAdminView;
+
+      const activeMembers = LEADERBOARD_CACHE.members
+        .filter(m => !isGraduateGrade(m.grade))
+        .slice()
+        .sort((a, b) => Number(b.reward_points || 0) - Number(a.reward_points || 0));
+
+      // 総合（現役）ランク ＆ 学年内ランクを事前計算
+      const overallRanked = assignCompetitionRanks(activeMembers);
+      const gradeRankMap = new Map();
+      ['1回生', '2回生', '3回生', '4回生'].forEach(g => {
+        const inGrade = activeMembers.filter(m => String(m.grade || '').trim() === g);
+        gradeRankMap.set(g, assignCompetitionRanks(inGrade));
+      });
+
+      // --- マイランクバー ---
+      const myNorm = normalizeNameClient(APP_STATE.user ? APP_STATE.user.name : '');
+      if (myRankBar) {
+        const myOverall = myNorm ? overallRanked.find(r => normalizeNameClient(r.member.name) === myNorm) : null;
+        if (!myOverall) {
+          const isGrad = APP_STATE.user && isGraduateGrade(APP_STATE.user.grade);
+          myRankBar.textContent = isGrad
+            ? '🎓 卒業生・OBOGの方はランキング集計の対象外です'
+            : '🌟 あなたの順位は、業務に参加するとここに表示されます';
+        } else {
+          const myGrade = String(myOverall.member.grade || '').trim();
+          const gradeList = gradeRankMap.get(myGrade);
+          const myInGrade = gradeList ? gradeList.find(r => normalizeNameClient(r.member.name) === myNorm) : null;
+          const gradePart = myInGrade
+            ? ` ／ 【${escapeHtml(myGrade)}】の中で ${myInGrade.rank}位！`
+            : '';
+          myRankBar.innerHTML = `🌟 あなたの現在の順位：総合 ${myOverall.rank}位${gradePart}（参加 ${Number(myOverall.member.reward_points || 0)}回）`;
+        }
+      }
+
+      // --- ヘッダー列 ---
+      if (isAdminView) {
+        subtitleEl.textContent = '業務参加回数ランキングです（幹部表示: 次回優先カウントも表示中）。卒業生は集計対象外です。';
+        theadRow.innerHTML = `
+          <th class="py-2.5 px-3">順位</th>
+          <th class="py-2.5 px-3">氏名 / 称号</th>
+          <th class="py-2.5 px-3 text-right">参加回数 (貢献度)</th>
+          <th class="py-2.5 px-3 text-right text-rose-600">次回優先カウント</th>
+        `;
+      } else {
+        subtitleEl.textContent = '業務への累計参加回数ランキングです（現役メンバーのみ）。たくさん参加してバッジや称号を獲得しましょう！';
+        theadRow.innerHTML = `
+          <th class="py-2.5 px-3">順位</th>
+          <th class="py-2.5 px-3">氏名 / 称号</th>
+          <th class="py-2.5 px-3 text-right">参加回数 (貢献度)</th>
+        `;
+      }
+
+      // --- 表示対象（タブ） ---
+      const displayRanked = LEADERBOARD_GRADE_FILTER === 'ALL'
+        ? overallRanked
+        : (gradeRankMap.get(LEADERBOARD_GRADE_FILTER) || []);
+
+      if (displayRanked.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${isAdminView ? 4 : 3}" class="py-6 text-center text-xs text-slate-400">データがありません。</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      displayRanked.forEach(({ member: m, rank }, i) => {
+        let rankBadge = `<span class="font-bold text-slate-500 pl-1">${rank}</span>`;
+        let rowFrameClass = 'hover:bg-slate-50/80 transition';
+        let pointsClass = 'text-brand-700';
+
+        if (rank === 1) {
+          rankBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-xs shadow-2xs ring-1 ring-amber-300">🥇 1位</span>';
+          rowFrameClass = 'bg-gradient-to-r from-amber-50/90 via-yellow-50/50 to-white border-l-4 border-l-amber-400 hover:from-amber-100/80 transition';
+          pointsClass = 'text-amber-700 text-base';
+        } else if (rank === 2) {
+          rankBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-gradient-to-r from-slate-200 to-slate-300 text-slate-800 font-extrabold text-xs shadow-2xs ring-1 ring-slate-300">🥈 2位</span>';
+          rowFrameClass = 'bg-gradient-to-r from-slate-100/90 via-slate-50/50 to-white border-l-4 border-l-slate-400 hover:from-slate-200/60 transition';
+          pointsClass = 'text-slate-800';
+        } else if (rank === 3) {
+          rankBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-200 to-amber-200 text-orange-950 font-extrabold text-xs shadow-2xs ring-1 ring-orange-300">🥉 3位</span>';
+          rowFrameClass = 'bg-gradient-to-r from-orange-50/85 via-amber-50/40 to-white border-l-4 border-l-orange-400 hover:from-orange-100/60 transition';
+          pointsClass = 'text-orange-800';
+        }
+
+        const isMe = Boolean(myNorm) && normalizeNameClient(m.name) === myNorm;
+        if (isMe) {
+          rowFrameClass += ' ring-2 ring-inset ring-brand-400/80';
+        }
+
+        const gradeChip = m.grade
+          ? `<span class="ml-1.5 text-xs text-slate-400 font-normal">(${escapeHtml(m.grade)})</span>`
+          : '';
+        const titleChip = m.selected_title
+          ? `<span class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 ring-1 ring-amber-200">🎖️ ${escapeHtml(m.selected_title)}</span>`
+          : '';
+        const meChip = isMe
+          ? '<span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-brand-600 text-white">あなた</span>'
+          : '';
+
+        const tr = document.createElement('tr');
+        tr.className = `${rowFrameClass} dwc-stagger-item`;
+        tr.style.animationDelay = `${Math.min(i, 15) * 0.025}s`;
+
+        // 一般メンバー時は次回優先カウント列の <td> も一切DOMに出力しない
+        let rowHtml = `
+          <td class="py-3 px-3 whitespace-nowrap">${rankBadge}</td>
+          <td class="py-3 px-3 font-semibold text-slate-800">${escapeHtml(m.name)}${gradeChip}${titleChip}${meChip}</td>
+          <td class="py-3 px-3 text-right font-extrabold ${pointsClass}">${Number(m.reward_points || 0)} 回</td>
+        `;
+
+        if (isAdminView) {
+          const pCount = Number(m.penalty_points || 0);
+          const pStyle = pCount > 0 ? 'text-rose-600 font-extrabold' : 'text-slate-400 font-medium';
+          rowHtml += `<td class="py-3 px-3 text-right ${pStyle}">${pCount} 回</td>`;
+        }
+
+        tr.innerHTML = rowHtml;
+        tbody.appendChild(tr);
+      });
     }
 
     // =========================================================================
@@ -14808,12 +15141,7 @@
       const listEl = document.getElementById('ctrl-badges-master-list');
       const countEl = document.getElementById('ctrl-badges-master-count');
       const manualSelectEl = document.getElementById('ctrl-manual-badge-select');
-      const toggleLockedEl = document.getElementById('ctrl-toggle-show-locked-badges');
       const badges = getVisibleBadgesMaster();
-
-      if (toggleLockedEl) {
-        toggleLockedEl.checked = isShowLockedBadgesEnabled();
-      }
 
       if (countEl) {
         countEl.textContent = `全 ${badges.length} 個`;
@@ -14839,10 +15167,11 @@
             }
             return `
               <button type="button" onclick="editBadgeInControlForm('${safeId}')"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white ring-1 ring-slate-200 hover:ring-brand-400 text-xs font-bold text-slate-800 shadow-2xs transition">
+                class="dwc-spring-press inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white ring-1 ring-slate-200 hover:ring-brand-400 text-xs font-bold text-slate-800 shadow-2xs">
                 <span>${escapeHtml(b.icon || '🏅')}</span>
                 <span>${escapeHtml(bName)}</span>
                 <span class="text-[10px] font-normal text-slate-400">[${escapeHtml(condLabel)}]</span>
+                ${isBadgeSilhouetteEnabled(b) ? '<span class="text-[10px]" title="未獲得時シルエット表示ON">🔒</span>' : ''}
               </button>
             `;
           }).join('');
@@ -14867,46 +15196,17 @@
     }
 
     /**
-     * 未獲得の成長系バッジ（参加回数・ゲームスコア）のマイページシルエット表示 ON/OFF 切り替え
-     * Badges_Master の特殊設定行 (badge_id: '__config_show_locked__', threshold: 1 or 0) として保存
+     * 判定種別に応じてシルエットチェックボックスの初期値（デフォルト）を設定する
+     * 参加回数・ゲームスコア系は初期ON、それ以外は初期OFF
      */
-    async function handleToggleShowLockedBadges(checked) {
-      const enabled = Boolean(checked);
-      showLoader(enabled ? '未獲得バッジのシルエット表示を ON に更新しています...' : '未獲得バッジのシルエット表示を OFF に更新しています...');
-      try {
-        const res = await callGasRpc('upsertBadgeMaster', {
-          badge_id: '__config_show_locked__',
-          icon: '🔒',
-          name: '未獲得シルエット表示設定',
-          badge_name: '未獲得シルエット表示設定',
-          description: 'マイページ未獲得バッジ表示フラグ',
-          condition_type: 'config',
-          threshold: enabled ? 1 : 0
-        });
-        if (res && Array.isArray(res.badges_master)) {
-          APP_STATE.badgesMaster = res.badges_master;
-        } else {
-          const latestBadges = await callGasRpc('getBadgesMaster').catch(() => null);
-          if (Array.isArray(latestBadges)) {
-            APP_STATE.badgesMaster = latestBadges;
-          }
-        }
-        renderControlBadgesSection();
-        renderHomeBadgesCollection(APP_STATE.user);
-        showToast(
-          enabled
-            ? 'マイページに未獲得の成長系バッジ（🔒 ？？？）を表示するように設定しました！'
-            : 'マイページには獲得済みバッジのみを表示するように設定しました。',
-          'success'
-        );
-      } catch (err) {
-        const toggleEl = document.getElementById('ctrl-toggle-show-locked-badges');
-        if (toggleEl) toggleEl.checked = !enabled;
-        showToast(err.message || '設定の保存に失敗しました。', 'error');
-      } finally {
-        hideLoader();
-      }
+    function handleBmConditionTypeChange() {
+      const typeEl = document.getElementById('bm-condition-type');
+      const chk = document.getElementById('bm-show-silhouette');
+      if (!typeEl || !chk) return;
+      const t = typeEl.value;
+      chk.checked = (t === 'reward_count' || t === 'game_score');
     }
+    window.handleBmConditionTypeChange = handleBmConditionTypeChange;
 
     function editBadgeInControlForm(badgeId) {
       const badge = (APP_STATE.badgesMaster || []).find(b => b.badge_id === badgeId);
@@ -14922,6 +15222,8 @@
       document.getElementById('bm-description').value = badge.description || '';
       document.getElementById('bm-condition-type').value = cType;
       document.getElementById('bm-threshold').value = String(badge.threshold !== undefined ? badge.threshold : 0);
+      const silChk = document.getElementById('bm-show-silhouette');
+      if (silChk) silChk.checked = isBadgeSilhouetteEnabled(badge);
       showToast(`バッジ「${bName}」を編集フォームに読み込みました。`, 'info');
     }
 
@@ -14933,6 +15235,7 @@
       const description = document.getElementById('bm-description').value.trim();
       const conditionType = document.getElementById('bm-condition-type').value;
       const rawThreshold = document.getElementById('bm-threshold').value.trim();
+      const showSilhouette = Boolean((document.getElementById('bm-show-silhouette') || {}).checked);
       const threshold = conditionType === 'grade'
         ? rawThreshold
         : Math.max(0, Math.round(Number(rawThreshold) || 0));
@@ -14951,7 +15254,8 @@
           badge_name: badgeName,
           description: description,
           condition_type: conditionType,
-          threshold: threshold
+          threshold: threshold,
+          show_silhouette: showSilhouette
         });
         if (res && Array.isArray(res.badges_master)) {
           APP_STATE.badgesMaster = res.badges_master;
@@ -14964,6 +15268,7 @@
         renderControlBadgesSection();
         renderHomeBadgesCollection(APP_STATE.user);
         document.getElementById('badge-master-form').reset();
+        handleBmConditionTypeChange();
         document.getElementById('bm-icon').value = '🏅';
         document.getElementById('bm-threshold').value = '0';
         showToast(`バッジ「${badgeName}」を保存しました！`, 'success');
@@ -15384,8 +15689,12 @@
       const linkLabel = String(ann.link_label || '📄 資料・リンクを開く').trim();
       const hasContent = Boolean(title || body || imgSrc || linkUrl);
 
-      // ② ホーム最上部の常設お知らせカード (#home-announcement-card)
+      // ② ホーム会員証パス直下の常設お知らせカード (#home-announcement-card) ＋ 直上の1行ミニ通知ピル
       const cardEl = document.getElementById('home-announcement-card');
+      const miniPillEl = document.getElementById('home-announcement-mini-pill');
+      if (miniPillEl) {
+        miniPillEl.classList.toggle('hidden', !(isCardEnabled && hasContent));
+      }
       if (cardEl) {
         if (isCardEnabled && hasContent) {
           cardEl.classList.remove('hidden');
