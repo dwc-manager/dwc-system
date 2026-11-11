@@ -466,6 +466,15 @@
           </div>
 
           <div>
+            <label for="reg-furigana" class="block text-xs font-bold text-slate-700 mb-1">フリガナ <span class="text-rose-500">*</span></label>
+            <input id="reg-furigana" type="text" required placeholder="例: どうししゃ たろう / ドウシシャ タロウ"
+              class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+            <p class="mt-1 text-[11px] text-slate-500 leading-snug">
+              ※ひらがな・カタカナ・スペース有無はすべて自動で吸収されます
+            </p>
+          </div>
+
+          <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">学年 <span class="text-rose-500">*</span></label>
             <select id="reg-grade" required
               class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm bg-white focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none">
@@ -478,6 +487,18 @@
               <option value="院2回生">院2回生</option>
               <option value="その他">その他</option>
             </select>
+          </div>
+
+          <!-- 改修1: 初回プロフィール登録時の「💬 LINEの表示名」必須入力 -->
+          <div class="space-y-1.5 bg-emerald-50/70 rounded-xl p-3.5 border border-emerald-200/80">
+            <label for="reg-line-name" class="block text-xs font-bold text-slate-800">
+              💬 LINEの表示名 <span class="text-rose-500">*</span>
+            </label>
+            <input id="reg-line-name" type="text" required maxlength="40" placeholder="例: たろう / Taro"
+              class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
+            <p class="text-[11px] font-semibold text-emerald-900 leading-snug">
+              💡 シフト希望投票の突合に使用します。現在のLINEの名前をそのまま入力してください（後からマイページで変更可能です）
+            </p>
           </div>
 
           <!-- 改修6: 初回プロフィール登録時の「🏕️ キャンプネーム」入力対応 -->
@@ -607,8 +628,9 @@
                 <div id="home-user-name" class="text-xl sm:text-2xl font-extrabold leading-tight truncate tracking-tight">-</div>
                 <span id="home-selected-title-badge" class="hidden px-2.5 py-0.5 rounded-full bg-amber-300 text-slate-900 text-[11px] font-extrabold shadow-2xs"></span>
               </div>
-              <div class="mt-1.5 text-xs font-semibold text-slate-200">
+              <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-slate-200">
                 <span id="home-camp-name-display" class="font-extrabold text-amber-300">🏕️ キャンプネーム未設定</span>
+                <span id="home-line-name-display" class="hidden text-[11px] font-bold text-emerald-300"></span>
               </div>
               <div class="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
                 <span id="home-user-grade" class="px-2.5 py-0.5 rounded-full bg-white/15 ring-1 ring-white/15 font-bold text-white">-</span>
@@ -667,6 +689,10 @@
                   class="dwc-spring-press px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-xs font-bold text-amber-200">
                   🏕️ キャンプネーム変更
                 </button>
+                <button type="button" onclick="toggleLineFuriganaForm()"
+                  class="dwc-spring-press px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-xs font-bold text-emerald-200">
+                  💬 LINE名・フリガナ変更
+                </button>
                 <button type="button" onclick="toggleEmailChangeForm()"
                   class="dwc-spring-press px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-xs font-bold text-sky-200">
                   ✉️ メールアドレス変更
@@ -685,6 +711,29 @@
               <div class="flex gap-2">
                 <button id="btn-camp-name-save" type="submit" class="dwc-spring-press flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold text-sm shadow-xs">保存</button>
                 <button type="button" onclick="toggleCampNameForm(false)" class="px-4 py-2.5 rounded-xl bg-white/15 text-white font-semibold text-sm transition">キャンセル</button>
+              </div>
+            </form>
+
+            <!-- 改修1: LINE表示名・フリガナ変更フォーム -->
+            <form id="profile-line-furigana-form" onsubmit="handleUpdateMyLineAndFurigana(event)" class="hidden space-y-2.5 pt-1 bg-slate-950/60 p-3 rounded-2xl ring-1 ring-white/15">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label for="profile-line-name-input" class="block text-[11px] font-bold text-emerald-200 mb-1">💬 LINEの表示名（シフト投票突合用）</label>
+                  <input id="profile-line-name-input" type="text" maxlength="40" placeholder="現在のLINEの名前"
+                    class="w-full rounded-xl border border-white/30 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-400" />
+                </div>
+                <div>
+                  <label for="profile-furigana-input" class="block text-[11px] font-bold text-sky-200 mb-1">📖 フリガナ（検索用）</label>
+                  <input id="profile-furigana-input" type="text" maxlength="40" placeholder="例: どうししゃ たろう"
+                    class="w-full rounded-xl border border-white/30 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-400" />
+                </div>
+              </div>
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <span class="text-[10px] text-slate-300">※LINEの名前を変えた場合もここからいつでも更新できます</span>
+                <div class="flex gap-2 ml-auto">
+                  <button id="btn-line-furigana-save" type="submit" class="dwc-spring-press px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold text-xs shadow-xs">保存</button>
+                  <button type="button" onclick="toggleLineFuriganaForm(false)" class="px-3.5 py-2 rounded-xl bg-white/15 text-white font-semibold text-xs transition">キャンセル</button>
+                </div>
               </div>
             </form>
 
@@ -772,7 +821,7 @@
             </button>
             <div class="relative flex-1">
               <input id="calendar-search-input" type="search" oninput="renderShiftCalendarCards()"
-                placeholder="🔍 日程・メンバー名で検索..."
+                placeholder="🔍 日程・氏名・ふりがな・LINE名・キャンプネームで検索..."
                 class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-xs focus:bg-white focus:border-brand-500 focus:outline-none" />
             </div>
           </div>
@@ -798,6 +847,11 @@
           </div>
 
           <form id="shift-report-form" onsubmit="handleSubmitShiftReport(event)" class="space-y-6">
+            <!-- 改修3: 食券代などの後日追加請求に関する1行案内 -->
+            <div class="bg-sky-50/90 border border-sky-200/80 rounded-xl px-3.5 py-2.5 text-[11px] sm:text-xs font-semibold text-sky-950 leading-relaxed">
+              💡 食券代などを後から追加請求したいだけの場合は、シフト枠で<strong>『⚠️ 緊急・予定外業務』</strong>を選び、イレギュラー請求欄に入力して送信してください
+            </div>
+
             <!-- 業務日（シフト枠名プルダウン）・代表受取人 -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="min-w-0">
@@ -858,7 +912,7 @@
                   oninput="handleParticipantSearchInput()"
                   onfocus="handleParticipantSearchInput()"
                   onblur="hideSuggestListDelayed('participant-suggest-list')"
-                  placeholder="🔍 氏名や学年を入力してタップで即参加追加（例: 同志社 / 2回生）..."
+                  placeholder="🔍 氏名・ふりがな・LINE名・キャンプネーム・学年で即参加追加..."
                   class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs sm:text-sm focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
                 <div id="participant-suggest-list"
                   class="hidden absolute left-0 right-0 z-30 mt-1 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
@@ -972,6 +1026,28 @@
               ↻ 更新
             </button>
           </div>
+
+          <!-- 改修2: 2026年9月以前の活動実績・集計ルールについての説明アコーディオン -->
+          <details class="group bg-amber-50/70 ring-1 ring-amber-200/80 rounded-2xl px-3.5 py-2.5 text-xs">
+            <summary class="list-none flex items-center justify-between gap-2 cursor-pointer select-none font-bold text-amber-950 text-[11px] sm:text-xs">
+              <span>ℹ️ 2026年9月以前の活動実績・集計ルールについて（タップで開く）</span>
+              <span class="text-amber-600 transition-transform group-open:rotate-180 shrink-0">▼</span>
+            </summary>
+            <div class="mt-2.5 pt-2.5 border-t border-amber-200/70 space-y-2 text-[11px] sm:text-xs text-slate-700 leading-relaxed">
+              <div>
+                <span class="font-extrabold text-slate-900">① なぜ2026年9月1日からの集計なのか：</span>
+                旧体制（2026年8月以前）はシフト予定と実際の参加・代打・欠席の正確な突合データが残っておらず、全員を同じ基準で公平に算出することが困難だったため、新システム稼働後の<strong>2026年9月1日以降の業務完了報告分</strong>からを公式集計対象としています。
+              </div>
+              <div>
+                <span class="font-extrabold text-slate-900">② 9月以前の功労メンバーへのリスペクト：</span>
+                2026年8月以前にシフトの穴埋めや業務を積極的に支えてくれた<strong>3回生</strong>には、感謝の証として<strong>特別称号・功労バッジ🎖️</strong>を授与しています。<strong>2回生</strong>の皆さんがこれまでたくさん貢献してくれたことももちろん把握していますが、これから業務やサークル活動を担う中心は2回生であり、今後のさらなる活躍への期待も込めて、その活躍の後に改めて授与させていただきます！
+              </div>
+              <div>
+                <span class="font-extrabold text-slate-900">③ 役職者のカウントについて：</span>
+                幹部・役職者もシステム上は完了報告に伴い自動加算されますが、表彰や優遇は<strong>一般部員の貢献を最優先</strong>としています。
+              </div>
+            </div>
+          </details>
 
           <!-- 改修10: 学年別切り替えピルタブ（5種・初期選択 [🏆 総合（現役）]） -->
           <div id="leaderboard-grade-tabs" class="flex flex-wrap items-center gap-1.5 bg-slate-100/90 p-1.5 rounded-2xl">
@@ -1590,7 +1666,7 @@
                     oninput="handleShiftEditSearchInput()"
                     onfocus="handleShiftEditSearchInput()"
                     onblur="hideSuggestListDelayed('shift-edit-suggest-list')"
-                    placeholder="🔍 氏名・学年を入力してタップで選択..."
+                    placeholder="🔍 氏名・ふりがな・LINE名・キャンプネーム・学年で検索..."
                     class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-xs focus:bg-white focus:border-brand-500 focus:outline-none" />
                   <div id="shift-edit-suggest-list"
                     class="hidden absolute left-0 right-0 z-30 mt-1 max-h-56 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
@@ -1669,7 +1745,7 @@
                     oninput="handlePenaltyUserSearchInput()"
                     onfocus="handlePenaltyUserSearchInput()"
                     onblur="hideSuggestListDelayed('ctrl-penalty-suggest-list')"
-                    placeholder="🔍 氏名・学年を入力してタップで選択..."
+                    placeholder="🔍 氏名・ふりがな・LINE名・キャンプネーム・学年で検索..."
                     class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-brand-500 focus:outline-none" />
                   <div id="ctrl-penalty-suggest-list"
                     class="hidden absolute left-0 right-0 z-30 mt-1 max-h-56 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
@@ -1836,7 +1912,7 @@
 
               <input id="ctrl-badge-user-search" type="search" autocomplete="off"
                 oninput="handleBadgeUserSearchInput()"
-                placeholder="🔍 氏名・学年で絞り込み検索..."
+                placeholder="🔍 氏名・ふりがな・LINE名・キャンプネーム・学年で絞り込み検索..."
                 class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-brand-500 focus:outline-none" />
             </div>
 
@@ -1907,7 +1983,7 @@
                     oninput="handleRoleUserSearchInput()"
                     onfocus="handleRoleUserSearchInput()"
                     onblur="hideSuggestListDelayed('ctrl-role-suggest-list')"
-                    placeholder="🔍 氏名・学年を入力してタップで選択..."
+                    placeholder="🔍 氏名・ふりがな・LINE名・キャンプネーム・学年で検索..."
                     class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-brand-500 focus:outline-none" />
                   <div id="ctrl-role-suggest-list"
                     class="hidden absolute left-0 right-0 z-30 mt-1 max-h-56 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
@@ -3135,7 +3211,7 @@
           <div class="rounded-2xl bg-black/45 border border-amber-400/35 p-2.5">
             <div class="text-orange-300 mb-0.5">🚀 ③ ラスト3秒！限界うちわ連打ラッシュ</div>
             <div class="text-[11px] text-amber-50/95 leading-relaxed">
-              薪をすべてくべたら「3・2・1」の合図で3秒間の限界うちわ連打！1タップごとに火力が<span class="text-yellow-300">+3%ずつ爆伸び</span>して銀河へ到達！
+              薪をすべてくべたら「3・2・1」の合図で3秒間の限界うちわ連打！<span class="text-yellow-300">🔥 限界連打でパワー増幅！！</span>して銀河へ到達！
             </div>
           </div>
         </div>
@@ -5000,6 +5076,8 @@
         this.holdTimer = null;
         this.holdProgress = 0;
         this.pointerGuardTimer = null;
+        this.ambientBgmNodes = null;
+        this.ambientBgmStopTimer = null;
 
         this.init();
       }
@@ -5028,6 +5106,8 @@
           name: String(m.name || '名称未設定').trim(),
           grade: String(m.grade || '').trim(),
           camp_name: String(m.camp_name || m.name || '').trim(),
+          furigana: String(m.furigana || '').trim(),
+          line_name: String(m.line_name || '').trim(),
           isFallback: !usingReal
         }));
       }
@@ -5065,6 +5145,8 @@
               name: String(u.name).trim(),
               camp_name: String(u.camp_name || u.name).trim(),
               grade: String(u.grade || '').trim(),
+              furigana: String(u.furigana || '').trim(),
+              line_name: String(u.line_name || '').trim(),
               isFallback: false
             };
           }
@@ -5079,6 +5161,8 @@
           name: firstMember.name,
           camp_name: firstMember.camp_name,
           grade: firstMember.grade,
+          furigana: firstMember.furigana || '',
+          line_name: firstMember.line_name || '',
           isGuest: false,
           isFallback: false
         }];
@@ -5247,6 +5331,200 @@
           btn.textContent = this.soundEnabled ? '🔊' : '🔇';
         }
         if (this.soundEnabled) this.playSound('tap');
+        this.syncAmbientBgmState();
+      }
+
+      // ========================================================================
+      // 改修5: Web Audio API プログラム生成アンビエントBGM（深い霧と風の音＋ゴシックパイプオルガン持続和音）
+      // ========================================================================
+      shouldPlayAmbientBgm() {
+        if (!this.soundEnabled) return false;
+        if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return false;
+        const tabGame = document.getElementById('tab-game');
+        const tabWerewolf = document.getElementById('tab-werewolf');
+        if (!tabGame || tabGame.classList.contains('hidden')) return false;
+        if (!tabWerewolf || tabWerewolf.classList.contains('hidden')) return false;
+
+        if (
+          this.currentView === this.VIEWS.TITLE ||
+          this.currentView === this.VIEWS.ENTRY ||
+          this.currentView === this.VIEWS.SETUP
+        ) {
+          return true;
+        }
+        if (
+          (this.currentView === this.VIEWS.PASS_LOCK || this.currentView === this.VIEWS.PLAYER_ACTION) &&
+          this.game &&
+          this.game.phase === 'NIGHT'
+        ) {
+          return true;
+        }
+        return false;
+      }
+
+      startAmbientBgm() {
+        if (!this.shouldPlayAmbientBgm()) return;
+        try {
+          if (!this.audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+            this.audioCtx = new AudioContextClass();
+          }
+          const ctx = this.audioCtx;
+          if (ctx.state === 'suspended') {
+            ctx.resume().catch(() => {});
+          }
+
+          if (this.ambientBgmStopTimer) {
+            clearTimeout(this.ambientBgmStopTimer);
+            this.ambientBgmStopTimer = null;
+          }
+
+          // すでに再生中の場合はマスターゲインを復帰させて継続
+          if (this.ambientBgmNodes && this.ambientBgmNodes.masterGain) {
+            const now = ctx.currentTime;
+            const mg = this.ambientBgmNodes.masterGain.gain;
+            mg.cancelScheduledValues(now);
+            mg.setValueAtTime(Math.max(0.0001, mg.value || 0.0001), now);
+            mg.linearRampToValueAtTime(1.0, now + 0.8);
+            return;
+          }
+
+          const now = ctx.currentTime;
+          const masterGain = ctx.createGain();
+          masterGain.gain.setValueAtTime(0.0001, now);
+          masterGain.gain.linearRampToValueAtTime(1.0, now + 1.4);
+          masterGain.connect(ctx.destination);
+
+          // ① 深い霧と風の音（ブラウン／ピンクノイズ ＋ 低域ローパスフィルタ 180Hz〜420Hz LFO変調）
+          const sampleRate = ctx.sampleRate || 44100;
+          const bufferLen = sampleRate * 4;
+          const noiseBuffer = ctx.createBuffer(1, bufferLen, sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          let lastOut = 0.0;
+          for (let i = 0; i < bufferLen; i++) {
+            const white = Math.random() * 2 - 1;
+            lastOut = (lastOut + (0.025 * white)) / 1.025;
+            output[i] = lastOut * 2.8;
+          }
+
+          const noiseSource = ctx.createBufferSource();
+          noiseSource.buffer = noiseBuffer;
+          noiseSource.loop = true;
+
+          const windFilter = ctx.createBiquadFilter();
+          windFilter.type = 'lowpass';
+          windFilter.frequency.setValueAtTime(300, now);
+          windFilter.Q.setValueAtTime(1.8, now);
+
+          const windLfo = ctx.createOscillator();
+          const windLfoGain = ctx.createGain();
+          windLfo.type = 'sine';
+          windLfo.frequency.setValueAtTime(0.12, now); // 約8.3秒周期でゆっくりうねる霧と風
+          windLfoGain.gain.setValueAtTime(120, now);   // 300Hz ± 120Hz = 180Hz〜420Hz
+          windLfo.connect(windLfoGain);
+          windLfoGain.connect(windFilter.frequency);
+
+          const windGain = ctx.createGain();
+          windGain.gain.setValueAtTime(0.032, now);
+
+          noiseSource.connect(windFilter);
+          windFilter.connect(windGain);
+          windGain.connect(masterGain);
+
+          noiseSource.start(now);
+          windLfo.start(now);
+
+          // ② ゴシック・パイプオルガン風持続和音（Dマイナー: D2=73.42Hz, A2=110.00Hz, D3=146.83Hz, F3=174.61Hz）
+          const organFilter = ctx.createBiquadFilter();
+          organFilter.type = 'lowpass';
+          organFilter.frequency.setValueAtTime(480, now);
+
+          const organBusGain = ctx.createGain();
+          organBusGain.gain.setValueAtTime(0.022, now); // 全体として控えめなドローン音量
+          organFilter.connect(organBusGain);
+          organBusGain.connect(masterGain);
+
+          const chordNotes = [
+            { freq: 73.42, type: 'triangle', weight: 0.36 }, // D2
+            { freq: 110.00, type: 'sine', weight: 0.26 },    // A2
+            { freq: 146.83, type: 'triangle', weight: 0.22 },// D3
+            { freq: 174.61, type: 'sine', weight: 0.16 }     // F3
+          ];
+          const organOscillators = [];
+
+          chordNotes.forEach((n, idx) => {
+            const osc = ctx.createOscillator();
+            const voiceGain = ctx.createGain();
+            osc.type = n.type;
+            osc.frequency.setValueAtTime(n.freq, now);
+            osc.detune.setValueAtTime((idx % 2 === 0 ? -3.5 : 3.5), now);
+            voiceGain.gain.setValueAtTime(n.weight, now);
+            osc.connect(voiceGain);
+            voiceGain.connect(organFilter);
+            osc.start(now);
+            organOscillators.push(osc);
+          });
+
+          this.ambientBgmNodes = {
+            masterGain,
+            noiseSource,
+            windLfo,
+            organOscillators
+          };
+        } catch (e) {
+          // Ignore Web Audio API errors on restricted browsers
+        }
+      }
+
+      stopAmbientBgm(immediate = false) {
+        if (!this.ambientBgmNodes) return;
+        const nodes = this.ambientBgmNodes;
+        if (this.ambientBgmStopTimer) {
+          clearTimeout(this.ambientBgmStopTimer);
+          this.ambientBgmStopTimer = null;
+        }
+
+        const cleanupNodes = () => {
+          try { nodes.noiseSource.stop(); } catch (e) {}
+          try { nodes.windLfo.stop(); } catch (e) {}
+          if (Array.isArray(nodes.organOscillators)) {
+            nodes.organOscillators.forEach(osc => {
+              try { osc.stop(); } catch (e) {}
+            });
+          }
+          try { nodes.masterGain.disconnect(); } catch (e) {}
+          if (this.ambientBgmNodes === nodes) {
+            this.ambientBgmNodes = null;
+          }
+        };
+
+        if (immediate || !this.audioCtx) {
+          cleanupNodes();
+          return;
+        }
+
+        try {
+          const now = this.audioCtx.currentTime;
+          const mg = nodes.masterGain.gain;
+          mg.cancelScheduledValues(now);
+          mg.setValueAtTime(Math.max(0.0001, mg.value || 0.0001), now);
+          mg.linearRampToValueAtTime(0.0001, now + 0.35);
+          this.ambientBgmStopTimer = setTimeout(() => {
+            this.ambientBgmStopTimer = null;
+            cleanupNodes();
+          }, 380);
+        } catch (e) {
+          cleanupNodes();
+        }
+      }
+
+      syncAmbientBgmState() {
+        if (this.shouldPlayAmbientBgm()) {
+          this.startAmbientBgm();
+        } else {
+          this.stopAmbientBgm(false);
+        }
       }
 
       // Switch Mansion Background (Night vs Morning) with WebP/PNG + ./assets & ./asset + CSS/SVG Fallback
@@ -5491,7 +5769,24 @@
       // 3. メンバー名簿連動・サジェスト検索・学年フィルター・座席順ソート ロジック
       // ========================================================================
       normalizeSearchText(str) {
-        return String(str || '').replace(/[\s　]+/g, '').toLowerCase();
+        return String(str || '')
+          .replace(/[\u30a1-\u30f6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60))
+          .replace(/[\s\u3000]+/g, '')
+          .toLowerCase();
+      }
+
+      scoreRosterSearchMatch(m, q) {
+        if (!q) return 1;
+        const fields = [
+          this.normalizeSearchText(m.name),
+          this.normalizeSearchText(m.furigana),
+          this.normalizeSearchText(m.line_name),
+          this.normalizeSearchText(m.camp_name),
+          this.normalizeSearchText(m.grade)
+        ].filter(Boolean);
+        if (fields.some(f => f === q || f.startsWith(q))) return 2; // 前方一致優先
+        if (fields.some(f => f.includes(q))) return 1;             // 部分一致
+        return 0;
       }
 
       setGradeFilter(grade) {
@@ -5504,17 +5799,18 @@
       getFilteredRosterSuggestions() {
         const q = this.normalizeSearchText(this.searchQuery);
         const gf = this.gradeFilter || 'all';
-        const matches = this.roster.filter(m => {
+        const scored = [];
+        this.roster.forEach((m, idx) => {
           if (gf !== 'all' && !String(m.grade || '').includes(gf)) {
-            return false;
+            return;
           }
-          if (!q) return true;
-          const hayName = this.normalizeSearchText(m.name);
-          const hayCamp = this.normalizeSearchText(m.camp_name);
-          const hayGrade = this.normalizeSearchText(m.grade);
-          return hayName.includes(q) || hayCamp.includes(q) || hayGrade.includes(q);
+          const score = this.scoreRosterSearchMatch(m, q);
+          if (score > 0) {
+            scored.push({ member: m, score, idx });
+          }
         });
-        return matches.slice(0, 200);
+        scored.sort((a, b) => (b.score - a.score) || (a.idx - b.idx));
+        return scored.slice(0, 200).map(item => item.member);
       }
 
       isRosterMemberAdded(rosterId) {
@@ -5552,19 +5848,33 @@
         } else {
           html += suggestions.map(m => {
             const added = this.isRosterMemberAdded(m.rosterId);
+            const hasCamp = Boolean(m.camp_name && m.camp_name !== m.name);
+            const subBadges = [];
+            if (m.line_name) {
+              subBadges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-700/60 text-[10px] text-emerald-300">💬 LINE: ${this.escapeHtml(m.line_name)}</span>`);
+            }
+            if (hasCamp) {
+              subBadges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-700/60 text-[10px] text-amber-300">🏕️ ${this.escapeHtml(m.camp_name)}</span>`);
+            }
+            if (m.furigana) {
+              subBadges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-900/90 border border-zinc-700 text-[10px] text-slate-300">📖 ${this.escapeHtml(m.furigana)}</span>`);
+            }
             return `
               <button
                 type="button"
                 ${added ? 'disabled' : `onclick="window.dwcWerewolfApp.addParticipantFromRoster('${m.rosterId}')"`}
-                class="w-full text-left px-3 py-2 border-b border-zinc-800/80 flex items-center justify-between transition ${
+                class="w-full text-left px-3 py-2 border-b border-zinc-800/80 flex items-center justify-between gap-2 transition ${
                   added ? 'bg-zinc-900/40 opacity-50 cursor-not-allowed' : 'hover:bg-amber-950/40 active:bg-amber-900/50'
                 }"
               >
-                <div class="min-w-0 pr-2">
-                  <div class="text-xs font-serif font-bold text-amber-100 truncate">
-                    ${this.escapeHtml(m.camp_name)} <span class="text-slate-400 font-normal">（${this.escapeHtml(m.name)}）</span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-xs font-serif font-bold text-amber-100 truncate">
+                      ${this.escapeHtml(m.name)}
+                    </span>
+                    <span class="text-[10px] text-amber-400/90 font-serif">(${this.escapeHtml(m.grade || 'メンバー')})</span>
                   </div>
-                  <div class="text-[10px] text-amber-500/90">${this.escapeHtml(m.grade || 'メンバー')}</div>
+                  ${subBadges.length > 0 ? `<div class="mt-0.5 flex flex-wrap items-center gap-1">${subBadges.join('')}</div>` : ''}
                 </div>
                 ${added
                   ? '<span class="shrink-0 px-2 py-0.5 rounded bg-zinc-800 border border-zinc-600 text-[10px] text-slate-400">参加済</span>'
@@ -5596,6 +5906,8 @@
           name: member.name,
           camp_name: member.camp_name || member.name,
           grade: member.grade,
+          furigana: member.furigana || '',
+          line_name: member.line_name || '',
           isGuest: false
         });
         // Keep this.searchQuery & this.gradeFilter intact so users can continuously tap-add multiple members!
@@ -7660,7 +7972,7 @@
                       oninput="window.dwcWerewolfApp.handleSearchInput(this.value)"
                       onfocus="window.dwcWerewolfApp.handleSearchInput(this.value)"
                       onkeydown="if(event.key==='Enter'){event.preventDefault(); window.dwcWerewolfApp.addGuestParticipant();}"
-                      placeholder="本名・キャンプネーム・学年で検索 / ゲスト名入力..."
+                      placeholder="本名・ふりがな・LINE名・キャンプネームで検索 / ゲスト名..."
                       class="w-full px-3 py-2 rounded-lg bg-black/80 border border-amber-600/70 text-xs text-amber-100 placeholder-slate-500 focus:outline-none focus:border-amber-400"
                     />
                   </div>
@@ -9462,6 +9774,8 @@
         if (wwRoot && this.currentView !== this.VIEWS.ENTRY) {
           wwRoot.scrollTop = 0;
         }
+
+        this.syncAmbientBgmState();
       }
     }
 
@@ -9469,6 +9783,25 @@
       const initWerewolf = () => {
         if (!window.dwcWerewolfApp) {
           window.dwcWerewolfApp = new DwcWerewolfGame();
+        }
+        const wwRoot = document.getElementById('tab-werewolf');
+        if (wwRoot && !wwRoot.__dwcBgmGestureBound) {
+          wwRoot.__dwcBgmGestureBound = true;
+          const handleGesture = () => {
+            if (window.dwcWerewolfApp) {
+              window.dwcWerewolfApp.syncAmbientBgmState();
+            }
+          };
+          wwRoot.addEventListener('pointerdown', handleGesture, { passive: true });
+          wwRoot.addEventListener('touchstart', handleGesture, { passive: true });
+        }
+        if (!document.__dwcWerewolfVisBound) {
+          document.__dwcWerewolfVisBound = true;
+          document.addEventListener('visibilitychange', () => {
+            if (window.dwcWerewolfApp) {
+              window.dwcWerewolfApp.syncAmbientBgmState();
+            }
+          });
         }
       };
       if (document.readyState === 'loading') {
@@ -12357,7 +12690,7 @@
           this.state.mode = "cutin_pause";
           this.openStepCoachModal({
             badge: "🔥 最終局面｜限界うちわ連打ラッシュ！",
-            html: "🪵すべての薪をくべ終えたケロ！最後は<b>【🔥3秒間の限界うちわ連打ラッシュ】</b>！1回叩くごとに火力が<b>＋3%ずつ爆伸び</b>する最終局面だ！指が釣るまで連打しまくるケロ〜！！（タップでカウントダウン開始▸）",
+            html: "🪵すべての薪をくべ終えたケロ！最後は<b>【🔥3秒間の限界うちわ連打ラッシュ】</b>！叩くほど火力が<b>🔥 限界連打でパワー増幅！！</b>する最終局面だ！指が釣るまで連打しまくるケロ〜！！（タップでカウントダウン開始▸）",
             btnLabel: "タップでカウントダウン開始 ▸",
             targets: [this.els.rushDeckPanel, this.els.btnStoke],
             pointerTarget: this.els.btnStoke,
@@ -12405,22 +12738,32 @@
         this.state.mode = "final_rush";
         this.state.rushTimeLeft = 3.0;
         this.state.rushTapCount = 0;
+        this.state.rushBoostMult = 1.0;
 
-        this.els.rushTimerText.textContent = "残り 3.00 秒 ｜ 0 連打！";
+        this.els.rushTimerText.textContent = "残り 3.00 秒 ｜ 0 連打！ (×1.00倍)";
         this.els.rushBar.style.width = "100%";
 
         this.els.btnStoke.className =
           "wc-arcade-btn w-full py-3.5 sm:py-4 rounded-3xl bg-gradient-to-b from-yellow-200 via-amber-400 to-red-600 border-4 border-white shadow-[0_0_28px_rgba(250,204,21,0.9)] text-center";
-        this.els.btnStokeLabel.textContent = "🪭 うちわ連打ァァァ！！ (+3%UP!)";
+        this.els.btnStokeLabel.textContent = "🔥 限界連打でパワー増幅！！ (×1.00倍!)";
       }
 
       handleFinalRushTap() {
         if (this.state.mode !== "final_rush" || this.state.rushTimeLeft <= 0) return;
         this.state.rushTapCount += 1;
 
-        this.state.firepower = Number((this.state.firepower * 1.03 + 350 * this.state.qualityQ).toFixed(2));
+        // 改修4: 1タップあたりの上昇率が滑らかに減衰する幾何級数モデル
+        const tapGainRate = Math.max(0.0015, 0.032 * Math.pow(0.965, this.state.rushTapCount - 1));
+        this.state.rushBoostMult = (this.state.rushBoostMult || 1.0) * (1 + tapGainRate);
+        const multLabel = "×" + this.state.rushBoostMult.toFixed(2) + "倍!";
+
+        this.state.firepower = Number((this.state.firepower * (1 + tapGainRate) + 350 * this.state.qualityQ).toFixed(2));
         this.state.stokeImpactTimer = 0.22;
         this.triggerKcalBounce();
+
+        if (this.els.btnStokeLabel) {
+          this.els.btnStokeLabel.textContent = `🔥 限界連打でパワー増幅！！ (${multLabel})`;
+        }
 
         this.playSound("rush_fan", { tap: this.state.rushTapCount });
         this.spawnWindWave(true);
@@ -12433,7 +12776,7 @@
           this.spawnShockwave("#fde047");
         }
         this.spawnFloatingText(
-          "🪭 " + this.state.rushTapCount + "連打!! 火力+3%UP!",
+          `🪭 ${this.state.rushTapCount}連打!! 総ブースト ${multLabel}`,
           "text-yellow-200",
           "text-lg sm:text-xl"
         );
@@ -13686,7 +14029,8 @@
           this.state.rushTimeLeft = Math.max(0, this.state.rushTimeLeft - dt);
           const pct = (this.state.rushTimeLeft / 3.0) * 100;
           this.els.rushBar.style.width = `${pct.toFixed(1)}%`;
-          this.els.rushTimerText.textContent = `残り ${this.state.rushTimeLeft.toFixed(2)} 秒 ｜ ${this.state.rushTapCount} 連打！`;
+          const multStr = (this.state.rushBoostMult || 1.0).toFixed(2);
+          this.els.rushTimerText.textContent = `残り ${this.state.rushTimeLeft.toFixed(2)} 秒 ｜ ${this.state.rushTapCount} 連打！ (×${multStr}倍)`;
 
           if (this.state.rushTimeLeft <= 0) {
             this.endFinalRush();
@@ -15544,6 +15888,75 @@
       return String(str || '').replace(/[\s\u3000]+/g, '');
     }
 
+    /**
+     * 検索用文字列正規化ヘルパー:
+     * NFKC正規化（全角英数・半角カナ統一）➔ カタカナをひらがなへ変換 ➔ 空白除去 ➔ 小文字化
+     */
+    function normalizeSearchKey(str) {
+      return String(str || '')
+        .normalize('NFKC')
+        .replace(/[\u30a1-\u30f6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60))
+        .replace(/[\s\u3000]+/g, '')
+        .toLowerCase();
+    }
+
+    /**
+     * メンバーオブジェクトに対して検索クエリのマッチ度スコアを返す
+     * 0: 不一致 / 1: 部分一致 / 2: 前方一致 / 3: 完全一致
+     */
+    function scoreMemberSearchMatch(member, normQuery) {
+      if (!member) return 0;
+      const q = normQuery || '';
+      if (!q) return 1;
+      const fields = [
+        normalizeSearchKey(member.name),
+        normalizeSearchKey(member.furigana),
+        normalizeSearchKey(member.line_name || member.lineName),
+        normalizeSearchKey(member.camp_name || member.campName),
+        normalizeSearchKey(member.grade)
+      ].filter(Boolean);
+
+      let best = 0;
+      for (let i = 0; i < fields.length; i++) {
+        const f = fields[i];
+        if (f === q) {
+          return 3;
+        }
+        if (f.startsWith(q)) {
+          if (best < 2) best = 2;
+        } else if (f.includes(q)) {
+          if (best < 1) best = 1;
+        }
+      }
+      return best;
+    }
+
+    /**
+     * スマホ（幅375px）でも絶対に横はみ出し・文字潰れしない「2段組スリム表示」の2段目サブバッジHTMLを生成
+     */
+    function renderMemberSubBadgesRowHtml(member, extraBadgesHtml = '') {
+      if (!member) return extraBadgesHtml || '';
+      const lineName = String(member.line_name || member.lineName || '').trim();
+      const campName = String(member.camp_name || member.campName || '').trim();
+      const furigana = String(member.furigana || '').trim();
+
+      const chips = [];
+      if (lineName) {
+        chips.push(`<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-bold leading-none max-w-[145px] truncate">💬 LINE: ${escapeHtml(lineName)}</span>`);
+      }
+      if (campName) {
+        chips.push(`<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200/80 text-[10px] font-bold leading-none max-w-[130px] truncate">🏕️ ${escapeHtml(campName)}</span>`);
+      }
+      if (furigana) {
+        chips.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-medium leading-none max-w-[140px] truncate">📖 ${escapeHtml(furigana)}</span>`);
+      }
+      if (extraBadgesHtml) {
+        chips.push(extraBadgesHtml);
+      }
+      if (chips.length === 0) return '';
+      return `<div class="flex flex-wrap items-center gap-1 mt-1 min-w-0">${chips.join('')}</div>`;
+    }
+
     function getTodayDateString() {
       const d = new Date();
       const yyyy = d.getFullYear();
@@ -15662,6 +16075,8 @@
         userId: String(u.email || u.name || 'guest_user'),
         email: u.email || '',
         name: u.name || '',
+        furigana: u.furigana || '',
+        lineName: u.line_name || '',
         campName: String(u.camp_name || u.name || 'たきびまる'),
         workCount: Math.max(0, Number(u.reward_points || 0)),
         role: u.role || 'Member',
@@ -15755,6 +16170,10 @@
       if (werewolfEl) werewolfEl.classList.add('hidden');
       if (loungeEl) loungeEl.classList.remove('hidden');
 
+      if (window.dwcWerewolfApp && typeof window.dwcWerewolfApp.syncAmbientBgmState === 'function') {
+        window.dwcWerewolfApp.syncAmbientBgmState();
+      }
+
       const inst = document.querySelector('#tab-game')?.__wcGameInstance;
       if (inst && typeof inst.renderCareerStats === 'function') {
         inst.renderCareerStats();
@@ -15791,10 +16210,16 @@
           if (typeof window.dwcWerewolfApp.render === 'function') {
             window.dwcWerewolfApp.render();
           }
+          if (typeof window.dwcWerewolfApp.syncAmbientBgmState === 'function') {
+            window.dwcWerewolfApp.syncAmbientBgmState();
+          }
         }
       } else if (gameKey === 'campfire') {
         if (werewolfEl) werewolfEl.classList.add('hidden');
         if (campfireEl) campfireEl.classList.remove('hidden');
+        if (window.dwcWerewolfApp && typeof window.dwcWerewolfApp.syncAmbientBgmState === 'function') {
+          window.dwcWerewolfApp.syncAmbientBgmState();
+        }
         const inst = document.querySelector('#tab-game')?.__wcGameInstance;
         if (inst) {
           inst.loadInitialUserData();
@@ -16275,6 +16700,10 @@
     async function handleSelfRegistration(event) {
       event.preventDefault();
       const name = document.getElementById('reg-name').value.trim();
+      const furiganaEl = document.getElementById('reg-furigana');
+      const lineNameEl = document.getElementById('reg-line-name');
+      const furigana = String(furiganaEl ? furiganaEl.value : '').trim();
+      const lineName = String(lineNameEl ? lineNameEl.value : '').trim();
       const grade = document.getElementById('reg-grade').value.trim();
       const laterChk = document.getElementById('reg-camp-name-later');
       const campInput = document.getElementById('reg-camp-name');
@@ -16282,6 +16711,16 @@
 
       if (!name || !grade) {
         showToast('氏名と学年を入力してください。', 'error');
+        return;
+      }
+      if (!furigana) {
+        showToast('フリガナを入力してください。', 'error');
+        if (furiganaEl) furiganaEl.focus();
+        return;
+      }
+      if (!lineName) {
+        showToast('LINEの表示名を入力してください。', 'error');
+        if (lineNameEl) lineNameEl.focus();
         return;
       }
 
@@ -16292,6 +16731,8 @@
       try {
         const updatedContext = await callGasRpc('registerNewUser', {
           name: name,
+          furigana: furigana,
+          line_name: lineName,
           grade: grade,
           camp_name: campName
         });
@@ -16669,6 +17110,7 @@
       drawer.classList.toggle('hidden', !show);
       if (!show) {
         toggleCampNameForm(false);
+        toggleLineFuriganaForm(false);
         toggleEmailChangeForm(false);
       }
     }
@@ -16691,6 +17133,21 @@
       if (campNameDisplay) {
         const cn = String(ctx.camp_name || '').trim();
         campNameDisplay.textContent = cn ? `🏕️ ${cn}` : '🏕️ キャンプネーム未設定';
+      }
+
+      // LINE表示名バッジ（設定済みの場合のみ表示）
+      const lineNameDisplay = document.getElementById('home-line-name-display');
+      if (lineNameDisplay) {
+        const ln = String(ctx.line_name || '').trim();
+        if (ln) {
+          lineNameDisplay.textContent = `💬 LINE: ${ln}`;
+          lineNameDisplay.classList.remove('hidden');
+          lineNameDisplay.classList.add('inline-flex');
+        } else {
+          lineNameDisplay.textContent = '';
+          lineNameDisplay.classList.add('hidden');
+          lineNameDisplay.classList.remove('inline-flex');
+        }
       }
 
       // 選択中の称号バッジ表示（ダーク会員証パス上のプレミアム配色）
@@ -16979,12 +17436,91 @@
         const savedName = (res && res.camp_name !== undefined) ? res.camp_name : campName;
         if (APP_STATE.user) {
           APP_STATE.user.camp_name = savedName;
+          const myNorm = normalizeNameClient(APP_STATE.user.name);
+          const myEmail = String(APP_STATE.user.email || '').trim().toLowerCase();
+          if (Array.isArray(APP_STATE.usersList)) {
+            APP_STATE.usersList.forEach(u => {
+              if (!u) return;
+              if ((myEmail && String(u.email || '').trim().toLowerCase() === myEmail) || (myNorm && normalizeNameClient(u.name) === myNorm)) {
+                u.camp_name = savedName;
+              }
+            });
+          }
         }
         renderHomeView(APP_STATE.user);
         toggleCampNameForm(false);
         showToast(savedName ? `キャンプネームを「${savedName}」に設定しました！` : 'キャンプネームをクリアしました。', 'success');
       } catch (err) {
         showToast(err.message || 'キャンプネームの更新に失敗しました。', 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+        hideLoader();
+      }
+    }
+
+    /**
+     * LINE表示名・フリガナの編集フォーム開閉
+     */
+    function toggleLineFuriganaForm(forceState) {
+      const form = document.getElementById('profile-line-furigana-form');
+      const lineInput = document.getElementById('profile-line-name-input');
+      const furiInput = document.getElementById('profile-furigana-input');
+      const drawer = document.getElementById('home-pass-settings-drawer');
+      if (!form) return;
+      const show = typeof forceState === 'boolean' ? forceState : form.classList.contains('hidden');
+      if (show && drawer) drawer.classList.remove('hidden');
+      form.classList.toggle('hidden', !show);
+      if (show) {
+        if (lineInput) lineInput.value = (APP_STATE.user && APP_STATE.user.line_name) ? APP_STATE.user.line_name : '';
+        if (furiInput) furiInput.value = (APP_STATE.user && APP_STATE.user.furigana) ? APP_STATE.user.furigana : '';
+        if (lineInput) lineInput.focus();
+      }
+    }
+
+    /**
+     * LINE表示名・フリガナの保存（updateMyProfile）
+     */
+    async function handleUpdateMyLineAndFurigana(event) {
+      event.preventDefault();
+      const lineInput = document.getElementById('profile-line-name-input');
+      const furiInput = document.getElementById('profile-furigana-input');
+      const lineName = String(lineInput ? lineInput.value : '').trim();
+      const furigana = String(furiInput ? furiInput.value : '').trim();
+
+      const btn = document.getElementById('btn-profile-line-furigana-save');
+      if (btn) btn.disabled = true;
+      showLoader('LINE表示名・フリガナを保存しています...');
+      try {
+        const res = await callGasRpc('updateMyProfile', {
+          line_name: lineName,
+          furigana: furigana
+        });
+        const savedLine = (res && res.line_name !== undefined) ? res.line_name : lineName;
+        const savedFuri = (res && res.furigana !== undefined) ? res.furigana : furigana;
+
+        if (APP_STATE.user) {
+          APP_STATE.user.line_name = savedLine;
+          APP_STATE.user.furigana = savedFuri;
+          const myNorm = normalizeNameClient(APP_STATE.user.name);
+          const myEmail = String(APP_STATE.user.email || '').trim().toLowerCase();
+          if (Array.isArray(APP_STATE.usersList)) {
+            APP_STATE.usersList.forEach(u => {
+              if (!u) return;
+              if ((myEmail && String(u.email || '').trim().toLowerCase() === myEmail) || (myNorm && normalizeNameClient(u.name) === myNorm)) {
+                u.line_name = savedLine;
+                u.furigana = savedFuri;
+              }
+            });
+          }
+          try {
+            localStorage.setItem(CACHED_BOOTSTRAP_KEY, JSON.stringify(APP_STATE.user));
+          } catch (_) {}
+        }
+        renderHomeView(APP_STATE.user);
+        toggleLineFuriganaForm(false);
+        showToast('LINE表示名・フリガナを保存しました！', 'success');
+      } catch (err) {
+        showToast(err.message || 'プロフィールの更新に失敗しました。', 'error');
       } finally {
         if (btn) btn.disabled = false;
         hideLoader();
@@ -17120,8 +17656,16 @@
       }
 
       const myNorm = normalizeNameClient(APP_STATE.user ? APP_STATE.user.name : '');
-      const keyword = normalizeNameClient(searchInput ? searchInput.value.toLowerCase() : '');
+      const normQuery = normalizeSearchKey(searchInput ? searchInput.value : '');
       const filterMine = Boolean(APP_STATE.calendarFilterMine);
+
+      // 名簿マップ（氏名 -> ユーザーオブジェクト）を構築し、ふりがな・LINE名・キャンプネーム・学年でもシフト表を検索可能にする
+      const rosterByNormName = new Map();
+      (APP_STATE.usersList || []).forEach(u => {
+        if (u && u.name) {
+          rosterByNormName.set(normalizeNameClient(u.name), u);
+        }
+      });
 
       let visibleCount = 0;
       const cardsHtml = rows.map(r => {
@@ -17132,9 +17676,13 @@
         if (filterMine && !hasMe) {
           return '';
         }
-        if (keyword) {
-          const slotMatch = normalizeNameClient(slot.toLowerCase()).includes(keyword);
-          const memberMatch = members.some(m => normalizeNameClient(m.toLowerCase()).includes(keyword));
+        if (normQuery) {
+          const slotMatch = normalizeSearchKey(slot).includes(normQuery);
+          const memberMatch = members.some(m => {
+            if (normalizeSearchKey(m).includes(normQuery)) return true;
+            const uObj = rosterByNormName.get(normalizeNameClient(m));
+            return uObj ? scoreMemberSearchMatch(uObj, normQuery) > 0 : false;
+          });
           if (!slotMatch && !memberMatch) {
             return '';
           }
@@ -17373,6 +17921,9 @@
 
       // ゲーム以外のタブへ移動した場合は必ずフルスクリーンモードを解除し、#main-header も通常通り復帰させる
       if (tabName !== 'game') {
+        if (window.dwcWerewolfApp && typeof window.dwcWerewolfApp.syncAmbientBgmState === 'function') {
+          window.dwcWerewolfApp.syncAmbientBgmState();
+        }
         if (typeof window.setDwcAppFullscreen === 'function') {
           window.setDwcAppFullscreen(false);
         }
@@ -17563,7 +18114,10 @@
           const isPlanned = plannedNormSet.has(normalizeNameClient(user.name));
           const row = document.createElement('div');
           row.className = 'participant-row py-2.5 px-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2';
-          row.dataset.memberName = user.name;
+          row.dataset.memberName = user.name || '';
+          row.dataset.memberFurigana = user.furigana || '';
+          row.dataset.memberLineName = user.line_name || '';
+          row.dataset.memberCampName = user.camp_name || '';
           row.dataset.memberGrade = gradeKey;
           row.dataset.groupIdx = String(groupIdx);
 
@@ -17574,6 +18128,8 @@
           const pendingRoleBadge = user.role === 'Member (要確認)'
             ? '<span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded bg-orange-50 text-orange-700 border border-orange-200">要確認</span>'
             : '';
+
+          const subBadgesHtml = renderMemberSubBadgesRowHtml(user);
 
           const absenceControlsHtml = isPlanned
             ? `
@@ -17596,7 +18152,7 @@
             : '';
 
           row.innerHTML = `
-            <label class="flex items-center gap-2.5 cursor-pointer select-none flex-1 min-w-0">
+            <label class="flex items-start sm:items-center gap-2.5 cursor-pointer select-none flex-1 min-w-0">
               <input type="checkbox"
                 id="chk-member-${globalIdx}"
                 data-name="${escapeHtml(user.name)}"
@@ -17605,10 +18161,15 @@
                 data-planned="${isPlanned ? 'true' : 'false'}"
                 ${isPlanned ? 'checked' : ''}
                 onchange="handleParticipantToggle(${globalIdx})"
-                class="participant-checkbox w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
-              <span class="text-sm font-semibold text-slate-800 truncate">${escapeHtml(user.name)}</span>
-              ${plannedBadge}
-              ${pendingRoleBadge}
+                class="participant-checkbox mt-0.5 sm:mt-0 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 shrink-0" />
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center flex-wrap gap-1 min-w-0">
+                  <span class="text-sm font-semibold text-slate-800 truncate">${escapeHtml(user.name)}</span>
+                  ${plannedBadge}
+                  ${pendingRoleBadge}
+                </div>
+                ${subBadgesHtml}
+              </div>
             </label>
 
             <div id="route-controls-${globalIdx}" class="${isPlanned ? 'flex' : 'hidden'} flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto pl-6 sm:pl-0">
@@ -17806,9 +18367,8 @@
       const listEl = document.getElementById('participant-suggest-list');
       if (!inputEl || !listEl) return;
 
-      const rawKeyword = inputEl.value.trim().toLowerCase();
-      const normKeyword = normalizeNameClient(rawKeyword);
-      if (!rawKeyword) {
+      const normKeyword = normalizeSearchKey(inputEl.value);
+      if (!normKeyword) {
         listEl.classList.add('hidden');
         listEl.innerHTML = '';
         return;
@@ -17818,13 +18378,13 @@
       APP_STATE.usersList.forEach((u, globalIdx) => {
         const gradeKey = String(u.grade || '').trim();
         if (!ALLOWED_SHIFT_REPORT_GRADES.includes(gradeKey)) return;
-        const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
-        const gradeNorm = normalizeNameClient(gradeKey.toLowerCase());
-        if (nameNorm.includes(normKeyword) || gradeNorm.includes(normKeyword)) {
-          matched.push({ user: u, globalIdx: globalIdx });
+        const score = scoreMemberSearchMatch(u, normKeyword);
+        if (score > 0) {
+          matched.push({ user: u, globalIdx: globalIdx, score: score });
         }
       });
 
+      matched.sort((a, b) => b.score - a.score || a.globalIdx - b.globalIdx);
       const topMatched = matched.slice(0, 25);
       if (topMatched.length === 0) {
         listEl.innerHTML = '<div class="px-3.5 py-2.5 text-xs text-slate-400">該当する1〜4回生メンバーが見つかりません。</div>';
@@ -17838,13 +18398,17 @@
         const statusBadge = isChecked
           ? '<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold text-[10px]">✓ 参加選択済</span>'
           : '<span class="px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-bold text-[10px]">＋ 参加に追加</span>';
+        const subRowHtml = renderMemberSubBadgesRowHtml(user);
         return `
           <button type="button"
             onmousedown="event.preventDefault(); selectSuggestedParticipant(${globalIdx})"
-            class="w-full px-3.5 py-2.5 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
-            <div class="min-w-0 flex items-center gap-2 flex-wrap">
-              <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(user.name)}</span>
-              <span class="text-[11px] text-slate-500">(${escapeHtml(user.grade || '')})</span>
+            class="w-full px-3.5 py-2 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-xs sm:text-sm font-bold text-slate-900 truncate">${escapeHtml(user.name)}</span>
+                <span class="shrink-0 px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">${escapeHtml(user.grade || '')}</span>
+              </div>
+              ${subRowHtml}
             </div>
             <div class="shrink-0">${statusBadge}</div>
           </button>
@@ -17884,8 +18448,8 @@
      * 検索フィルタ入力時に該当メンバーを絞り込み＆該当アコーディオンを自動展開
      */
     function filterParticipantRows() {
-      const keyword = normalizeNameClient(
-        document.getElementById('participant-search').value.toLowerCase()
+      const keyword = normalizeSearchKey(
+        (document.getElementById('participant-search') || {}).value || ''
       );
       const accordions = document.querySelectorAll('.grade-accordion');
 
@@ -17894,9 +18458,19 @@
         let visibleCount = 0;
 
         rows.forEach(row => {
-          const nameNorm = normalizeNameClient((row.dataset.memberName || '').toLowerCase());
-          const gradeNorm = normalizeNameClient((row.dataset.memberGrade || '').toLowerCase());
-          if (!keyword || nameNorm.includes(keyword) || gradeNorm.includes(keyword)) {
+          const nameNorm = normalizeSearchKey(row.dataset.memberName || '');
+          const furiNorm = normalizeSearchKey(row.dataset.memberFurigana || '');
+          const lineNorm = normalizeSearchKey(row.dataset.memberLineName || '');
+          const campNorm = normalizeSearchKey(row.dataset.memberCampName || '');
+          const gradeNorm = normalizeSearchKey(row.dataset.memberGrade || '');
+          if (
+            !keyword ||
+            nameNorm.includes(keyword) ||
+            furiNorm.includes(keyword) ||
+            lineNorm.includes(keyword) ||
+            campNorm.includes(keyword) ||
+            gradeNorm.includes(keyword)
+          ) {
             row.classList.remove('hidden');
             visibleCount++;
           } else {
@@ -19226,29 +19800,52 @@
         card.className = 'border border-amber-200 bg-amber-50/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
         const txId = String(item.transaction_id || '');
         const payId = String(item.payment_id || '----');
+        const safeTxId = escapeHtml(txId.replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+        const rawRemarks = String(item.remarks || '');
+
+        // remarks 内の「報告者: 〇〇 (メール)」を抽出してヘッダーバッジとして明示
+        let reporterDisplay = '';
+        const repMatch = rawRemarks.match(/報告者:\s*([^|\n\r]+?)(?:\s*\(([^)]+)\))?(?:\s*$|\s*\|)/);
+        if (repMatch) {
+          const repName = String(repMatch[1] || '').trim();
+          const repEmail = String(repMatch[2] || '').trim();
+          reporterDisplay = repName || repEmail || '';
+        }
+
+        const reporterBadgeHtml = reporterDisplay
+          ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-800 border border-indigo-200 font-extrabold text-[11px]">📝 報告送信者: ${escapeHtml(reporterDisplay)}</span>`
+          : '';
 
         card.innerHTML = `
-          <div class="space-y-1">
+          <div class="space-y-1.5 min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
               <span class="px-2.5 py-0.5 rounded-md bg-brand-600 text-white font-extrabold text-xs tracking-wider">照合番号: ${escapeHtml(payId)}</span>
               <span class="text-xs font-bold text-slate-600">${escapeHtml(item.date)}</span>
               <span class="text-xs font-semibold text-slate-500">受取代表: <strong class="text-slate-800">${escapeHtml(item.target_person)}</strong></span>
+              ${reporterBadgeHtml}
             </div>
-            <div class="text-xs text-slate-700 font-medium">${escapeHtml(item.description)}</div>
-            <div class="text-[11px] text-slate-500">${escapeHtml(item.remarks || '')}</div>
+            <div class="text-xs text-slate-700 font-medium break-words">${escapeHtml(item.description)}</div>
+            <div class="text-[11px] text-slate-500 break-words">${escapeHtml(rawRemarks)}</div>
           </div>
 
-          <div class="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-amber-200/60">
-            <div class="text-lg font-extrabold text-slate-900">¥${Number(item.amount || 0).toLocaleString()}</div>
-            <div class="flex items-center gap-1.5">
+          <div class="flex flex-col sm:items-end justify-between gap-2 shrink-0 border-t sm:border-t-0 pt-2.5 sm:pt-0 border-amber-200/60">
+            <div class="flex items-center justify-between sm:justify-end w-full gap-2">
+              <span class="text-[11px] font-bold text-slate-500 sm:hidden">精算金額</span>
+              <div class="text-lg font-extrabold text-slate-900">¥${Number(item.amount || 0).toLocaleString()}</div>
+            </div>
+            <div class="flex flex-wrap items-center justify-end gap-1.5 w-full sm:w-auto">
               <select id="approve-acc-${escapeHtml(txId)}" class="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-semibold text-slate-700">
                 <option value="PayPay" ${item.source_account === 'PayPay' ? 'selected' : ''}>PayPay</option>
                 <option value="サークル口座" ${item.source_account === 'サークル口座' ? 'selected' : ''}>サークル口座</option>
                 <option value="現金" ${item.source_account === '現金' ? 'selected' : ''}>現金</option>
               </select>
-              <button type="button" onclick="handleApprovePayment('${escapeHtml(txId)}')"
+              <button type="button" onclick="handleApprovePayment('${safeTxId}')"
                 class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition">
                 承認・送金完了
+              </button>
+              <button type="button" onclick="handleRejectPendingReport('${safeTxId}')"
+                class="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs shadow-2xs transition">
+                🗑️ 誤報告を取消・差し戻し
               </button>
             </div>
           </div>
@@ -19326,6 +19923,52 @@
         await window.loadAdminDashboard();
       } catch (err) {
         showToast(err.message || '承認処理に失敗しました。', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+
+    /**
+     * 誤報告の取消・差し戻し（ロールバック）実行 (rejectPendingShiftReport)
+     */
+    async function handleRejectPendingReport(txId) {
+      if (!txId) return;
+      const confirmed = window.confirm(
+        'この報告を取り消し、参加回数・優先カウント・シフト枠を報告前の状態へ戻しますか？'
+      );
+      if (!confirmed) return;
+
+      showLoader('誤報告の取消・ロールバックを実行しています...');
+      try {
+        const res = await callGasRpc('rejectPendingShiftReport', {
+          transactionId: txId
+        });
+
+        // シフト枠リスト・名簿・カレンダーキャッシュを最新化
+        const [latestSlots, latestUsers] = await Promise.all([
+          callGasRpc('getShiftSlotNames').catch(() => null),
+          callGasRpc('getUsers').catch(() => null)
+        ]);
+        if (Array.isArray(latestSlots)) {
+          APP_STATE.shiftSlotNames = latestSlots;
+          populateShiftSlotSelector();
+        }
+        if (Array.isArray(latestUsers)) {
+          APP_STATE.usersList = latestUsers;
+          renderGradeAccordionParticipants();
+        }
+        APP_STATE.calendarData = null;
+
+        const restoredSlotMsg = res && res.restored_slot
+          ? `（シフト枠「${res.restored_slot}」を復元しました）`
+          : '';
+        showToast(
+          `照合番号 ${res && res.payment_id ? res.payment_id : ''} の報告を取り消し、元の状態へ差し戻しました！${restoredSlotMsg}`,
+          'success'
+        );
+        await window.loadAdminDashboard();
+      } catch (err) {
+        showToast(err.message || '誤報告の取消・差し戻しに失敗しました。', 'error');
       } finally {
         hideLoader();
       }
@@ -19704,7 +20347,7 @@
             oninput="handleLotterySuggestInput(${blockId})"
             onfocus="handleLotterySuggestInput(${blockId})"
             onblur="hideLotterySuggestListDelayed(${blockId})"
-            placeholder="名前や学年を入力してクリックで追加（例: 同志社 / 2回生）..."
+            placeholder="名前・ふりがな・LINE名・キャンプネーム・学年で検索..."
             class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs sm:text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none" />
 
           <!-- サジェスト候補プルダウンリスト -->
@@ -19772,10 +20415,9 @@
       const textareaEl = document.getElementById(`lottery-candidates-${blockId}`);
       if (!inputEl || !listEl) return;
 
-      const rawKeyword = inputEl.value.trim().toLowerCase();
-      const normKeyword = normalizeNameClient(rawKeyword);
+      const normKeyword = normalizeSearchKey(inputEl.value);
 
-      if (!rawKeyword) {
+      if (!normKeyword) {
         listEl.classList.add('hidden');
         listEl.innerHTML = '';
         return;
@@ -19787,13 +20429,15 @@
         .filter(Boolean);
       const alreadyAddedSet = new Set(currentLines);
 
-      const matched = APP_STATE.usersList
-        .filter(u => {
-          const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
-          const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
-          return nameNorm.includes(normKeyword) || gradeNorm.includes(normKeyword);
-        })
-        .slice(0, 25);
+      const scored = [];
+      (APP_STATE.usersList || []).forEach((u, idx) => {
+        const score = scoreMemberSearchMatch(u, normKeyword);
+        if (score > 0) {
+          scored.push({ user: u, score: score, idx: idx });
+        }
+      });
+      scored.sort((a, b) => b.score - a.score || a.idx - b.idx);
+      const matched = scored.slice(0, 25).map(item => item.user);
 
       if (matched.length === 0) {
         listEl.innerHTML = `
@@ -19814,23 +20458,26 @@
 
           const penaltyBadge =
             penaltyCount > 0
-              ? `<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-extrabold text-[10px]">次回優先カウント ${penaltyCount}</span>`
+              ? `<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-extrabold text-[10px]">次回優先 ${penaltyCount}</span>`
               : '';
+          const countBadge = `<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-semibold">累計:${rewardCount}回</span>`;
           const addedBadge = isAdded
             ? `<span class="px-2 py-0.5 rounded bg-slate-200 text-slate-600 font-bold text-[10px]">追加済</span>`
             : `<span class="px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-bold text-[10px]">＋ 追加</span>`;
 
           const safeJsName = escapeHtml(String(u.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+          const subRowHtml = renderMemberSubBadgesRowHtml(u, `${penaltyBadge}${countBadge}`);
 
           return `
             <button type="button"
               onmousedown="event.preventDefault(); insertSuggestedMemberToBlock(${blockId}, '${safeJsName}')"
-              class="w-full px-3.5 py-2.5 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
-              <div class="min-w-0 flex items-center gap-2 flex-wrap">
-                <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(u.name)}</span>
-                <span class="text-[11px] text-slate-500">(${escapeHtml(u.grade || '未設定')})</span>
-                ${penaltyBadge}
-                <span class="text-[11px] text-slate-400">累計参加: ${rewardCount}回</span>
+              class="w-full px-3.5 py-2 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="text-xs sm:text-sm font-bold text-slate-900 truncate">${escapeHtml(u.name)}</span>
+                  <span class="shrink-0 px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">${escapeHtml(u.grade || '未設定')}</span>
+                </div>
+                ${subRowHtml}
               </div>
               <div class="shrink-0">${addedBadge}</div>
             </button>
@@ -20327,20 +20974,27 @@
       if (!selectEl) return;
 
       const prevVal = selectEl.value;
-      const keyword = normalizeNameClient(searchEl ? searchEl.value.toLowerCase() : '');
+      const normKeyword = normalizeSearchKey(searchEl ? searchEl.value : '');
       const currentNormSet = new Set(SHIFT_EDIT_CURRENT_MEMBERS.map(n => normalizeNameClient(n)));
 
       selectEl.innerHTML = '<option value="">-- 追加するメンバーを選択 --</option>';
-      APP_STATE.usersList.forEach(u => {
+      const candidates = [];
+      APP_STATE.usersList.forEach((u, idx) => {
         if (currentNormSet.has(normalizeNameClient(u.name))) return;
-        const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
-        const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
-        if (keyword && !nameNorm.includes(keyword) && !gradeNorm.includes(keyword)) return;
+        const score = normKeyword ? scoreMemberSearchMatch(u, normKeyword) : 1;
+        if (normKeyword && score <= 0) return;
+        candidates.push({ user: u, score: score, idx: idx });
+      });
+      if (normKeyword) {
+        candidates.sort((a, b) => b.score - a.score || a.idx - b.idx);
+      }
 
+      candidates.forEach(({ user: u }) => {
         const opt = document.createElement('option');
         opt.value = u.name;
         const pCount = Number(u.penalty_points || 0);
-        opt.textContent = `${u.name} (${u.grade || '未設定'}) — 参加:${Number(u.reward_points || 0)}回 / 次回優先カウント:${pCount}回`;
+        const linePart = u.line_name ? ` [LINE:${u.line_name}]` : '';
+        opt.textContent = `${u.name} (${u.grade || '未設定'})${linePart} — 参加:${Number(u.reward_points || 0)}回 / 次回優先カウント:${pCount}回`;
         selectEl.appendChild(opt);
       });
 
@@ -20358,23 +21012,24 @@
       const listEl = document.getElementById('shift-edit-suggest-list');
       if (!inputEl || !listEl) return;
 
-      const rawKeyword = inputEl.value.trim().toLowerCase();
-      const normKeyword = normalizeNameClient(rawKeyword);
-      if (!rawKeyword) {
+      const normKeyword = normalizeSearchKey(inputEl.value);
+      if (!normKeyword) {
         listEl.classList.add('hidden');
         listEl.innerHTML = '';
         return;
       }
 
       const currentNormSet = new Set(SHIFT_EDIT_CURRENT_MEMBERS.map(n => normalizeNameClient(n)));
-      const matched = APP_STATE.usersList
-        .filter(u => {
-          if (currentNormSet.has(normalizeNameClient(u.name))) return false;
-          const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
-          const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
-          return nameNorm.includes(normKeyword) || gradeNorm.includes(normKeyword);
-        })
-        .slice(0, 25);
+      const scored = [];
+      (APP_STATE.usersList || []).forEach((u, idx) => {
+        if (currentNormSet.has(normalizeNameClient(u.name))) return;
+        const score = scoreMemberSearchMatch(u, normKeyword);
+        if (score > 0) {
+          scored.push({ user: u, score: score, idx: idx });
+        }
+      });
+      scored.sort((a, b) => b.score - a.score || a.idx - b.idx);
+      const matched = scored.slice(0, 25).map(item => item.user);
 
       if (matched.length === 0) {
         listEl.innerHTML = '<div class="px-3.5 py-2.5 text-xs text-slate-400">追加可能な該当メンバーが見つかりません。</div>';
@@ -20389,15 +21044,18 @@
         const pBadge = pCount > 0
           ? `<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-extrabold text-[10px]">次回優先 ${pCount}</span>`
           : '';
+        const rBadge = `<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-semibold">参加:${rCount}回</span>`;
+        const subRowHtml = renderMemberSubBadgesRowHtml(u, `${pBadge}${rBadge}`);
         return `
           <button type="button"
             onmousedown="event.preventDefault(); selectShiftEditSuggestedMember('${safeJsName}')"
-            class="w-full px-3.5 py-2.5 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
-            <div class="min-w-0 flex items-center gap-2 flex-wrap">
-              <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(u.name)}</span>
-              <span class="text-[11px] text-slate-500">(${escapeHtml(u.grade || '未設定')})</span>
-              ${pBadge}
-              <span class="text-[11px] text-slate-400">参加:${rCount}回</span>
+            class="w-full px-3.5 py-2 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-xs sm:text-sm font-bold text-slate-900 truncate">${escapeHtml(u.name)}</span>
+                <span class="shrink-0 px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">${escapeHtml(u.grade || '未設定')}</span>
+              </div>
+              ${subRowHtml}
             </div>
             <span class="shrink-0 px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-bold text-[10px]">選択</span>
           </button>
@@ -20718,18 +21376,25 @@
       if (!selectEl) return;
 
       const prevVal = selectEl.value;
-      const keyword = normalizeNameClient(searchEl ? searchEl.value.toLowerCase() : '');
+      const normKeyword = normalizeSearchKey(searchEl ? searchEl.value : '');
       selectEl.innerHTML = '<option value="">-- 名簿からメンバーを選択 --</option>';
 
+      const candidates = [];
       APP_STATE.usersList.forEach((u, idx) => {
-        const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
-        const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
-        if (keyword && !nameNorm.includes(keyword) && !gradeNorm.includes(keyword)) return;
+        const score = normKeyword ? scoreMemberSearchMatch(u, normKeyword) : 1;
+        if (normKeyword && score <= 0) return;
+        candidates.push({ user: u, idx: idx, score: score });
+      });
+      if (normKeyword) {
+        candidates.sort((a, b) => b.score - a.score || a.idx - b.idx);
+      }
 
+      candidates.forEach(({ user: u, idx }) => {
         const opt = document.createElement('option');
         opt.value = String(idx);
         const roleLabel = roleDisplayName(u.role);
-        opt.textContent = `[${roleLabel}] ${u.name} (${u.grade || '未設定'}) ${u.email ? '- ' + u.email : ''}`;
+        const linePart = u.line_name ? ` [LINE:${u.line_name}]` : '';
+        opt.textContent = `[${roleLabel}] ${u.name} (${u.grade || '未設定'})${linePart} ${u.email ? '- ' + u.email : ''}`;
         selectEl.appendChild(opt);
       });
 
@@ -20744,9 +21409,8 @@
       const listEl = document.getElementById('ctrl-role-suggest-list');
       if (!inputEl || !listEl) return;
 
-      const rawKeyword = inputEl.value.trim().toLowerCase();
-      const normKeyword = normalizeNameClient(rawKeyword);
-      if (!rawKeyword) {
+      const normKeyword = normalizeSearchKey(inputEl.value);
+      if (!normKeyword) {
         listEl.classList.add('hidden');
         listEl.innerHTML = '';
         return;
@@ -20754,13 +21418,13 @@
 
       const matched = [];
       APP_STATE.usersList.forEach((u, idx) => {
-        const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
-        const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
-        if (nameNorm.includes(normKeyword) || gradeNorm.includes(normKeyword)) {
-          matched.push({ user: u, idx: idx });
+        const score = scoreMemberSearchMatch(u, normKeyword);
+        if (score > 0) {
+          matched.push({ user: u, idx: idx, score: score });
         }
       });
 
+      matched.sort((a, b) => b.score - a.score || a.idx - b.idx);
       const topMatched = matched.slice(0, 25);
       if (topMatched.length === 0) {
         listEl.innerHTML = '<div class="px-3.5 py-2.5 text-xs text-slate-400">該当するメンバーが見つかりません。</div>';
@@ -20770,14 +21434,18 @@
 
       listEl.innerHTML = topMatched.map(({ user, idx }) => {
         const roleLabel = roleDisplayName(user.role);
+        const subRowHtml = renderMemberSubBadgesRowHtml(user);
         return `
           <button type="button"
             onmousedown="event.preventDefault(); selectSuggestedRoleUser(${idx})"
-            class="w-full px-3.5 py-2.5 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
-            <div class="min-w-0 flex items-center gap-2 flex-wrap">
-              <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px]">${escapeHtml(roleLabel)}</span>
-              <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(user.name)}</span>
-              <span class="text-[11px] text-slate-500">(${escapeHtml(user.grade || '未設定')})</span>
+            class="w-full px-3.5 py-2 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="shrink-0 px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px]">${escapeHtml(roleLabel)}</span>
+                <span class="text-xs sm:text-sm font-bold text-slate-900 truncate">${escapeHtml(user.name)}</span>
+                <span class="shrink-0 px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">${escapeHtml(user.grade || '未設定')}</span>
+              </div>
+              ${subRowHtml}
             </div>
             <span class="shrink-0 px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-bold text-[10px]">選択</span>
           </button>
@@ -20808,18 +21476,25 @@
       if (!penaltySelectEl) return;
 
       const prevVal = penaltySelectEl.value;
-      const keyword = normalizeNameClient(searchEl ? searchEl.value.toLowerCase() : '');
+      const normKeyword = normalizeSearchKey(searchEl ? searchEl.value : '');
       penaltySelectEl.innerHTML = '<option value="">-- 名簿からメンバーを選択 --</option>';
 
+      const candidates = [];
       APP_STATE.usersList.forEach((u, idx) => {
-        const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
-        const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
-        if (keyword && !nameNorm.includes(keyword) && !gradeNorm.includes(keyword)) return;
+        const score = normKeyword ? scoreMemberSearchMatch(u, normKeyword) : 1;
+        if (normKeyword && score <= 0) return;
+        candidates.push({ user: u, idx: idx, score: score });
+      });
+      if (normKeyword) {
+        candidates.sort((a, b) => b.score - a.score || a.idx - b.idx);
+      }
 
+      candidates.forEach(({ user: u, idx }) => {
         const pOpt = document.createElement('option');
         pOpt.value = String(idx);
         const pCount = Number(u.penalty_points || 0);
-        pOpt.textContent = `${u.name} (${u.grade || '未設定'}) — 次回優先カウント: ${pCount} 回`;
+        const linePart = u.line_name ? ` [LINE:${u.line_name}]` : '';
+        pOpt.textContent = `${u.name} (${u.grade || '未設定'})${linePart} — 次回優先カウント: ${pCount} 回`;
         penaltySelectEl.appendChild(pOpt);
       });
 
@@ -20835,9 +21510,8 @@
       const listEl = document.getElementById('ctrl-penalty-suggest-list');
       if (!inputEl || !listEl) return;
 
-      const rawKeyword = inputEl.value.trim().toLowerCase();
-      const normKeyword = normalizeNameClient(rawKeyword);
-      if (!rawKeyword) {
+      const normKeyword = normalizeSearchKey(inputEl.value);
+      if (!normKeyword) {
         listEl.classList.add('hidden');
         listEl.innerHTML = '';
         return;
@@ -20845,13 +21519,13 @@
 
       const matched = [];
       APP_STATE.usersList.forEach((u, idx) => {
-        const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
-        const gradeNorm = normalizeNameClient(String(u.grade || '').toLowerCase());
-        if (nameNorm.includes(normKeyword) || gradeNorm.includes(normKeyword)) {
-          matched.push({ user: u, idx: idx });
+        const score = scoreMemberSearchMatch(u, normKeyword);
+        if (score > 0) {
+          matched.push({ user: u, idx: idx, score: score });
         }
       });
 
+      matched.sort((a, b) => b.score - a.score || a.idx - b.idx);
       const topMatched = matched.slice(0, 25);
       if (topMatched.length === 0) {
         listEl.innerHTML = '<div class="px-3.5 py-2.5 text-xs text-slate-400">該当するメンバーが見つかりません。</div>';
@@ -20861,14 +21535,18 @@
 
       listEl.innerHTML = topMatched.map(({ user, idx }) => {
         const pCount = Number(user.penalty_points || 0);
+        const pBadge = `<span class="px-1.5 py-0.5 rounded ${pCount > 0 ? 'bg-rose-100 text-rose-700 font-extrabold' : 'bg-slate-100 text-slate-600 font-semibold'} text-[10px]">次回優先:${pCount}回</span>`;
+        const subRowHtml = renderMemberSubBadgesRowHtml(user, pBadge);
         return `
           <button type="button"
             onmousedown="event.preventDefault(); selectSuggestedPenaltyUser(${idx})"
-            class="w-full px-3.5 py-2.5 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
-            <div class="min-w-0 flex items-center gap-2 flex-wrap">
-              <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(user.name)}</span>
-              <span class="text-[11px] text-slate-500">(${escapeHtml(user.grade || '未設定')})</span>
-              <span class="px-1.5 py-0.5 rounded ${pCount > 0 ? 'bg-rose-100 text-rose-700 font-extrabold' : 'bg-slate-100 text-slate-600 font-semibold'} text-[10px]">次回優先: ${pCount}回</span>
+            class="w-full px-3.5 py-2 text-left hover:bg-brand-50/80 flex items-center justify-between gap-2 transition">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-xs sm:text-sm font-bold text-slate-900 truncate">${escapeHtml(user.name)}</span>
+                <span class="shrink-0 px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">${escapeHtml(user.grade || '未設定')}</span>
+              </div>
+              ${subRowHtml}
             </div>
             <span class="shrink-0 px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-bold text-[10px]">選択</span>
           </button>
@@ -21177,7 +21855,7 @@
 
     function getFilteredBatchBadgeUsers() {
       const searchEl = document.getElementById('ctrl-badge-user-search');
-      const keyword = normalizeNameClient(searchEl ? searchEl.value.toLowerCase() : '');
+      const normKeyword = normalizeSearchKey(searchEl ? searchEl.value : '');
       const gradeFilter = BADGE_BATCH_GRADE_FILTER || 'ALL';
       const result = [];
 
@@ -21185,12 +21863,14 @@
         const uGrade = String(u.grade || '').trim();
         if (gradeFilter !== 'ALL' && uGrade !== gradeFilter) return;
 
-        const nameNorm = normalizeNameClient(String(u.name || '').toLowerCase());
-        const gradeNorm = normalizeNameClient(uGrade.toLowerCase());
-        if (keyword && !nameNorm.includes(keyword) && !gradeNorm.includes(keyword)) return;
+        const score = normKeyword ? scoreMemberSearchMatch(u, normKeyword) : 1;
+        if (normKeyword && score <= 0) return;
 
-        result.push({ user: u, idx: idx });
+        result.push({ user: u, idx: idx, score: score });
       });
+      if (normKeyword) {
+        result.sort((a, b) => b.score - a.score || a.idx - b.idx);
+      }
       return result;
     }
 
@@ -21251,20 +21931,26 @@
         const isChecked = BADGE_BATCH_SELECTED_INDICES.has(idx);
         const manualIds = getUserManualBadgeIds(user);
         const holdsSelected = Boolean(selectedBadgeId && manualIds.includes(selectedBadgeId));
+        const subRowHtml = renderMemberSubBadgesRowHtml(user);
 
         return `
-          <label class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg border cursor-pointer select-none transition ${
+          <label class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border cursor-pointer select-none transition ${
             isChecked
               ? 'bg-amber-50/90 border-amber-400 ring-1 ring-amber-300'
               : 'bg-slate-50/60 border-slate-200/80 hover:bg-amber-50/40'
           }">
-            <div class="flex items-center gap-2 min-w-0">
+            <div class="flex items-start gap-2 min-w-0 flex-1">
               <input type="checkbox"
                 ${isChecked ? 'checked' : ''}
                 onchange="toggleBatchBadgeMember(${idx}, this.checked)"
-                class="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 shrink-0" />
-              <span class="text-xs font-bold text-slate-900 truncate">${escapeHtml(user.name)}</span>
-              <span class="text-[10px] text-slate-500 shrink-0">(${escapeHtml(user.grade || '未設定')})</span>
+                class="mt-0.5 w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 shrink-0" />
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="text-xs font-bold text-slate-900 truncate">${escapeHtml(user.name)}</span>
+                  <span class="text-[10px] text-slate-500 shrink-0">(${escapeHtml(user.grade || '未設定')})</span>
+                </div>
+                ${subRowHtml}
+              </div>
             </div>
             <div class="shrink-0 flex items-center gap-1">
               ${
