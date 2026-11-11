@@ -693,7 +693,7 @@
                   class="dwc-spring-press px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-xs font-bold text-emerald-200">
                   💬 LINE名・フリガナ変更
                 </button>
-                <button type="button" onclick="toggleEmailChangeForm()"
+                <button id="btn-open-email-change" type="button" onclick="toggleEmailChangeForm()"
                   class="dwc-spring-press px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-xs font-bold text-sky-200">
                   ✉️ メールアドレス変更
                 </button>
@@ -2882,9 +2882,9 @@
             </div>
 
             <!-- 右側：重なる2枚のミニタロットカード（werewolf.webp & seer.webp + SVGフォールバック） -->
-            <div class="relative z-10 shrink-0 flex items-center justify-center w-28 sm:w-32 h-28 sm:h-32 pointer-events-none">
+            <div class="relative z-10 shrink-0 mr-2 flex items-center justify-center w-28 sm:w-32 h-28 sm:h-32 pointer-events-none">
               <!-- 奥：占い師 (seer) -->
-              <div class="w-16 sm:w-[70px] aspect-[3/4] -rotate-6 -translate-x-2.5 translate-y-1 rounded-lg border border-amber-500/75 bg-slate-950 shadow-xl overflow-hidden relative">
+              <div class="w-16 sm:w-[70px] aspect-[3/4] -rotate-6 -translate-x-3 translate-y-1 rounded-lg border border-amber-500/75 bg-slate-950 shadow-xl overflow-hidden relative">
                 <img
                   src="./assets/roles/seer.webp"
                   data-initial-src="./assets/roles/seer.webp"
@@ -2905,7 +2905,7 @@
               </div>
 
               <!-- 手前：人狼 (werewolf) -->
-              <div class="w-16 sm:w-[70px] aspect-[3/4] rotate-6 translate-x-2.5 -translate-y-1 rounded-lg border-2 border-amber-500/90 bg-slate-950 shadow-2xl overflow-hidden relative z-10">
+              <div class="w-16 sm:w-[70px] aspect-[3/4] rotate-6 translate-x-1 -translate-y-1 rounded-lg border-2 border-amber-500/90 bg-slate-950 shadow-2xl overflow-hidden relative z-10">
                 <img
                   src="./assets/roles/werewolf.webp"
                   data-initial-src="./assets/roles/werewolf.webp"
@@ -4460,13 +4460,32 @@
       animation: wc-ww-claw-slash 0.42s cubic-bezier(0.16, 1, 0.3, 1) 0.24s forwards;
     }
 
-    /* Keyframes: Fade & Scale In */
+    /* Keyframes: Fade & Scale In（暗闇からじわっと浮かび上がる漆黒フェード 0.55s） */
     @keyframes wc-ww-fade-up {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
     #tab-werewolf .wc-ww-fade-up {
-      animation: wc-ww-fade-up 0.32s ease-out forwards;
+      animation: wc-ww-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Keyframes: 勝利強奪（HIJACK）演出 — 打ち消し線 & 強奪テキストの浮上 */
+    @keyframes wc-ww-strike-line {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
+    #tab-werewolf .wc-ww-strike-line {
+      transform-origin: left center;
+      transform: scaleX(0);
+      animation: wc-ww-strike-line 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+    }
+    @keyframes wc-ww-hijack-rise {
+      from { opacity: 0; transform: translateY(14px) scale(0.94); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    #tab-werewolf .wc-ww-hijack-rise {
+      opacity: 0;
+      animation: wc-ww-hijack-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.6s forwards;
     }
 
     /* Keyframes: Floating Lantern / Fog Pulse */
@@ -4593,7 +4612,13 @@
           >狼</span>
         </div>
         <div class="min-w-0 flex-1 text-center px-1">
-          <h1 class="text-xs sm:text-sm font-serif font-bold text-amber-100 tracking-wider truncate">花背の洋館</h1>
+          <button
+            type="button"
+            id="wc-ww-header-title-btn"
+            onclick="window.dwcWerewolfApp.handleHeaderTitleTap()"
+            class="max-w-full text-xs sm:text-sm font-serif font-bold text-amber-100 tracking-wider truncate rounded px-1.5 py-0.5 active:scale-95 transition"
+            title="タップで表紙（タイトル）へ戻る"
+          >花背の洋館</button>
           <p id="wc-ww-header-subtitle" class="hidden text-[10px] text-amber-400/95 font-serif truncate leading-tight">第1日 | 生存 8/8名</p>
         </div>
         <div class="flex items-center gap-1 shrink-0">
@@ -4636,6 +4661,23 @@
 
   <!-- Encapsulated Application Logic: Single Class DwcWerewolfGame -->
   <script>
+    /**
+     * 共通除外ヘルパー: 共通管理者アカウント（dwc.manager.2025@gmail.com / DWC公式 / 管理者）および
+     * 卒業生・OB/OG・「管理者」学年のアカウントを判定する。
+     * ランキング・参加者選択・抽選・シフト編集・メンバー管理・人狼ゲーム名簿から完全除外するために使用する。
+     */
+    function isSystemOrNonActiveAccount(u) {
+      if (!u) return false;
+      const email = String(u.email || '').trim().toLowerCase();
+      const name = String(u.name || '').trim();
+      const grade = String(u.grade || '').trim();
+      if (email === 'dwc.manager.2025@gmail.com') return true;
+      if (name === 'DWC公式' || name === '初期管理者' || name === '管理者') return true;
+      if (/管理者|卒業|OB|OG/i.test(grade)) return true;
+      return false;
+    }
+    window.isSystemOrNonActiveAccount = isSystemOrNonActiveAccount;
+
     class DwcWerewolfGame {
       constructor() {
         // SPA Views (All 8 Required Views)
@@ -4644,6 +4686,7 @@
           ENTRY: 'VIEW_ENTRY',
           SETUP: 'VIEW_SETUP',
           PASS_LOCK: 'VIEW_PASS_LOCK',
+          GM_NOTICE: 'VIEW_GM_NOTICE',
           PLAYER_ACTION: 'VIEW_PLAYER_ACTION',
           MORNING: 'VIEW_MORNING',
           DAY_DISCUSSION: 'VIEW_DAY_DISCUSSION',
@@ -5078,6 +5121,11 @@
         this.pointerGuardTimer = null;
         this.ambientBgmNodes = null;
         this.ambientBgmStopTimer = null;
+        this.ambientChordTimer = null;
+        this.setupTeamTab = 'citizen';
+        this.ruleHelpOpen = false;
+        this.lastRenderedView = null;
+        this.playerMarkers = {};
 
         this.init();
       }
@@ -5093,6 +5141,7 @@
 
         const filteredActive = rawRoster.filter(m => {
           if (!m) return false;
+          if (isSystemOrNonActiveAccount(m)) return false;
           const g = String(m.grade || '').trim();
           return !/卒業|OB|OG/i.test(g);
         });
@@ -5139,7 +5188,7 @@
             (uNameNorm && this.normalizeSearchText(r.name) === uNameNorm) ||
             (uCampNorm && this.normalizeSearchText(r.camp_name) === uCampNorm)
           );
-          if (!firstMember && u.name && !/卒業|OB|OG/i.test(String(u.grade || ''))) {
+          if (!firstMember && u.name && !isSystemOrNonActiveAccount(u) && !/卒業|OB|OG/i.test(String(u.grade || ''))) {
             firstMember = {
               rosterId: 'roster_self',
               name: String(u.name).trim(),
@@ -5353,7 +5402,11 @@
           return true;
         }
         if (
-          (this.currentView === this.VIEWS.PASS_LOCK || this.currentView === this.VIEWS.PLAYER_ACTION) &&
+          (
+            this.currentView === this.VIEWS.PASS_LOCK ||
+            this.currentView === this.VIEWS.PLAYER_ACTION ||
+            this.currentView === this.VIEWS.GM_NOTICE
+          ) &&
           this.game &&
           this.game.phase === 'NIGHT'
         ) {
@@ -5425,7 +5478,7 @@
           windLfoGain.connect(windFilter.frequency);
 
           const windGain = ctx.createGain();
-          windGain.gain.setValueAtTime(0.075, now);
+          windGain.gain.setValueAtTime(0.12, now);
 
           noiseSource.connect(windFilter);
           windFilter.connect(windGain);
@@ -5451,34 +5504,112 @@
           organLfo.start(now);
 
           const organBusGain = ctx.createGain();
-          organBusGain.gain.setValueAtTime(0.085, now); // スマホでも明瞭に聴こえつつ会話を邪魔しない音量
+          organBusGain.gain.setValueAtTime(0.22, now); // スマホスピーカーで明瞭に響く大音量
           organFilter.connect(organBusGain);
           organBusGain.connect(masterGain);
 
-          // ニ短調（Dマイナー）のパイプオルガン重厚和音（低音ペダル＋スマホで聴こえる中音域パイプ）
-          const chordNotes = [
-            { freq: 73.42,  type: 'sawtooth', weight: 0.22 }, // D2 (低音ペダル)
-            { freq: 110.00, type: 'sawtooth', weight: 0.20 }, // A2
-            { freq: 146.83, type: 'sawtooth', weight: 0.24 }, // D3 (主音)
-            { freq: 174.61, type: 'triangle', weight: 0.22 }, // F3 (短三度)
-            { freq: 220.00, type: 'sawtooth', weight: 0.18 }, // A3 (五度・スマホ可聴域の核)
-            { freq: 293.66, type: 'triangle', weight: 0.15 }, // D4 (高音オクターブ管)
-            { freq: 349.23, type: 'sine',     weight: 0.10 }  // F4 (荘厳な倍音)
-          ];
-          const organOscillators = [organLfo];
+          // 旋律（高音パイプ）専用の経路: 三角波 ➔ ローパス(2600Hz) ➔ オルガンバス
+          const melodyFilter = ctx.createBiquadFilter();
+          melodyFilter.type = 'lowpass';
+          melodyFilter.frequency.setValueAtTime(2600, now);
+          melodyFilter.Q.setValueAtTime(0.7, now);
+          const melodyGain = ctx.createGain();
+          melodyGain.gain.setValueAtTime(0.0001, now);
+          const melodyOsc = ctx.createOscillator();
+          melodyOsc.type = 'triangle';
+          melodyOsc.frequency.setValueAtTime(587.33, now);
+          melodyOsc.connect(melodyGain);
+          melodyGain.connect(melodyFilter);
+          melodyFilter.connect(organBusGain);
+          melodyOsc.start(now);
 
-          chordNotes.forEach((n, idx) => {
+          // ゴシック・パイプオルガン鎮魂曲 4小節コード進行（3.6秒/小節）
+          //   第1小節 Dm / 第2小節 BbM7 / 第3小節 Gm6 / 第4小節 A7
+          const CHORD_BAR_SEC = 3.6;
+          const GLIDE_SEC = 0.4;
+          const progression = [
+            { chord: [73.42, 146.83, 174.61, 220.00, 293.66], melody: [587.33, 523.25] },
+            { chord: [58.27, 116.54, 174.61, 220.00, 293.66], melody: [466.16, 440.00] },
+            { chord: [98.00, 146.83, 196.00, 233.08, 329.63], melody: [392.00, 440.00] },
+            { chord: [55.00, 110.00, 164.81, 220.00, 277.18], melody: [349.23, 329.63] }
+          ];
+          const voiceDefs = [
+            { type: 'sawtooth', weight: 0.24 }, // 低音ペダル
+            { type: 'sawtooth', weight: 0.20 },
+            { type: 'sawtooth', weight: 0.20 },
+            { type: 'triangle', weight: 0.22 },
+            { type: 'triangle', weight: 0.18 }
+          ];
+          const organOscillators = [organLfo, melodyOsc];
+          const voiceOscs = [];
+
+          voiceDefs.forEach((def, idx) => {
             const osc = ctx.createOscillator();
             const voiceGain = ctx.createGain();
-            osc.type = n.type;
-            osc.frequency.setValueAtTime(n.freq, now);
+            osc.type = def.type;
+            osc.frequency.setValueAtTime(progression[0].chord[idx], now);
             osc.detune.setValueAtTime((idx % 2 === 0 ? -4.5 : 4.5), now);
-            voiceGain.gain.setValueAtTime(n.weight, now);
+            voiceGain.gain.setValueAtTime(def.weight, now);
             osc.connect(voiceGain);
             voiceGain.connect(organFilter);
             osc.start(now);
             organOscillators.push(osc);
+            voiceOscs.push(osc);
           });
+
+          // exponentialRampToValueAtTime による約0.4秒のポルタメント（クロスフェード）で和音を遷移
+          const glideTo = (param, target, t0, dur) => {
+            const cur = Math.max(0.0001, param.value || target);
+            param.cancelScheduledValues(t0);
+            param.setValueAtTime(cur, t0);
+            param.exponentialRampToValueAtTime(Math.max(0.0001, target), t0 + dur);
+          };
+
+          const applyChordStep = (barIndex, isFirst) => {
+            const step = progression[barIndex % progression.length];
+            const t0 = ctx.currentTime;
+            voiceOscs.forEach((osc, idx) => {
+              if (isFirst) {
+                osc.frequency.cancelScheduledValues(t0);
+                osc.frequency.setValueAtTime(step.chord[idx], t0);
+              } else {
+                glideTo(osc.frequency, step.chord[idx], t0, GLIDE_SEC);
+              }
+            });
+
+            // 旋律: 小節頭で1音目へ、小節の半分で2音目へ滑らかに移行
+            const mf = melodyOsc.frequency;
+            mf.cancelScheduledValues(t0);
+            if (isFirst) {
+              mf.setValueAtTime(step.melody[0], t0);
+            } else {
+              mf.setValueAtTime(Math.max(0.0001, mf.value || step.melody[0]), t0);
+              mf.exponentialRampToValueAtTime(step.melody[0], t0 + GLIDE_SEC);
+            }
+            mf.setValueAtTime(step.melody[0], t0 + CHORD_BAR_SEC / 2 - 0.1);
+            mf.exponentialRampToValueAtTime(step.melody[1], t0 + CHORD_BAR_SEC / 2 + 0.2);
+
+            // 旋律の音量エンベロープ（ゆるやかなクレッシェンド/デクレッシェンド）
+            const mg = melodyGain.gain;
+            mg.cancelScheduledValues(t0);
+            mg.setValueAtTime(Math.max(0.0001, mg.value || 0.0001), t0);
+            mg.linearRampToValueAtTime(0.5, t0 + 0.5);
+            mg.linearRampToValueAtTime(0.28, t0 + CHORD_BAR_SEC / 2 - 0.1);
+            mg.linearRampToValueAtTime(0.46, t0 + CHORD_BAR_SEC / 2 + 0.3);
+            mg.linearRampToValueAtTime(0.22, t0 + CHORD_BAR_SEC - 0.05);
+          };
+
+          let chordBarIndex = 0;
+          applyChordStep(chordBarIndex, true);
+          const ambientChordTimer = setInterval(() => {
+            chordBarIndex = (chordBarIndex + 1) % progression.length;
+            try {
+              applyChordStep(chordBarIndex, false);
+            } catch (e) {
+              // ignore scheduling errors
+            }
+          }, CHORD_BAR_SEC * 1000);
+          this.ambientChordTimer = ambientChordTimer;
 
           this.ambientBgmNodes = {
             masterGain,
@@ -5492,7 +5623,13 @@
       }
 
       stopAmbientBgm(immediate = false) {
-        if (!this.ambientBgmNodes) return;
+        if (!this.ambientBgmNodes) {
+          if (this.ambientChordTimer) {
+            clearInterval(this.ambientChordTimer);
+            this.ambientChordTimer = null;
+          }
+          return;
+        }
         const nodes = this.ambientBgmNodes;
         if (this.ambientBgmStopTimer) {
           clearTimeout(this.ambientBgmStopTimer);
@@ -5500,6 +5637,10 @@
         }
 
         const cleanupNodes = () => {
+          if (this.ambientChordTimer) {
+            clearInterval(this.ambientChordTimer);
+            this.ambientChordTimer = null;
+          }
           try { nodes.noiseSource.stop(); } catch (e) {}
           try { nodes.windLfo.stop(); } catch (e) {}
           if (Array.isArray(nodes.organOscillators)) {
@@ -6229,7 +6370,9 @@
           votes: {},               // voterId -> targetId
           voteRevealed: false,
           winnerInfo: null,        // { winningTeam, title, subtitle, winnerIds }
-          logs: []                 // Detailed audit logs for VIEW_RESULT
+          logs: [],                // Detailed audit logs for VIEW_RESULT
+          gmNoticeKind: null,      // 'NIGHT_START' | 'NIGHT_END' (VIEW_GM_NOTICE)
+          coMarkers: {}            // playerId -> [markerKey,...] (昼のCO・推理刻印マーカー)
         };
 
         this.beginNightPhase();
@@ -6305,8 +6448,89 @@
         }
 
         this.prepareCurrentNightPlayerTurn();
+        // 夜の開始時は、いきなり1人目のパスロックへ進まず「司会進行（GM）アナウンス画面」を挟む
+        g.gmNoticeKind = 'NIGHT_START';
+        this.currentView = this.VIEWS.GM_NOTICE;
+        this.render();
+      }
+
+      // ========================================================================
+      // 司会進行（GM）アナウンス画面（夜の開始時 / 全員の夜の行動完了直後）
+      // ========================================================================
+      proceedFromGmNotice() {
+        const g = this.game;
+        if (!g) return;
+        this.playSound('tap');
+        const kind = g.gmNoticeKind;
+        g.gmNoticeKind = null;
+        if (kind === 'NIGHT_END') {
+          // 全員の夜の行動が完了 ➔ 夜を明かす（Step 1..9 パイプライン ➔ 朝の爪痕カットイン）
+          this.resolveNightPhase();
+          return;
+        }
         this.currentView = this.VIEWS.PASS_LOCK;
         this.render();
+        this.guardPointerEvents(350);
+      }
+
+      renderGmNoticeView() {
+        const g = this.game;
+        if (!g) return '';
+        const kind = g.gmNoticeKind || 'NIGHT_START';
+        const mincho = "font-family: 'Shippori Mincho', 'Noto Serif JP', serif;";
+
+        if (kind === 'NIGHT_END') {
+          return `
+            <div class="flex-1 flex flex-col justify-center gap-5 py-4 wc-ww-fade-up">
+              <div class="wc-ww-gothic-card rounded-xl p-5 text-center border-2 border-amber-600/80">
+                <div class="inline-block px-3 py-0.5 rounded-full bg-amber-950 border border-amber-500/70 text-[11px] text-amber-300 wc-ww-cinzel tracking-widest mb-3">
+                  GAME MASTER NOTICE
+                </div>
+                <h2 class="text-xl font-extrabold text-amber-100 tracking-[0.18em] mb-1" style="${mincho}">第 ${g.day} 夜 ― 終幕</h2>
+                <div class="mx-auto my-3 h-px w-24 bg-gradient-to-r from-transparent via-amber-500 to-transparent"></div>
+                <p class="text-sm text-slate-100 leading-loose px-1" style="${mincho}">
+                  全員の夜の行動が完了しました。<br/>
+                  端末を全員が見える中央へ戻し、<br/>
+                  準備が整ったら下のボタンを押して<br/>
+                  夜を明かしてください。
+                </p>
+              </div>
+              <button
+                type="button"
+                onclick="window.dwcWerewolfApp.proceedFromGmNotice()"
+                class="w-full py-4 rounded-xl wc-ww-btn-crimson font-extrabold text-base text-amber-50 tracking-[0.12em] shadow-xl active:scale-95 transition"
+                style="${mincho}"
+              >[ 夜を明かす（朝の審判へ） ]</button>
+            </div>
+          `;
+        }
+
+        const firstPlayer = g.players.find(p => p.id === g.nightTurnQueue[0]) || null;
+        const firstSeat = firstPlayer ? firstPlayer.seat : 1;
+        return `
+          <div class="flex-1 flex flex-col justify-center gap-5 py-4 wc-ww-fade-up">
+            <div class="wc-ww-gothic-card rounded-xl p-5 text-center border-2 border-amber-600/80">
+              <div class="inline-block px-3 py-0.5 rounded-full bg-amber-950 border border-amber-500/70 text-[11px] text-amber-300 wc-ww-cinzel tracking-widest mb-3">
+                GAME MASTER NOTICE
+              </div>
+              <h2 class="text-xl font-extrabold text-amber-100 tracking-[0.18em] mb-1" style="${mincho}">第 ${g.day} 夜</h2>
+              <div class="mx-auto my-3 h-px w-24 bg-gradient-to-r from-transparent via-amber-500 to-transparent"></div>
+              <p class="text-sm text-slate-100 leading-loose px-1" style="${mincho}">
+                第 ${g.day} 夜が訪れました。<br/>
+                これより夜の行動を開始します。<br/>
+                座席${firstSeat}番の方から時計回りで<br/>
+                順番に端末を回してください。
+              </p>
+              <div class="mt-3 text-[11px] text-slate-400" style="${mincho}">行動する滞在者：${g.nightTurnQueue.length} 名</div>
+            </div>
+            <button
+              type="button"
+              onclick="window.dwcWerewolfApp.proceedFromGmNotice()"
+              class="w-full py-4 rounded-xl wc-ww-btn-gold font-extrabold text-base text-amber-50 tracking-[0.12em] shadow-xl active:scale-95 transition"
+              style="${mincho}"
+            >[ 最初の滞在者へ端末を渡す ]</button>
+          </div>
+        `;
       }
 
       getCurrentNightPlayer() {
@@ -6502,8 +6726,10 @@
           this.currentView = this.VIEWS.PASS_LOCK;
           this.render();
         } else {
-          // All alive players finished night actions -> Run Step 1..9 Pipeline!
-          this.resolveNightPhase();
+          // 全員の夜の行動が完了 ➔ いきなり朝にせず「司会進行（GM）アナウンス画面」を挟む
+          g.gmNoticeKind = 'NIGHT_END';
+          this.currentView = this.VIEWS.GM_NOTICE;
+          this.render();
         }
       }
 
@@ -6756,11 +6982,7 @@
 
         const win = this.checkWinCondition(null);
         if (win) {
-          g.winnerInfo = win;
-          g.phase = 'RESULT';
-          this.currentView = this.VIEWS.RESULT;
-          this.playSound('fanfare');
-          this.render();
+          this.enterResultWithVictoryCutin(win);
           return;
         }
 
@@ -6860,6 +7082,143 @@
         }
 
         return null;
+      }
+
+      // ========================================================================
+      // 決着時の全画面ドラマチック勝利カットイン（第三陣営は「勝利強奪（HIJACK）」二段階演出）
+      // ========================================================================
+      enterResultWithVictoryCutin(win) {
+        const g = this.game;
+        if (!g || !win) return;
+        g.winnerInfo = win;
+        g.phase = 'RESULT';
+        this.currentView = this.VIEWS.RESULT;
+        this.lastRenderedView = null;
+        this.render();
+        this.showVictoryDramaticCutin(win);
+      }
+
+      showVictoryDramaticCutin(winInfo) {
+        const g = this.game;
+        const overlay = document.getElementById('wc-ww-overlay');
+        if (!g || !overlay || !winInfo) return;
+
+        const mincho = "font-family: 'Shippori Mincho', 'Noto Serif JP', serif;";
+        const isThirdTeam = ['fox', 'lovers', 'teruteru'].includes(winInfo.winningTeam);
+        const token = 'victory_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        this.victoryCutinToken = token;
+        overlay.classList.remove('hidden');
+
+        const winnerNames = (winInfo.winnerIds || [])
+          .map(id => g.players.find(p => p.id === id))
+          .filter(Boolean)
+          .map(p => this.getPlayerName(p));
+        const winnerNamesHtml = winnerNames.length > 0
+          ? `<div class="mt-3 text-[11px] text-amber-200/90 leading-relaxed break-words" style="${mincho}">勝者：${winnerNames.map(n => this.escapeHtml(n)).join('、')}</div>`
+          : '';
+
+        const nextButtonHtml = `
+          <button
+            type="button"
+            onclick="window.dwcWerewolfApp.closeVictoryCutin()"
+            class="mt-5 w-full py-3.5 rounded-xl wc-ww-btn-gold font-extrabold text-sm text-amber-50 tracking-[0.1em] shadow-xl active:scale-95 transition"
+            style="${mincho}"
+          >[ 最終結果・正体開示へ進む ]</button>
+        `;
+
+        // 本来決着するはずだった陣営（W === 0 なら市民陣営、それ以外は人狼陣営）
+        const aliveWolves = g.players.filter(p => p.isAlive && p.isWolf).length;
+        const baseline = aliveWolves === 0
+          ? {
+              title: '市民陣営の勝利',
+              latin: 'VICTORIA CIVIUM',
+              subtitle: 'すべての人狼が追放され、花背の洋館に穏やかな朝の光が戻った――',
+              cardClass: 'from-blue-950 via-indigo-900 to-slate-900 border-amber-400 text-amber-100',
+              titleClass: 'text-amber-200'
+            }
+          : {
+              title: '人狼陣営の勝利',
+              latin: 'VICTORIA LUPORUM',
+              subtitle: '洋館の夜は終わらない。残された滞在者たちは人狼の咆哮の前に呑み込まれた――',
+              cardClass: 'from-red-950 via-rose-950 to-black border-red-500 text-red-100',
+              titleClass: 'text-red-300'
+            };
+
+        const bannerHtml = (cardClass, latin, titleHtml, subtitle, extraHtml) => `
+          <div class="absolute inset-0 bg-black"></div>
+          <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(217,119,6,0.22),rgba(0,0,0,0)_65%)]"></div>
+          <div class="relative w-full max-w-[395px] rounded-2xl p-5 text-center border-2 bg-gradient-to-b ${cardClass} shadow-2xl wc-ww-fade-up">
+            <div class="text-[11px] wc-ww-cinzel tracking-[0.3em] opacity-90 mb-2">${this.escapeHtml(latin)}</div>
+            ${titleHtml}
+            <p class="text-xs leading-loose opacity-95 mt-3 px-1" style="${mincho}">${this.escapeHtml(subtitle)}</p>
+            ${extraHtml || ''}
+          </div>
+        `;
+
+        this.playSound('fanfare');
+
+        if (!isThirdTeam) {
+          overlay.innerHTML = bannerHtml(
+            winInfo.badgeColor,
+            winInfo.latin || 'VICTORIA',
+            `<h2 class="text-3xl font-extrabold tracking-[0.12em] drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)]" style="${mincho}">${this.escapeHtml(winInfo.title)}</h2>`,
+            winInfo.subtitle || '',
+            winnerNamesHtml + nextButtonHtml
+          );
+          return;
+        }
+
+        // ---- 第1段階: 本来決着するはずだった陣営の勝利バナーを 1.8 秒表示 ----
+        overlay.innerHTML = bannerHtml(
+          baseline.cardClass,
+          baseline.latin,
+          `<h2 class="text-3xl font-extrabold tracking-[0.12em] ${baseline.titleClass} drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)]" style="${mincho}">${baseline.title}</h2>`,
+          baseline.subtitle,
+          ''
+        );
+
+        // ---- 第2段階: 雷鳴・画面シェイク・打ち消し線と亀裂 ➔『勝利強奪』 ----
+        setTimeout(() => {
+          if (this.victoryCutinToken !== token) return;
+          const ov = document.getElementById('wc-ww-overlay');
+          if (!ov) return;
+          this.playSound('thunder');
+          ov.innerHTML = `
+            <div class="absolute inset-0 bg-black"></div>
+            <div class="pointer-events-none absolute inset-0 z-30 wc-ww-anim-lightning"></div>
+            <div class="relative w-full max-w-[395px] rounded-2xl p-5 text-center border-2 bg-gradient-to-b ${winInfo.badgeColor} shadow-2xl wc-ww-anim-shake">
+              <div class="text-[11px] wc-ww-cinzel tracking-[0.3em] text-red-300 mb-2">VICTORY HIJACKED</div>
+
+              <div class="relative inline-block px-2 py-1">
+                <h2 class="text-2xl font-extrabold tracking-[0.12em] ${baseline.titleClass} opacity-80" style="${mincho}">${baseline.title}</h2>
+                <div class="wc-ww-strike-line absolute left-0 right-0 top-1/2 h-[3px] bg-red-600 shadow-[0_0_10px_#dc2626]"></div>
+                <svg class="pointer-events-none absolute -inset-3 w-[calc(100%+24px)] h-[calc(100%+24px)]" viewBox="0 0 200 60" preserveAspectRatio="none">
+                  <path class="wc-ww-claw-path-1" d="M100 -4 L92 14 L108 24 L90 38 L104 48 L96 64" fill="none" stroke="#ef4444" stroke-width="2.4" stroke-linejoin="bevel"/>
+                  <path class="wc-ww-claw-path-2" d="M46 -2 L54 16 L40 28 L52 44" fill="none" stroke="#b91c1c" stroke-width="1.6" stroke-linejoin="bevel"/>
+                  <path class="wc-ww-claw-path-3" d="M158 -2 L150 18 L164 30 L152 46" fill="none" stroke="#b91c1c" stroke-width="1.6" stroke-linejoin="bevel"/>
+                </svg>
+              </div>
+
+              <div class="mt-4 wc-ww-hijack-rise">
+                <div class="text-sm font-extrabold text-red-300 tracking-[0.3em] mb-1" style="${mincho}">勝利強奪</div>
+                <h2 class="text-2xl font-extrabold tracking-[0.1em] text-amber-100 drop-shadow-[0_3px_14px_rgba(0,0,0,0.95)]" style="${mincho}">― ${this.escapeHtml(winInfo.title)} ―</h2>
+              </div>
+
+              <p class="text-xs leading-loose opacity-95 mt-3 px-1 wc-ww-hijack-rise" style="${mincho}">${this.escapeHtml(winInfo.subtitle || '')}</p>
+              <div class="wc-ww-hijack-rise">
+                ${winnerNamesHtml}
+                ${nextButtonHtml}
+              </div>
+            </div>
+          `;
+        }, 1800);
+      }
+
+      closeVictoryCutin() {
+        this.playSound('tap');
+        this.closeOverlay();
+        this.lastRenderedView = null;
+        this.render();
       }
 
       // ========================================================================
@@ -7375,11 +7734,7 @@
 
         const win = this.checkWinCondition(executedPlayer);
         if (win) {
-          g.winnerInfo = win;
-          g.phase = 'RESULT';
-          this.currentView = this.VIEWS.RESULT;
-          this.playSound('fanfare');
-          this.render();
+          this.enterResultWithVictoryCutin(win);
           return;
         }
 
@@ -7392,6 +7747,7 @@
       // モーダル・役職図鑑・配役シート・本人再確認・トースト通知
       // ========================================================================
       closeOverlay() {
+        this.victoryCutinToken = null;
         const overlay = document.getElementById('wc-ww-overlay');
         if (overlay) {
           overlay.classList.add('hidden');
@@ -7817,64 +8173,50 @@
               </p>
             </div>
 
-            <!-- Center Tarot Showcase (Unknown + Werewolf + Seer, showLabel: false + Floating & Aura Glow) -->
+            <!-- Center Tarot Showcase (左: 人狼 / 中央手前: 市民 / 右: 占い師 ＝ 右から 占い師・市民・人狼) -->
             <div class="relative my-5 flex items-center justify-center gap-2.5 px-2 py-2">
               <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
                 <div class="w-60 h-44 rounded-full bg-gradient-to-tr from-red-900/45 via-amber-500/30 to-indigo-900/45 blur-2xl wc-ww-pulse-slow"></div>
               </div>
               <div class="relative w-24 wc-ww-tarot-float-l opacity-95 shadow-[0_10px_28px_rgba(0,0,0,0.85)]">
-                ${this.renderRoleCardHtml('seer', { sizeClass: 'w-full', showLabel: false })}
-              </div>
-              <div class="relative w-32 z-10 wc-ww-tarot-float-c shadow-[0_14px_36px_rgba(217,119,6,0.38)]">
-                ${this.renderRoleCardHtml('unknown', { sizeClass: 'w-full', showLabel: false })}
-              </div>
-              <div class="relative w-24 wc-ww-tarot-float-r opacity-95 shadow-[0_10px_28px_rgba(0,0,0,0.85)]">
                 ${this.renderRoleCardHtml('werewolf', { sizeClass: 'w-full', showLabel: false })}
               </div>
-            </div>
-
-            <!-- Feature Badges -->
-            <div class="grid grid-cols-3 gap-2 mb-4 text-center">
-              <div class="bg-slate-950/50 backdrop-blur-[2px] border border-amber-600/50 shadow-lg rounded-lg p-2">
-                <div class="text-amber-300 font-serif font-bold text-xs drop-shadow">GMレス対面</div>
-                <div class="text-[10px] text-slate-200 mt-0.5">スマホ1台回し</div>
+              <div class="relative w-32 z-10 wc-ww-tarot-float-c shadow-[0_14px_36px_rgba(217,119,6,0.38)]">
+                ${this.renderRoleCardHtml('citizen', { sizeClass: 'w-full', showLabel: false })}
               </div>
-              <div class="bg-slate-950/50 backdrop-blur-[2px] border border-amber-600/50 shadow-lg rounded-lg p-2">
-                <div class="text-amber-300 font-serif font-bold text-xs drop-shadow">全24役職搭載</div>
-                <div class="text-[10px] text-slate-200 mt-0.5">3大プリセット</div>
-              </div>
-              <div class="bg-slate-950/50 backdrop-blur-[2px] border border-amber-600/50 shadow-lg rounded-lg p-2">
-                <div class="text-amber-300 font-serif font-bold text-xs drop-shadow">メタ推理防止</div>
-                <div class="text-[10px] text-slate-200 mt-0.5">ダミー行動搭載</div>
+              <div class="relative w-24 wc-ww-tarot-float-r opacity-95 shadow-[0_10px_28px_rgba(0,0,0,0.85)]">
+                ${this.renderRoleCardHtml('seer', { sizeClass: 'w-full', showLabel: false })}
               </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="space-y-2.5">
+            <!-- Action Buttons: 上段=図鑑・規則（2列） / 最下段=メインボタン1つのみ -->
+            <div class="space-y-2.5 pb-1">
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onclick="window.dwcWerewolfApp.openRoleEncyclopedia('all')"
+                  class="py-2.5 rounded-lg wc-ww-gothic-card hover:bg-zinc-800 text-xs font-serif font-bold text-amber-200 tracking-wider flex items-center justify-center"
+                >
+                  <span>全二十四役職図鑑</span>
+                </button>
+                <button
+                  type="button"
+                  onclick="window.dwcWerewolfApp.openPipelineGuideModal()"
+                  class="py-2.5 rounded-lg wc-ww-gothic-card hover:bg-zinc-800 text-xs font-serif font-bold text-amber-200 tracking-wider flex items-center justify-center"
+                >
+                  <span>審判規則・解決順</span>
+                </button>
+              </div>
+
               <button
                 type="button"
                 onclick="window.dwcWerewolfApp.goToView('VIEW_ENTRY')"
                 class="w-full py-3.5 rounded-xl wc-ww-btn-gold font-serif font-extrabold text-base text-amber-50 tracking-wider shadow-xl flex items-center justify-center gap-2"
               >
-                <span>🕯️ 審判を始める（参加者登録へ）</span>
+                <span>${(this.participants && this.participants.length >= 4)
+                  ? `🕯️ 審判を始める（登録済${this.participants.length}名）`
+                  : '🕯️ 審判を始める（参加者登録へ）'}</span>
               </button>
-
-              <div class="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onclick="window.dwcWerewolfApp.openRoleEncyclopedia('all')"
-                  class="py-2.5 rounded-lg wc-ww-gothic-card hover:bg-zinc-800 text-xs font-serif font-bold text-amber-200 flex items-center justify-center gap-1.5"
-                >
-                  <span>📖 全24役職図鑑</span>
-                </button>
-                <button
-                  type="button"
-                  onclick="window.dwcWerewolfApp.openPipelineGuideModal()"
-                  class="py-2.5 rounded-lg wc-ww-gothic-card hover:bg-zinc-800 text-xs font-serif font-bold text-amber-200 flex items-center justify-center gap-1.5"
-                >
-                  <span>⚖️ 解決順・勝敗規約</span>
-                </button>
-              </div>
             </div>
           </div>
         `;
@@ -7889,31 +8231,38 @@
         overlay.innerHTML = `
           <div class="wc-ww-gothic-card rounded-xl p-4 w-full max-w-[400px] max-h-[88vh] flex flex-col border-2 border-amber-600/80 wc-ww-fade-up">
             <div class="flex items-center justify-between border-b border-amber-700/50 pb-2 mb-3">
-              <h3 class="text-base font-serif font-bold text-amber-100">⚖️ 夜の能力解決順序＆勝敗優先度</h3>
+              <h3 class="text-base font-serif font-bold text-amber-100 tracking-wider">審判規則・解決順</h3>
               <button type="button" onclick="window.dwcWerewolfApp.closeOverlay()" class="text-xs text-amber-300 px-2 py-0.5 rounded bg-zinc-800">✕</button>
             </div>
-            <div class="flex-1 overflow-y-auto space-y-2.5 text-xs font-serif text-slate-200 pr-1 leading-relaxed">
-              <div class="p-2.5 rounded bg-black/50 border border-amber-800/50">
-                <div class="font-bold text-amber-400 mb-1">【夜フェーズ解決パイプライン（Step 1〜9）】</div>
-                <ol class="list-decimal list-inside space-y-1 text-[11px]">
-                  <li><strong>キューピッド処理</strong>（初日夜のみ：2人に恋人付与）</li>
-                  <li><strong>逃亡者の移動</strong>（逃亡者自身の家は直接襲撃対象外へ）</li>
-                  <li><strong>狩人の護衛・罠師の罠設置</strong></li>
-                  <li><strong>占い・賢者・妖術師の判定と罠死・呪殺</strong>（妖術師は罠死・呪殺なし）</li>
-                  <li><strong>暗殺者の実行</strong>（護衛・罠・妖狐耐性・逃亡をすべて貫通）</li>
-                  <li><strong>人狼の襲撃判定＆猫又の噛まれ道連れ</strong></li>
-                  <li><strong>逃亡者の巻き添え判定</strong>（逃亡先が人狼系または襲撃死なら死亡）</li>
-                  <li><strong>恋人・背徳者の後追い連鎖死ループ</strong></li>
-                  <li><strong>朝の犠牲者リスト生成</strong>（シャッフル＆死因隠匿で一括発表）</li>
-                </ol>
-              </div>
-              <div class="p-2.5 rounded bg-black/50 border border-amber-800/50">
-                <div class="font-bold text-amber-400 mb-1">【勝敗判定の優先順位】</div>
-                <p class="text-[11px]">
-                  ・昼の処刑で「てるてる坊主」が処刑された瞬間 ➔ <strong>てるてる坊主の単独勝利</strong><br/>
-                  ・生存人狼系 W === 0 または W ≥ 人間カウント H 成立時：<br/>
-                  <strong>① 恋人陣営生存 ➔ ② 妖狐陣営生存 ➔ ③ 市民陣営（W=0）または人狼陣営（W≥H）</strong>
+            <div class="flex-1 overflow-y-auto space-y-3 text-xs font-serif text-slate-200 pr-1 leading-relaxed">
+              <div class="p-3 rounded bg-black/50 border border-amber-800/60">
+                <div class="font-bold text-amber-300 mb-1.5 tracking-wider">【第一条：基本陣営の勝敗条件】</div>
+                <p class="text-[12px] leading-relaxed">
+                  市民陣営は、館に潜むすべての人狼系を追放することで勝利する。<br/>
+                  人狼陣営は、生き残っている人狼系の数が、人間の数と同数以下になった瞬間に勝利する。
                 </p>
+              </div>
+              <div class="p-3 rounded bg-black/50 border border-purple-800/60">
+                <div class="font-bold text-purple-300 mb-1.5 tracking-wider">【第二条：第三陣営による勝利強奪（横取り）】</div>
+                <p class="text-[12px] leading-relaxed">
+                  昼の処刑で「てるてる坊主」が処刑された場合は、その場で単独勝利となる。<br/>
+                  第一条の決着がついた瞬間に「妖狐」が生存していれば、妖狐陣営が勝利を強奪する。<br/>
+                  さらに「恋人」が生存していれば、恋人陣営がすべてを凌駕して単独勝利となる。
+                </p>
+              </div>
+              <div class="p-3 rounded bg-black/50 border border-red-900/60">
+                <div class="font-bold text-red-300 mb-1.5 tracking-wider">【第三条：夜の同時行動・解決順序】</div>
+                <p class="text-[12px] leading-relaxed mb-1.5">夜に複数の能力が交錯した場合、次の順序で厳密に処理される。</p>
+                <ol class="list-none space-y-1 text-[12px]">
+                  <li>① キューピッドの縁結び</li>
+                  <li>② 逃亡者の移動</li>
+                  <li>③ 狩人の護衛・罠師の罠設置</li>
+                  <li>④ 占い師・賢者の透視（妖狐の呪殺・罠による死亡）</li>
+                  <li>⑤ 暗殺者の暗殺（すべての耐性を貫通）</li>
+                  <li>⑥ 人狼の襲撃（および猫又の道連れ）</li>
+                  <li>⑦ 逃亡者の巻き添え判定</li>
+                  <li>⑧ 恋人・背徳者の後追い連鎖</li>
+                </ol>
               </div>
             </div>
             <button
@@ -7953,7 +8302,7 @@
               <div class="flex items-center justify-between gap-2 mb-2">
                 <div class="flex items-baseline gap-2 min-w-0">
                   <span class="text-[10px] text-amber-400 wc-ww-cinzel shrink-0">STEP 1/2</span>
-                  <h2 class="text-sm sm:text-base font-serif font-bold text-amber-100 truncate">🔍 参加者登録・座席順（時計回り）</h2>
+                  <h2 class="text-sm sm:text-base font-serif font-bold text-amber-100 truncate">参加者登録（時計回り座席順）</h2>
                 </div>
                 <button
                   type="button"
@@ -7961,18 +8310,6 @@
                   class="shrink-0 px-2 py-0.5 rounded bg-zinc-900/90 hover:bg-zinc-800 border border-amber-700/40 text-[10px] text-amber-200/90 font-serif"
                   title="人狼タイトル表紙へ"
                 >🐺 表紙へ</button>
-              </div>
-
-              <!-- Display Name Priority Toggle (キャンプネーム優先 vs 本名優先) -->
-              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-950/90 border border-amber-700/40 mb-2.5">
-                <div class="text-xs font-serif text-amber-200">
-                  🏷️ 表示名モード：<strong class="text-amber-400">${this.displayNameMode === 'camp' ? 'キャンプネーム優先' : '本名（漢字氏名）優先'}</strong>
-                </div>
-                <button
-                  type="button"
-                  onclick="window.dwcWerewolfApp.toggleDisplayNameMode()"
-                  class="px-2.5 py-1 rounded bg-amber-900/70 hover:bg-amber-800 border border-amber-500/70 text-[11px] font-serif text-amber-100 active:scale-95"
-                >🔄 切替</button>
               </div>
 
               <!-- Incremental Search Input -->
@@ -8019,28 +8356,19 @@
                 ></div>
               </div>
 
-              <!-- Quick Roster Helper Buttons -->
-              <div class="flex items-center justify-between gap-1.5 mt-2 pt-2 border-t border-zinc-800 text-[11px] font-serif">
-                <span class="text-slate-400">名簿一括セット:</span>
-                <div class="flex gap-1">
-                  <button type="button" onclick="window.dwcWerewolfApp.quickSetRosterCount(6)" class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-200 border border-amber-800/50">6人</button>
-                  <button type="button" onclick="window.dwcWerewolfApp.quickSetRosterCount(8)" class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-200 border border-amber-800/50">8人</button>
-                  <button type="button" onclick="window.dwcWerewolfApp.quickSetRosterCount(12)" class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-200 border border-amber-800/50">12人</button>
-                  <button type="button" onclick="window.dwcWerewolfApp.quickSetRosterCount(15)" class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-200 border border-amber-800/50">15人</button>
-                  <button type="button" onclick="window.dwcWerewolfApp.clearAllParticipants()" class="px-2 py-0.5 rounded bg-red-950/70 hover:bg-red-900 text-red-200 border border-red-800/50">全消去</button>
-                </div>
-              </div>
             </div>
 
             <!-- Clockwise Seat Order Participant List -->
             <div class="wc-ww-gothic-card rounded-xl p-3 flex-1 flex flex-col min-h-[220px]">
-              <div class="flex items-center justify-between border-b border-amber-700/50 pb-2 mb-2">
-                <div class="text-xs font-serif font-bold text-amber-200">
-                  🪑 参加プレイヤー座席順（時計回り 1番 ➔ ${N}番）
+              <div class="flex items-center justify-between gap-2 border-b border-amber-700/50 pb-2 mb-2">
+                <div class="text-xs font-serif font-bold text-amber-200 min-w-0 truncate">
+                  参加プレイヤー座席順（計 ${N} 名）
                 </div>
-                <span class="px-2 py-0.5 rounded-full bg-amber-950 border border-amber-500/70 text-xs font-serif font-bold text-amber-300">
-                  計 ${N} 名
-                </span>
+                <button
+                  type="button"
+                  onclick="window.dwcWerewolfApp.clearAllParticipants()"
+                  class="shrink-0 px-2 py-0.5 rounded bg-red-950/70 hover:bg-red-900 text-red-200 border border-red-800/50 text-[10px] font-serif active:scale-95"
+                >全消去</button>
               </div>
 
               ${N === 0 ? `
@@ -8160,6 +8488,38 @@
           </div>
         `;
 
+        const teamTabDefs = [
+          {
+            key: 'citizen',
+            label: '市民陣営',
+            title: '市民陣営（12種）',
+            badgeColor: 'bg-blue-950/90 border border-slate-300/70 text-blue-100',
+            roleIds: ['citizen', 'seer', 'sage', 'medium', 'hunter', 'trapper', 'nekomata', 'twins', 'baker', 'dictator', 'assassin', 'fugitive'],
+            activeClass: 'bg-gradient-to-b from-blue-900/90 to-slate-900 border-slate-200 text-blue-50 shadow-[0_0_12px_rgba(148,163,184,0.45)]',
+            idleClass: 'bg-slate-950/80 border-slate-600/60 text-slate-400 hover:bg-zinc-900'
+          },
+          {
+            key: 'werewolf',
+            label: '人狼陣営',
+            title: '人狼陣営（8種）',
+            badgeColor: 'bg-red-950/90 border border-red-600/70 text-red-100',
+            roleIds: ['werewolf', 'alpha_wolf', 'greedy_wolf', 'clever_wolf', 'madman', 'fanatic', 'sorcerer', 'black_cat'],
+            activeClass: 'bg-gradient-to-b from-red-900/90 to-red-950 border-red-500 text-red-50 shadow-[0_0_12px_rgba(220,38,38,0.5)]',
+            idleClass: 'bg-slate-950/80 border-red-900/60 text-slate-400 hover:bg-zinc-900'
+          },
+          {
+            key: 'other',
+            label: '第三陣営',
+            title: '第三陣営・特殊（4種）',
+            badgeColor: 'bg-purple-950/90 border border-amber-500/70 text-purple-100',
+            roleIds: ['fox', 'immoralist', 'cupid', 'teruteru'],
+            activeClass: 'bg-gradient-to-b from-purple-900/90 to-purple-950 border-amber-400 text-amber-50 shadow-[0_0_12px_rgba(168,85,247,0.5)]',
+            idleClass: 'bg-slate-950/80 border-purple-900/60 text-slate-400 hover:bg-zinc-900'
+          }
+        ];
+        const activeTeamTab = teamTabDefs.some(t => t.key === this.setupTeamTab) ? this.setupTeamTab : 'citizen';
+        const activeTeamDef = teamTabDefs.find(t => t.key === activeTeamTab);
+
         return `
           <div class="flex-1 flex flex-col justify-between gap-3 wc-ww-fade-up">
             <!-- Header & Presets -->
@@ -8177,7 +8537,7 @@
               </div>
 
               <!-- 3 One-Tap Presets -->
-              <div class="text-[11px] font-serif text-amber-300 mb-1">✨ 人数別おすすめワンタップ編成（${N}人用自動計算）</div>
+              <div class="text-[11px] font-serif text-amber-300 mb-1 tracking-wider">人数別おすすめワンタップ編成（${N}人用自動計算）</div>
               <div class="grid grid-cols-3 gap-1.5">
                 <button
                   type="button"
@@ -8188,8 +8548,8 @@
                       : 'bg-slate-950/80 border-amber-800/50 text-slate-300 hover:bg-zinc-900'
                   }"
                 >
-                  <div class="text-xs font-serif font-bold">👑 王道バランス</div>
-                  <div class="text-[9px] text-amber-300/80 mt-0.5">初心者〜中級推奨</div>
+                  <div class="text-xs font-bold tracking-wider" style="font-family: 'Shippori Mincho', 'Noto Serif JP', serif;">王道セット</div>
+                  <div class="text-[9px] text-amber-300/80 mt-0.5" style="font-family: 'Shippori Mincho', 'Noto Serif JP', serif;">初心者〜中級推奨</div>
                 </button>
                 <button
                   type="button"
@@ -8200,8 +8560,8 @@
                       : 'bg-slate-950/80 border-amber-800/50 text-slate-300 hover:bg-zinc-900'
                   }"
                 >
-                  <div class="text-xs font-serif font-bold">🔥 花背カオス</div>
-                  <div class="text-[9px] text-red-300/80 mt-0.5">大狼・強欲・賢者・狐</div>
+                  <div class="text-xs font-bold tracking-wider" style="font-family: 'Shippori Mincho', 'Noto Serif JP', serif;">花背混沌セット</div>
+                  <div class="text-[9px] text-red-300/80 mt-0.5" style="font-family: 'Shippori Mincho', 'Noto Serif JP', serif;">大狼・強欲・賢者・狐</div>
                 </button>
                 <button
                   type="button"
@@ -8212,8 +8572,8 @@
                       : 'bg-slate-950/80 border-amber-800/50 text-slate-300 hover:bg-zinc-900'
                   }"
                 >
-                  <div class="text-xs font-serif font-bold">⚡ 一発逆転特殊</div>
-                  <div class="text-[9px] text-purple-300/80 mt-0.5">暗殺・独裁・恋人・てる</div>
+                  <div class="text-xs font-bold tracking-wider" style="font-family: 'Shippori Mincho', 'Noto Serif JP', serif;">特殊逆転セット</div>
+                  <div class="text-[9px] text-purple-300/80 mt-0.5" style="font-family: 'Shippori Mincho', 'Noto Serif JP', serif;">暗殺・独裁・恋人・てる</div>
                 </button>
               </div>
             </div>
@@ -8240,22 +8600,27 @@
               ` : ''}
             </div>
 
-            <!-- 24 Roles Counter Scroll Area -->
-            <div class="wc-ww-gothic-card rounded-xl p-3 max-h-[340px] overflow-y-auto">
-              <div class="text-xs font-serif font-bold text-amber-200 mb-2 flex items-center justify-between">
-                <span>🃏 全24役職 カスタム編成（役職名タップで詳細解説）</span>
+            <!-- 24 Roles Counter: 陣営別切り替えタブ（スクロール不要で全役職を一目で増減） -->
+            <div class="wc-ww-gothic-card rounded-xl p-3">
+              <div class="text-xs font-serif font-bold text-amber-200 mb-2 tracking-wider">
+                全二十四役職 カスタム編成（役職名タップで詳細解説）
               </div>
-              ${renderTeamRoleSection('🛡️ 市民陣営（12種）', 'bg-blue-950/90 border border-blue-600/60 text-blue-100', [
-                'citizen', 'seer', 'sage', 'medium', 'hunter', 'trapper',
-                'nekomata', 'twins', 'baker', 'dictator', 'assassin', 'fugitive'
-              ])}
-              ${renderTeamRoleSection('🐺 人狼陣営（8種）', 'bg-red-950/90 border border-red-600/60 text-red-100', [
-                'werewolf', 'alpha_wolf', 'greedy_wolf', 'clever_wolf',
-                'madman', 'fanatic', 'sorcerer', 'black_cat'
-              ])}
-              ${renderTeamRoleSection('🦊 第三陣営・特殊（4種）', 'bg-purple-950/90 border border-purple-600/60 text-purple-100', [
-                'fox', 'immoralist', 'cupid', 'teruteru'
-              ])}
+              <div class="grid grid-cols-3 gap-1.5 mb-3">
+                ${teamTabDefs.map(tab => `
+                  <button
+                    type="button"
+                    onclick="window.dwcWerewolfApp.setSetupTeamTab('${tab.key}')"
+                    class="py-2 px-1 rounded-md border-2 text-center transition active:scale-95 ${
+                      activeTeamTab === tab.key ? tab.activeClass : tab.idleClass
+                    }"
+                    style="font-family: 'Shippori Mincho', 'Noto Serif JP', serif;"
+                  >
+                    <div class="text-[12px] font-bold tracking-wider leading-tight">${tab.label}</div>
+                    <div class="text-[10px] mt-0.5 opacity-90">計 ${tab.roleIds.reduce((s, id) => s + (this.roleCounts[id] || 0), 0)} 名</div>
+                  </button>
+                `).join('')}
+              </div>
+              ${renderTeamRoleSection(activeTeamDef.title, activeTeamDef.badgeColor, activeTeamDef.roleIds)}
             </div>
 
             <!-- 7 Rule Options -->
@@ -8263,6 +8628,52 @@
               <div class="text-xs font-bold text-amber-200 border-b border-amber-700/50 pb-1.5">
                 ⚙️ 詳細ルール設定（全7項目）
               </div>
+
+              <!-- 各規則の解説アコーディオン -->
+              <details
+                class="rounded-lg bg-black/55 border border-amber-700/50 overflow-hidden"
+                ${this.ruleHelpOpen ? 'open' : ''}
+                ontoggle="window.dwcWerewolfApp.ruleHelpOpen = this.open"
+              >
+                <summary class="px-3 py-2 cursor-pointer select-none text-[11px] font-bold text-amber-300 tracking-wider text-center bg-amber-950/50 hover:bg-amber-900/50" style="font-family: 'Shippori Mincho', 'Noto Serif JP', serif;">
+                  ［ 各規則の解説・推奨設定を開く ］
+                </summary>
+                <div class="px-3 py-2.5 space-y-2.5 text-[11px] leading-relaxed text-slate-200">
+                  <div>
+                    <div class="font-bold text-amber-300 mb-0.5">一、昼の投票方式</div>
+                    <p>
+                      <strong class="text-amber-100">リアル指差し</strong>：全員で一斉に「せーの」で処刑したい人を指差し、最多得票者を司会役が端末で選択します。顔を合わせて遊べる、いちばん盛り上がる標準方式です。<br/>
+                      <strong class="text-amber-100">スマホ秘密投票</strong>：端末を順番に回して一人ずつ内緒で投票し、最後にまとめて集計結果だけを発表します。誰が誰に入れたかは分かりません。<br/>
+                      <strong class="text-amber-100">スマホ開示投票</strong>：順番に端末で投票し、集計時に「誰が誰に投票したか」を全員に公開します。投票先から推理を深めたい上級者向けです。
+                    </p>
+                    <p class="text-amber-400/90 mt-0.5">推奨：初めての方はリアル指差し、慣れてきたら秘密投票。</p>
+                  </div>
+                  <div>
+                    <div class="font-bold text-amber-300 mb-0.5">二、初日夜の占い</div>
+                    <p>
+                      <strong class="text-amber-100">ランダム白通知</strong>：初日の夜は、占い師が自動的に「誰か一人が人間（白）」という情報だけを受け取ります。初日から占いで一方的に有利になるのを防ぎます。<br/>
+                      <strong class="text-amber-100">初日自由占い</strong>：初日から好きな相手を自由に占えます。情報量が多く、占い師が有利になります。<br/>
+                      <strong class="text-amber-100">初日占いなし</strong>：初日の夜は占いを行いません。
+                    </p>
+                    <p class="text-amber-400/90 mt-0.5">推奨：バランス重視ならランダム白通知。</p>
+                  </div>
+                  <div>
+                    <div class="font-bold text-amber-300 mb-0.5">三、連続護衛禁止</div>
+                    <p>
+                      ONにすると、狩人は前の晩に守った相手を二晩続けて護衛できなくなります。狩人が強くなりすぎず、人狼側の襲撃が通る余地が生まれます。OFFにすると同じ相手を毎晩守り続けることも可能です。
+                    </p>
+                    <p class="text-amber-400/90 mt-0.5">推奨：ON（標準）。</p>
+                  </div>
+                  <div>
+                    <div class="font-bold text-amber-300 mb-0.5">四、遺言・立ち回りヒント</div>
+                    <p>
+                      <strong class="text-amber-100">処刑時の遺言</strong>：ありにすると、処刑される人が最後に一言だけ全員へ向けて話せます。なしにすると無言で退場します。<br/>
+                      <strong class="text-amber-100">立ち回りヒント</strong>：ONにすると、各自の役職確認画面に「この役職はこう動くと良い」という短い助言が表示されます。初心者が混ざる場合に便利です。慣れた方々だけならOFFで緊張感が増します。
+                    </p>
+                    <p class="text-amber-400/90 mt-0.5">推奨：初心者がいる場合は遺言あり・ヒントON。</p>
+                  </div>
+                </div>
+              </details>
 
               <!-- 1. 投票方式 -->
               <div>
@@ -8410,6 +8821,12 @@
       selectPresetButton(presetType) {
         this.playSound('tap');
         this.applyPreset(presetType);
+        this.render();
+      }
+
+      setSetupTeamTab(teamKey) {
+        this.playSound('tap');
+        this.setupTeamTab = (teamKey === 'werewolf' || teamKey === 'other') ? teamKey : 'citizen';
         this.render();
       }
 
@@ -9266,6 +9683,140 @@
       // ========================================================================
       // 画面レンダリング 7: VIEW_DAY_DISCUSSION (昼の議論タイマー＆独裁者CO＆生存一覧)
       // ========================================================================
+      // ========================================================================
+      // 昼のCO（名乗り出）・推理刻印マーカー（絵文字なし・明朝体＆アンティーク枠）
+      // ========================================================================
+      getCoMarkerDefs() {
+        return [
+          { key: 'co_seer',    label: '占', group: 'co',   desc: '占い師CO',   cls: 'border-sky-400 text-sky-200 bg-sky-950/85' },
+          { key: 'co_sage',    label: '賢', group: 'co',   desc: '賢者CO',     cls: 'border-cyan-400 text-cyan-200 bg-cyan-950/85' },
+          { key: 'co_medium',  label: '霊', group: 'co',   desc: '霊媒師CO',   cls: 'border-emerald-400 text-emerald-200 bg-emerald-950/85' },
+          { key: 'co_hunter',  label: '狩', group: 'co',   desc: '狩人CO',     cls: 'border-green-500 text-green-200 bg-green-950/85' },
+          { key: 'co_trapper', label: '罠', group: 'co',   desc: '罠師CO',     cls: 'border-teal-600 text-teal-300 bg-teal-950/90' },
+          { key: 'co_twins',   label: '双', group: 'co',   desc: '双子CO',     cls: 'border-slate-300 text-slate-100 bg-slate-800/85' },
+          { key: 'co_baker',   label: '麺', group: 'co',   desc: 'パン屋CO',   cls: 'border-amber-500 text-amber-200 bg-amber-950/85' },
+          { key: 'co_dictator',label: '独', group: 'co',   desc: '独裁者CO',   cls: 'border-yellow-300 text-yellow-100 bg-yellow-900/70' },
+          { key: 'co_nekomata',label: '猫', group: 'co',   desc: '猫又CO',     cls: 'border-sky-200 text-sky-100 bg-indigo-950/75' },
+          { key: 'in_white',   label: '白確', group: 'read', desc: '白確定',   cls: 'border-white text-white bg-slate-600/75' },
+          { key: 'in_black',   label: '黒確', group: 'read', desc: '黒確定',   cls: 'border-red-600 text-red-200 bg-red-950/90' },
+          { key: 'in_gray',    label: '灰',   group: 'read', desc: 'グレー',   cls: 'border-zinc-500 text-zinc-300 bg-zinc-800/85' },
+          { key: 'in_hang',    label: '吊候補', group: 'read', desc: '吊り候補', cls: 'border-rose-500 text-rose-100 bg-rose-900/85' }
+        ];
+      }
+
+      renderCoMarkerChipsHtml(playerId, compact = false) {
+        const g = this.game;
+        if (!g || !g.coMarkers) return '';
+        const keys = g.coMarkers[playerId];
+        if (!Array.isArray(keys) || keys.length === 0) return '';
+        const defs = this.getCoMarkerDefs();
+        const chips = keys
+          .map(k => defs.find(d => d.key === k))
+          .filter(Boolean)
+          .map(d => `<span class="inline-flex items-center justify-center ${compact ? 'px-1 py-px text-[9px]' : 'px-1.5 py-0.5 text-[10px]'} rounded-sm border font-extrabold tracking-wider leading-none shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] ${d.cls}" style="font-family: 'Shippori Mincho', 'Noto Serif JP', serif;">[${this.escapeHtml(d.label)}]</span>`)
+          .join('');
+        return `<div class="flex flex-wrap items-center justify-center gap-0.5 ${compact ? 'mt-0.5' : 'mt-1'}">${chips}</div>`;
+      }
+
+      openPlayerCoMarkerModal(playerId) {
+        const g = this.game;
+        if (!g) return;
+        const player = g.players.find(p => p.id === playerId);
+        if (!player) return;
+        this.playSound('tap');
+        if (!g.coMarkers) g.coMarkers = {};
+        const current = Array.isArray(g.coMarkers[playerId]) ? g.coMarkers[playerId] : [];
+        const defs = this.getCoMarkerDefs();
+        const mincho = "font-family: 'Shippori Mincho', 'Noto Serif JP', serif;";
+
+        const renderBtn = d => {
+          const on = current.includes(d.key);
+          return `
+            <button
+              type="button"
+              onclick="window.dwcWerewolfApp.toggleCoMarker('${player.id}', '${d.key}')"
+              class="relative py-2 px-1 rounded-md border-2 text-center font-extrabold tracking-wider transition active:scale-95 ${on ? d.cls + ' shadow-[0_0_10px_rgba(251,191,36,0.55)] ring-1 ring-amber-300' : 'border-zinc-700 text-zinc-400 bg-black/60 hover:bg-zinc-900'}"
+              style="${mincho}"
+            >
+              <div class="text-sm leading-none">[${this.escapeHtml(d.label)}]</div>
+              <div class="text-[9px] mt-1 opacity-80 font-normal">${this.escapeHtml(d.desc)}</div>
+            </button>
+          `;
+        };
+
+        const overlay = document.getElementById('wc-ww-overlay');
+        if (!overlay) return;
+        overlay.classList.remove('hidden');
+        overlay.innerHTML = `
+          <div class="wc-ww-gothic-card rounded-xl p-4 w-full max-w-[395px] max-h-[90vh] flex flex-col border-2 border-amber-600/80 wc-ww-fade-up">
+            <div class="flex items-center justify-between border-b border-amber-700/50 pb-2 mb-3 gap-2">
+              <div class="min-w-0">
+                <div class="text-[10px] text-amber-400 wc-ww-cinzel tracking-widest">CO / DEDUCTION MARKER</div>
+                <h3 class="text-base font-bold text-amber-100 truncate" style="${mincho}">${player.seat}番　${this.escapeHtml(this.getPlayerName(player))}</h3>
+              </div>
+              <button type="button" onclick="window.dwcWerewolfApp.closeOverlay()" class="shrink-0 text-xs text-amber-300 px-2 py-0.5 rounded bg-zinc-800">✕</button>
+            </div>
+            <div class="flex-1 overflow-y-auto pr-1 space-y-3">
+              <div>
+                <div class="text-[11px] font-bold text-amber-300 mb-1.5 tracking-wider" style="${mincho}">役職CO（名乗り出）</div>
+                <div class="grid grid-cols-3 gap-1.5">
+                  ${defs.filter(d => d.group === 'co').map(renderBtn).join('')}
+                </div>
+              </div>
+              <div>
+                <div class="text-[11px] font-bold text-amber-300 mb-1.5 tracking-wider" style="${mincho}">盤面推理</div>
+                <div class="grid grid-cols-3 gap-1.5">
+                  ${defs.filter(d => d.group === 'read').map(renderBtn).join('')}
+                  <button
+                    type="button"
+                    onclick="window.dwcWerewolfApp.clearCoMarkers('${player.id}')"
+                    class="py-2 px-1 rounded-md border-2 border-zinc-500 text-zinc-200 bg-zinc-900/80 text-center font-extrabold tracking-wider transition active:scale-95"
+                    style="${mincho}"
+                  >
+                    <div class="text-sm leading-none">[クリア]</div>
+                    <div class="text-[9px] mt-1 opacity-80 font-normal">刻印を全解除</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onclick="window.dwcWerewolfApp.closeOverlay()"
+              class="mt-3 w-full py-2.5 rounded-lg wc-ww-btn-gold font-bold text-xs text-amber-100 tracking-wider"
+              style="${mincho}"
+            >閉じる</button>
+          </div>
+        `;
+      }
+
+      toggleCoMarker(playerId, markerKey) {
+        const g = this.game;
+        if (!g) return;
+        if (!g.coMarkers) g.coMarkers = {};
+        const list = Array.isArray(g.coMarkers[playerId]) ? [...g.coMarkers[playerId]] : [];
+        const idx = list.indexOf(markerKey);
+        if (idx >= 0) {
+          list.splice(idx, 1);
+        } else {
+          list.push(markerKey);
+        }
+        if (list.length > 0) {
+          g.coMarkers[playerId] = list;
+        } else {
+          delete g.coMarkers[playerId];
+        }
+        this.render();
+        this.openPlayerCoMarkerModal(playerId);
+      }
+
+      clearCoMarkers(playerId) {
+        const g = this.game;
+        if (!g) return;
+        if (g.coMarkers) delete g.coMarkers[playerId];
+        this.render();
+        this.openPlayerCoMarkerModal(playerId);
+      }
+
       renderDayDiscussionView() {
         const g = this.game;
         if (!g) return '';
@@ -9330,12 +9881,20 @@
 
             <!-- Players Status Grid (Identity Hidden via unknown Tarot) -->
             <div class="wc-ww-gothic-card rounded-xl p-3 flex-1 flex flex-col min-h-0">
-              <div class="text-xs font-serif font-bold text-amber-200 mb-2">
-                🪑 滞在者ステータス一覧（座席順）
+              <div class="flex items-center justify-between mb-2 gap-2">
+                <div class="text-xs font-serif font-bold text-amber-200">
+                  🪑 滞在者ステータス一覧（座席順）
+                </div>
+                <div class="text-[10px] text-slate-400 font-serif shrink-0">カードをタップでCO・推理刻印</div>
               </div>
               <div class="grid grid-cols-3 gap-2 overflow-y-auto max-h-[320px] pr-0.5">
                 ${g.players.map(p => `
-                  <div class="rounded-lg p-1.5 border ${p.isAlive ? 'bg-slate-950/85 border-amber-700/50' : 'bg-zinc-950/90 border-zinc-800 opacity-65'}">
+                  <div
+                    role="button"
+                    tabindex="0"
+                    onclick="window.dwcWerewolfApp.openPlayerCoMarkerModal('${p.id}')"
+                    class="rounded-lg p-1.5 border cursor-pointer active:scale-95 transition ${p.isAlive ? 'bg-slate-950/85 border-amber-700/50 hover:border-amber-400/80' : 'bg-zinc-950/90 border-zinc-800 opacity-65'}"
+                  >
                     ${this.renderRoleCardHtml('unknown', {
                       sizeClass: 'w-full',
                       isDead: !p.isAlive,
@@ -9347,6 +9906,7 @@
                       <div class="text-[11px] font-serif font-bold ${p.isAlive ? 'text-amber-100' : 'text-slate-500 line-through'} truncate">
                         ${this.escapeHtml(this.getPlayerName(p))}
                       </div>
+                      ${this.renderCoMarkerChipsHtml(p.id, true)}
                     </div>
                   </div>
                 `).join('')}
@@ -9445,7 +10005,10 @@
                           : 'bg-slate-950/85 border-zinc-800 text-slate-200 hover:bg-zinc-900'
                       }"
                     >
-                      <span class="text-xs sm:text-sm font-serif">${p.seat}番：${this.escapeHtml(this.getPlayerName(p))}</span>
+                      <div class="min-w-0 flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs sm:text-sm font-serif">${p.seat}番：${this.escapeHtml(this.getPlayerName(p))}</span>
+                        ${this.renderCoMarkerChipsHtml(p.id, true).replace('justify-center', 'justify-start')}
+                      </div>
                       <span class="px-2 py-0.5 rounded ${sel ? 'bg-red-600 text-white' : 'bg-zinc-800 text-slate-400'} text-[10px] font-serif">
                         ${sel ? '✓ 処刑対象に選択中' : '選択'}
                       </span>
@@ -9496,7 +10059,10 @@
                           : 'bg-slate-950/85 border-zinc-800 text-slate-200 hover:bg-zinc-900'
                       }"
                     >
-                      <span class="text-xs sm:text-sm font-serif">${c.seat}番：${this.escapeHtml(this.getPlayerName(c))}</span>
+                      <div class="min-w-0 flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs sm:text-sm font-serif">${c.seat}番：${this.escapeHtml(this.getPlayerName(c))}</span>
+                        ${this.renderCoMarkerChipsHtml(c.id, true).replace('justify-center', 'justify-start')}
+                      </div>
                       <span class="px-2 py-0.5 rounded ${sel ? 'bg-red-700 text-white' : 'bg-zinc-800 text-slate-400'} text-[10px] font-serif">
                         ${sel ? '✓ 投票選択中' : '選択'}
                       </span>
@@ -9552,9 +10118,12 @@
                 return `
                   <div class="p-2.5 rounded-lg border ${isTop ? 'bg-red-950/75 border-red-500' : 'bg-slate-950/80 border-zinc-800'}">
                     <div class="flex items-center justify-between">
-                      <span class="text-xs sm:text-sm font-serif font-bold ${isTop ? 'text-amber-100' : 'text-slate-300'}">
-                        ${t.seat}番：${this.escapeHtml(this.getPlayerName(t))}
-                      </span>
+                      <div class="min-w-0 flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs sm:text-sm font-serif font-bold ${isTop ? 'text-amber-100' : 'text-slate-300'}">
+                          ${t.seat}番：${this.escapeHtml(this.getPlayerName(t))}
+                        </span>
+                        ${this.renderCoMarkerChipsHtml(t.id, true).replace('justify-center', 'justify-start')}
+                      </div>
                       <span class="px-2.5 py-0.5 rounded-full ${isTop ? 'bg-red-700 text-white' : 'bg-zinc-800 text-slate-400'} font-serif font-bold text-xs">
                         ${c} 票
                       </span>
@@ -9696,6 +10265,12 @@
                   class="py-2.5 rounded-lg wc-ww-gothic-card hover:bg-zinc-800 text-xs font-serif font-bold text-amber-200"
                 >🔍 参加者メンバー変更</button>
               </div>
+              <button
+                type="button"
+                onclick="window.dwcWerewolfApp.returnToTitleFromResult()"
+                class="w-full py-3 rounded-xl wc-ww-gothic-card hover:bg-zinc-800 border border-amber-600/70 text-sm font-bold text-amber-200 tracking-[0.08em] active:scale-95 transition"
+                style="font-family: 'Shippori Mincho', 'Noto Serif JP', serif;"
+              >[ 花背の洋館 タイトル（表紙）へ戻る ]</button>
             </div>
           </div>
         `;
@@ -9758,6 +10333,9 @@
           case this.VIEWS.PASS_LOCK:
             html = this.renderPassLockView();
             break;
+          case this.VIEWS.GM_NOTICE:
+            html = this.renderGmNoticeView();
+            break;
           case this.VIEWS.PLAYER_ACTION:
             html = this.renderPlayerActionView();
             break;
@@ -9784,12 +10362,49 @@
           this.updateSuggestionsDom();
         }
 
+        // 画面（currentView）が切り替わった時だけ最上部へスクロール。
+        // 同じ画面内（役職の＋/－・ルール設定ボタンなど）の再描画では直前の scrollTop を維持する。
         const wwRoot = document.getElementById('tab-werewolf');
-        if (wwRoot && this.currentView !== this.VIEWS.ENTRY) {
+        const viewChanged = this.lastRenderedView !== this.currentView;
+        if (wwRoot && viewChanged) {
           wwRoot.scrollTop = 0;
+        }
+        this.lastRenderedView = this.currentView;
+
+        // ヘッダー中央「花背の洋館」ボタンの状態（準備中・リザルト画面のみ表紙へ戻れる）
+        const titleBtn = document.getElementById('wc-ww-header-title-btn');
+        if (titleBtn) {
+          const canReturn = (
+            this.currentView === this.VIEWS.ENTRY ||
+            this.currentView === this.VIEWS.SETUP ||
+            this.currentView === this.VIEWS.RESULT
+          );
+          titleBtn.classList.toggle('hover:bg-zinc-800/70', canReturn);
+          titleBtn.classList.toggle('border', canReturn);
+          titleBtn.classList.toggle('border-amber-700/50', canReturn);
+          titleBtn.classList.toggle('cursor-pointer', canReturn);
+          titleBtn.classList.toggle('cursor-default', !canReturn);
         }
 
         this.syncAmbientBgmState();
+      }
+
+      // ヘッダー中央の「花背の洋館」タップ: 準備中（参加者登録・配役設定）やリザルト画面から表紙（タイトル）へ戻る
+      handleHeaderTitleTap() {
+        const v = this.currentView;
+        if (v === this.VIEWS.ENTRY || v === this.VIEWS.SETUP) {
+          this.playSound('tap');
+          this.currentView = this.VIEWS.TITLE;
+          this.render();
+        } else if (v === this.VIEWS.RESULT) {
+          this.returnToTitleFromResult();
+        }
+      }
+
+      // リザルト画面から表紙（タイトル）へ戻る（終了したゲームの状態は破棄）
+      returnToTitleFromResult() {
+        this.playSound('tap');
+        this.abortToTitle();
       }
     }
 
@@ -16221,6 +16836,17 @@
           if (typeof window.dwcWerewolfApp.onExternalRosterUpdated === 'function') {
             window.dwcWerewolfApp.onExternalRosterUpdated();
           }
+          // ラウンジから起動した際は毎回必ず荘厳なタイトル画面（表紙）から開く。
+          // 進行中のゲームがある場合は pausedView に保持されているため、タイトル最上部の再開バーから1タップで復帰できる。
+          try {
+            if (typeof window.dwcWerewolfApp.closeOverlay === 'function') {
+              window.dwcWerewolfApp.closeOverlay();
+            }
+            if (window.dwcWerewolfApp.VIEWS) {
+              window.dwcWerewolfApp.currentView = window.dwcWerewolfApp.VIEWS.TITLE;
+            }
+            window.dwcWerewolfApp.lastRenderedView = null;
+          } catch (_) {}
           if (typeof window.dwcWerewolfApp.render === 'function') {
             window.dwcWerewolfApp.render();
           }
@@ -16968,10 +17594,16 @@
       // ホーム（マイページ）の描画
       renderHomeView(authContext);
 
-      // 代表受取人の初期値に自分の氏名をセット
+      // 代表受取人の初期値に自分の氏名をセット（共通管理者アカウントの場合は「DWC公式」を自動入力せず空欄）
       const targetPersonInput = document.getElementById('shift-target-person');
-      if (targetPersonInput && !targetPersonInput.value) {
-        targetPersonInput.value = authContext.name || '';
+      if (targetPersonInput) {
+        if (isSystemOrNonActiveAccount(authContext)) {
+          if (!targetPersonInput.value || isSystemOrNonActiveAccount({ name: targetPersonInput.value })) {
+            targetPersonInput.value = '';
+          }
+        } else if (!targetPersonInput.value) {
+          targetPersonInput.value = authContext.name || '';
+        }
       }
 
       populateEventSelectors();
@@ -17140,6 +17772,17 @@
       setText('home-user-grade', ctx.grade || '学年未設定');
       setText('home-user-role', roleDisplayName(ctx.role) || 'Member');
       loadSavedPassAvatar();
+
+      // 共通管理者アカウント（dwc.manager.2025@gmail.com / DWC公式）は誤変更防止のためメールアドレス変更を封印
+      const isSharedAdminAccount = isSystemOrNonActiveAccount(ctx);
+      const emailChangeBtn = document.getElementById('btn-open-email-change');
+      if (emailChangeBtn) {
+        emailChangeBtn.classList.toggle('hidden', isSharedAdminAccount);
+      }
+      if (isSharedAdminAccount) {
+        const emailForm = document.getElementById('email-change-form');
+        if (emailForm) emailForm.classList.add('hidden');
+      }
       animateNumberCountUp('home-reward-points', Number(ctx.reward_points || 0), { useLocale: false });
 
       // キャンプネーム表示
@@ -18077,6 +18720,7 @@
       const gradeGroupsMap = new Map();
       APP_STATE.usersList.forEach((u, globalIdx) => {
         const gradeKey = String(u.grade || '').trim();
+        if (isSystemOrNonActiveAccount(u)) return;
         if (!ALLOWED_SHIFT_REPORT_GRADES.includes(gradeKey)) return;
         if (!gradeGroupsMap.has(gradeKey)) {
           gradeGroupsMap.set(gradeKey, []);
@@ -18391,6 +19035,7 @@
       const matched = [];
       APP_STATE.usersList.forEach((u, globalIdx) => {
         const gradeKey = String(u.grade || '').trim();
+        if (isSystemOrNonActiveAccount(u)) return;
         if (!ALLOWED_SHIFT_REPORT_GRADES.includes(gradeKey)) return;
         const score = scoreMemberSearchMatch(u, normKeyword);
         if (score > 0) {
@@ -19267,7 +19912,7 @@
       const isAdminView = LEADERBOARD_CACHE.isAdminView;
 
       const activeMembers = LEADERBOARD_CACHE.members
-        .filter(m => !isGraduateGrade(m.grade))
+        .filter(m => !isGraduateGrade(m.grade) && !isSystemOrNonActiveAccount(m))
         .slice()
         .sort((a, b) => Number(b.reward_points || 0) - Number(a.reward_points || 0));
 
@@ -20445,6 +21090,7 @@
 
       const scored = [];
       (APP_STATE.usersList || []).forEach((u, idx) => {
+        if (isSystemOrNonActiveAccount(u)) return;
         const score = scoreMemberSearchMatch(u, normKeyword);
         if (score > 0) {
           scored.push({ user: u, score: score, idx: idx });
@@ -20995,6 +21641,7 @@
       const candidates = [];
       APP_STATE.usersList.forEach((u, idx) => {
         if (currentNormSet.has(normalizeNameClient(u.name))) return;
+        if (isSystemOrNonActiveAccount(u)) return;
         const score = normKeyword ? scoreMemberSearchMatch(u, normKeyword) : 1;
         if (normKeyword && score <= 0) return;
         candidates.push({ user: u, score: score, idx: idx });
@@ -21037,6 +21684,7 @@
       const scored = [];
       (APP_STATE.usersList || []).forEach((u, idx) => {
         if (currentNormSet.has(normalizeNameClient(u.name))) return;
+        if (isSystemOrNonActiveAccount(u)) return;
         const score = scoreMemberSearchMatch(u, normKeyword);
         if (score > 0) {
           scored.push({ user: u, score: score, idx: idx });
@@ -21495,6 +22143,7 @@
 
       const candidates = [];
       APP_STATE.usersList.forEach((u, idx) => {
+        if (isSystemOrNonActiveAccount(u)) return;
         const score = normKeyword ? scoreMemberSearchMatch(u, normKeyword) : 1;
         if (normKeyword && score <= 0) return;
         candidates.push({ user: u, idx: idx, score: score });
@@ -21533,6 +22182,7 @@
 
       const matched = [];
       APP_STATE.usersList.forEach((u, idx) => {
+        if (isSystemOrNonActiveAccount(u)) return;
         const score = scoreMemberSearchMatch(u, normKeyword);
         if (score > 0) {
           matched.push({ user: u, idx: idx, score: score });
@@ -21875,6 +22525,7 @@
 
       (APP_STATE.usersList || []).forEach((u, idx) => {
         const uGrade = String(u.grade || '').trim();
+        if (isSystemOrNonActiveAccount(u)) return;
         if (gradeFilter !== 'ALL' && uGrade !== gradeFilter) return;
 
         const score = normKeyword ? scoreMemberSearchMatch(u, normKeyword) : 1;
