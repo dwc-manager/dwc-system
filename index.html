@@ -5380,7 +5380,6 @@
             this.ambientBgmStopTimer = null;
           }
 
-          // すでに再生中の場合はマスターゲインを復帰させて継続
           if (this.ambientBgmNodes && this.ambientBgmNodes.masterGain) {
             const now = ctx.currentTime;
             const mg = this.ambientBgmNodes.masterGain.gain;
@@ -5396,7 +5395,7 @@
           masterGain.gain.linearRampToValueAtTime(1.0, now + 1.4);
           masterGain.connect(ctx.destination);
 
-          // ① 深い霧と風の音（ブラウン／ピンクノイズ ＋ 低域ローパスフィルタ 180Hz〜420Hz LFO変調）
+          // ① 深い霧と風の音（スマホでも聴き取れるようゲインと帯域を最適化）
           const sampleRate = ctx.sampleRate || 44100;
           const bufferLen = sampleRate * 4;
           const noiseBuffer = ctx.createBuffer(1, bufferLen, sampleRate);
@@ -5404,8 +5403,8 @@
           let lastOut = 0.0;
           for (let i = 0; i < bufferLen; i++) {
             const white = Math.random() * 2 - 1;
-            lastOut = (lastOut + (0.025 * white)) / 1.025;
-            output[i] = lastOut * 2.8;
+            lastOut = (lastOut + (0.04 * white)) / 1.04;
+            output[i] = lastOut * 3.2;
           }
 
           const noiseSource = ctx.createBufferSource();
@@ -5413,20 +5412,20 @@
           noiseSource.loop = true;
 
           const windFilter = ctx.createBiquadFilter();
-          windFilter.type = 'lowpass';
-          windFilter.frequency.setValueAtTime(300, now);
-          windFilter.Q.setValueAtTime(1.8, now);
+          windFilter.type = 'bandpass';
+          windFilter.frequency.setValueAtTime(340, now);
+          windFilter.Q.setValueAtTime(1.4, now);
 
           const windLfo = ctx.createOscillator();
           const windLfoGain = ctx.createGain();
           windLfo.type = 'sine';
-          windLfo.frequency.setValueAtTime(0.12, now); // 約8.3秒周期でゆっくりうねる霧と風
-          windLfoGain.gain.setValueAtTime(120, now);   // 300Hz ± 120Hz = 180Hz〜420Hz
+          windLfo.frequency.setValueAtTime(0.14, now); // 約7秒周期の風のうねり
+          windLfoGain.gain.setValueAtTime(160, now);   // 180Hz〜500Hzで変化
           windLfo.connect(windLfoGain);
           windLfoGain.connect(windFilter.frequency);
 
           const windGain = ctx.createGain();
-          windGain.gain.setValueAtTime(0.032, now);
+          windGain.gain.setValueAtTime(0.075, now);
 
           noiseSource.connect(windFilter);
           windFilter.connect(windGain);
@@ -5435,30 +5434,45 @@
           noiseSource.start(now);
           windLfo.start(now);
 
-          // ② ゴシック・パイプオルガン風持続和音（Dマイナー: D2=73.42Hz, A2=110.00Hz, D3=146.83Hz, F3=174.61Hz）
+          // ② ゴシック・パイプオルガン持続和音（スマホスピーカーでもしっかり響く倍音＆中音域ストップ追加）
           const organFilter = ctx.createBiquadFilter();
           organFilter.type = 'lowpass';
-          organFilter.frequency.setValueAtTime(480, now);
+          organFilter.frequency.setValueAtTime(920, now);
+          organFilter.Q.setValueAtTime(1.2, now);
+
+          // パイプオルガンの揺らぎ（トレモulant効果）
+          const organLfo = ctx.createOscillator();
+          const organLfoGain = ctx.createGain();
+          organLfo.type = 'sine';
+          organLfo.frequency.setValueAtTime(0.22, now);
+          organLfoGain.gain.setValueAtTime(180, now);
+          organLfo.connect(organLfoGain);
+          organLfoGain.connect(organFilter.frequency);
+          organLfo.start(now);
 
           const organBusGain = ctx.createGain();
-          organBusGain.gain.setValueAtTime(0.022, now); // 全体として控えめなドローン音量
+          organBusGain.gain.setValueAtTime(0.085, now); // スマホでも明瞭に聴こえつつ会話を邪魔しない音量
           organFilter.connect(organBusGain);
           organBusGain.connect(masterGain);
 
+          // ニ短調（Dマイナー）のパイプオルガン重厚和音（低音ペダル＋スマホで聴こえる中音域パイプ）
           const chordNotes = [
-            { freq: 73.42, type: 'triangle', weight: 0.36 }, // D2
-            { freq: 110.00, type: 'sine', weight: 0.26 },    // A2
-            { freq: 146.83, type: 'triangle', weight: 0.22 },// D3
-            { freq: 174.61, type: 'sine', weight: 0.16 }     // F3
+            { freq: 73.42,  type: 'sawtooth', weight: 0.22 }, // D2 (低音ペダル)
+            { freq: 110.00, type: 'sawtooth', weight: 0.20 }, // A2
+            { freq: 146.83, type: 'sawtooth', weight: 0.24 }, // D3 (主音)
+            { freq: 174.61, type: 'triangle', weight: 0.22 }, // F3 (短三度)
+            { freq: 220.00, type: 'sawtooth', weight: 0.18 }, // A3 (五度・スマホ可聴域の核)
+            { freq: 293.66, type: 'triangle', weight: 0.15 }, // D4 (高音オクターブ管)
+            { freq: 349.23, type: 'sine',     weight: 0.10 }  // F4 (荘厳な倍音)
           ];
-          const organOscillators = [];
+          const organOscillators = [organLfo];
 
           chordNotes.forEach((n, idx) => {
             const osc = ctx.createOscillator();
             const voiceGain = ctx.createGain();
             osc.type = n.type;
             osc.frequency.setValueAtTime(n.freq, now);
-            osc.detune.setValueAtTime((idx % 2 === 0 ? -3.5 : 3.5), now);
+            osc.detune.setValueAtTime((idx % 2 === 0 ? -4.5 : 4.5), now);
             voiceGain.gain.setValueAtTime(n.weight, now);
             osc.connect(voiceGain);
             voiceGain.connect(organFilter);
@@ -17487,7 +17501,7 @@
       const lineName = String(lineInput ? lineInput.value : '').trim();
       const furigana = String(furiInput ? furiInput.value : '').trim();
 
-      const btn = document.getElementById('btn-profile-line-furigana-save');
+      const btn = document.getElementById('btn-line-furigana-save');
       if (btn) btn.disabled = true;
       showLoader('LINE表示名・フリガナを保存しています...');
       try {
