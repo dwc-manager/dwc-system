@@ -1618,9 +1618,16 @@
                 <h3 class="text-sm sm:text-base font-bold text-slate-900">🎉 抽選結果 &amp; Shift_Calendar プレビュー</h3>
                 <p id="lottery-result-meta" class="text-xs text-slate-500 mt-0.5"></p>
               </div>
-              <button type="button" onclick="copyLotteryWinnersText()" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs">
-                📋 全日程の当選者リストをコピー
-              </button>
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="copyLotteryWinnersText()"
+                  class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition active:scale-[0.99]">
+                  📋 シフト割当結果をコピー
+                </button>
+                <button type="button" onclick="copyLotteryAssignedMentionText()"
+                  class="px-3.5 py-2 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-extrabold shadow-2xs transition active:scale-[0.99]">
+                  📣 抽選割当の確認用（メンション用）をコピー
+                </button>
+              </div>
             </div>
 
             <!-- Shift_Calendar 横並びマトリックスプレビュー -->
@@ -21807,49 +21814,79 @@
     }
 
     /**
-     * 全日程の当選者リストをLINE共有用テキストとしてクリップボードへコピーする（補欠出力なし）
+     * 全日程のシフト割当結果をLINE共有用テキストとしてクリップボードへコピーする（氏名のみ・シンプル形式）
      */
     async function copyLotteryWinnersText() {
       if (!LAST_LOTTERY_RESULT || !Array.isArray(LAST_LOTTERY_RESULT.shifts)) return;
 
-      const gradeShort = g => {
-        const m = String(g || '').trim().match(/^(\d)回生$/);
-        return m ? m[1] : String(g || '').trim();
-      };
-      const fmtMember = w => `${w.name}(${gradeShort(w.grade)})`;
-
-      const assignedNotices = [];
       const blocksText = LAST_LOTTERY_RESULT.shifts.map(s => {
         const winners = Array.isArray(s.winners) ? s.winners : [];
         const assigned = winners.filter(w => w.selection_type === 'assigned');
         const volunteers = winners.filter(w => w.selection_type === 'volunteer' || w.selection_type === 'volunteer_lottery');
         const others = winners.filter(w => !assigned.includes(w) && !volunteers.includes(w));
 
-        assigned.forEach(w => {
-          const lineName = String(w.line_name || '').trim();
-          assignedNotices.push(
-            lineName
-              ? `・${w.name} [LINE: ${lineName}] (${s.shift_date})`
-              : `・${w.name} (${s.shift_date})`
-          );
-        });
-
         const lines = [`📅 ${s.shift_date} (計${winners.length}名)`];
-        if (assigned.length > 0) lines.push(`🎯 抽選：${assigned.map(fmtMember).join(' / ')}`);
-        if (volunteers.length > 0) lines.push(`✋ 希望：${volunteers.map(fmtMember).join(' / ')}`);
-        if (others.length > 0) lines.push(`👤 その他：${others.map(fmtMember).join(' / ')}`);
+        if (assigned.length > 0) lines.push(`🎯 抽選：${assigned.map(w => w.name).join(' / ')}`);
+        if (volunteers.length > 0) lines.push(`✋ 希望：${volunteers.map(w => w.name).join(' / ')}`);
+        if (others.length > 0) lines.push(`👤 その他：${others.map(w => w.name).join(' / ')}`);
         if (winners.length === 0) lines.push('該当なし');
         return lines.join('\n');
       });
 
-      let fullText = `【DWC シフト割当結果】\n\n${blocksText.join('\n\n')}`;
-      if (assignedNotices.length > 0) {
-        fullText += `\n\n━━━━━━━━━━━━━━\n⚠️ 抽選割当の方（行けるか確認・返信お願いします！）\n${assignedNotices.join('\n')}`;
-      }
+      const fullText = `【DWC シフト割当結果】\n\n${blocksText.join('\n\n')}`;
 
       try {
         await navigator.clipboard.writeText(fullText);
-        showToast('全日程の割当結果をクリップボードにコピーしました！', 'success');
+        showToast('シフト割当結果をクリップボードにコピーしました！', 'success');
+      } catch (_) {
+        showToast('コピーに失敗しました。', 'error');
+      }
+    }
+
+    /**
+     * システム補充（selection_type === 'assigned'）の抽選割当メンバーのみを日程別にまとめ、
+     * LINEメンション用にLINE表示名を1行ずつ羅列したテキストをクリップボードへコピーする
+     */
+    async function copyLotteryAssignedMentionText() {
+      if (!LAST_LOTTERY_RESULT || !Array.isArray(LAST_LOTTERY_RESULT.shifts)) return;
+
+      const assignedBlocks = [];
+      LAST_LOTTERY_RESULT.shifts.forEach(s => {
+        const winners = Array.isArray(s.winners) ? s.winners : [];
+        const assigned = winners.filter(w => w.selection_type === 'assigned');
+        if (assigned.length === 0) return;
+
+        const memberLines = assigned.map(w => {
+          let lineName = String(w.line_name || '').trim();
+          if (!lineName && Array.isArray(APP_STATE.usersList)) {
+            const matched = APP_STATE.usersList.find(
+              u => u && normalizeNameClient(u.name) === normalizeNameClient(w.name)
+            );
+            if (matched && matched.line_name) {
+              lineName = String(matched.line_name).trim();
+            }
+          }
+          return lineName ? lineName : `${w.name}（LINE未登録）`;
+        });
+
+        assignedBlocks.push(`📅 ${s.shift_date}\n${memberLines.join('\n')}`);
+      });
+
+      if (assignedBlocks.length === 0) {
+        showToast('今回、システム抽選による割当メンバーはいません。', 'info');
+        return;
+      }
+
+      const fullText = [
+        '⚠️ 抽選割当の方',
+        ' (いけない人は"必ず"個チャに連絡ください！代わりに行ける人が見つけられなければ来月に回ってもらうことになります！)',
+        '',
+        assignedBlocks.join('\n\n')
+      ].join('\n');
+
+      try {
+        await navigator.clipboard.writeText(fullText);
+        showToast('抽選割当の確認用（メンション用）テキストをコピーしました！', 'success');
       } catch (_) {
         showToast('コピーに失敗しました。', 'error');
       }
