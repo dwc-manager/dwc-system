@@ -1477,88 +1477,142 @@
           </div>
 
           <form id="lottery-form" onsubmit="handleRunShiftLottery(event)" class="space-y-5">
-            <!-- 🎯 自動補充抽選の対象学年フィルター（卒業生・OBOG・院生等は自動除外） -->
-            <div class="bg-amber-50/70 ring-1 ring-amber-200/80 rounded-2xl p-4 space-y-3">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div class="text-xs sm:text-sm font-extrabold text-slate-900">
-                  🎯 自動補充抽選の対象学年（チェックを外した学年・卒業生はランダム補充から除外されます）
-                </div>
-                <div class="flex flex-wrap items-center gap-1.5 shrink-0">
-                  <span class="text-[10px] font-bold text-slate-500 mr-0.5">クイック選択:</span>
-                  <button type="button" onclick="setLotteryTargetGradesPreset(['1回生', '2回生'])"
-                    class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-300 text-[11px] font-extrabold text-slate-700 shadow-2xs transition">
-                    1・2回生のみ
-                  </button>
-                  <button type="button" onclick="setLotteryTargetGradesPreset(['1回生', '2回生', '3回生'])"
-                    class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-300 text-[11px] font-extrabold text-slate-700 shadow-2xs transition">
-                    1〜3回生
-                  </button>
-                  <button type="button" onclick="setLotteryTargetGradesPreset(['1回生'])"
-                    class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-300 text-[11px] font-extrabold text-slate-700 shadow-2xs transition">
-                    1回生のみ
-                  </button>
-                </div>
-              </div>
+            <!-- ⚙️ 抽選ルール詳細設定（折りたたみアコーディオン・初期は閉じた状態） -->
+            <details id="lottery-rules-accordion" class="group bg-amber-50/70 ring-1 ring-amber-200/80 rounded-2xl">
+              <summary class="cursor-pointer select-none list-none flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3">
+                <span class="text-xs sm:text-sm font-extrabold text-slate-900">⚙️ 抽選ルール詳細設定</span>
+                <span class="flex items-center gap-2 min-w-0">
+                  <span id="lottery-rules-summary" class="text-[10px] sm:text-[11px] font-semibold text-slate-500 truncate">1・2回生 / 未登録除外:ON / 重複防止:ON / 上回生保証:ON</span>
+                  <span class="text-[11px] font-semibold text-slate-400 group-open:rotate-180 transition-transform">▼</span>
+                </span>
+              </summary>
 
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none hover:border-brand-300 transition shadow-2xs">
-                  <input type="checkbox" value="1回生" checked
-                    class="lottery-target-grade-chk w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
-                  <span class="text-xs font-extrabold text-slate-800">1回生</span>
-                </label>
-                <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none hover:border-brand-300 transition shadow-2xs">
-                  <input type="checkbox" value="2回生" checked
-                    class="lottery-target-grade-chk w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
-                  <span class="text-xs font-extrabold text-slate-800">2回生</span>
-                </label>
-                <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none hover:border-brand-300 transition shadow-2xs">
-                  <input type="checkbox" value="3回生"
-                    class="lottery-target-grade-chk w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
-                  <span class="text-xs font-extrabold text-slate-800">3回生 <span class="text-[10px] font-normal text-slate-400">(4〜7月既定ON)</span></span>
-                </label>
-                <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none hover:border-brand-300 transition shadow-2xs">
-                  <input type="checkbox" value="4回生"
-                    class="lottery-target-grade-chk w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
-                  <span class="text-xs font-extrabold text-slate-800">4回生</span>
-                </label>
-              </div>
+              <div class="px-4 pb-4 pt-3 space-y-4 border-t border-amber-200/70">
+                <!-- 1. 対象学年 -->
+                <div class="space-y-2">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div class="text-xs font-extrabold text-slate-900">
+                      ① 自動補充の対象学年（チェックを外した学年・卒業生はランダム補充から除外）
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                      <span class="text-[10px] font-bold text-slate-500 mr-0.5">クイック選択:</span>
+                      <button type="button" onclick="setLotteryTargetGradesPreset(['1回生', '2回生'])"
+                        class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-300 text-[11px] font-extrabold text-slate-700 shadow-2xs transition">
+                        1・2回生のみ
+                      </button>
+                      <button type="button" onclick="setLotteryTargetGradesPreset(['1回生', '2回生', '3回生'])"
+                        class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-300 text-[11px] font-extrabold text-slate-700 shadow-2xs transition">
+                        1〜3回生
+                      </button>
+                      <button type="button" onclick="setLotteryTargetGradesPreset(['1回生'])"
+                        class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-300 text-[11px] font-extrabold text-slate-700 shadow-2xs transition">
+                        1回生のみ
+                      </button>
+                    </div>
+                  </div>
 
-              <p class="text-[11px] text-slate-500 leading-relaxed">
-                ※卒業生・OB/OG・院生・その他は常にランダム自動補充から除外されます。ただし、除外学年や卒業生でも各日程の「立候補者」欄に明示的に名前を入力した場合は有効な立候補者として確定・抽選されます。
-              </p>
-            </div>
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none hover:border-brand-300 transition shadow-2xs">
+                      <input type="checkbox" value="1回生" checked onchange="handleLotteryRuleChange()"
+                        class="lottery-target-grade-chk w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
+                      <span class="text-xs font-extrabold text-slate-800">1回生</span>
+                    </label>
+                    <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none hover:border-brand-300 transition shadow-2xs">
+                      <input type="checkbox" value="2回生" checked onchange="handleLotteryRuleChange()"
+                        class="lottery-target-grade-chk w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
+                      <span class="text-xs font-extrabold text-slate-800">2回生</span>
+                    </label>
+                    <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none hover:border-brand-300 transition shadow-2xs">
+                      <input type="checkbox" value="3回生" onchange="handleLotteryRuleChange()"
+                        class="lottery-target-grade-chk w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
+                      <span class="text-xs font-extrabold text-slate-800">3回生 <span class="text-[10px] font-normal text-slate-400">(4〜7月既定ON)</span></span>
+                    </label>
+                    <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none hover:border-brand-300 transition shadow-2xs">
+                      <input type="checkbox" value="4回生" onchange="handleLotteryRuleChange()"
+                        class="lottery-target-grade-chk w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
+                      <span class="text-xs font-extrabold text-slate-800">4回生</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- 2〜4. オプション3種 -->
+                <div class="space-y-2">
+                  <label class="flex items-start gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none shadow-2xs">
+                    <input id="lottery-opt-exclude-unregistered" type="checkbox" checked onchange="handleLotteryRuleChange()"
+                      class="mt-0.5 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 shrink-0" />
+                    <span class="text-xs font-bold text-slate-800 leading-snug">
+                      ☑️ アプリ未登録者を自動補充から除外する
+                      <span class="block text-[10px] font-normal text-slate-500">メールアドレス未登録（アプリ未ログイン）のメンバーは、自動補充の候補になりません。</span>
+                    </span>
+                  </label>
+                  <label class="flex items-start gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none shadow-2xs">
+                    <input id="lottery-opt-prevent-dup" type="checkbox" checked onchange="handleLotteryRuleChange()"
+                      class="mt-0.5 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 shrink-0" />
+                    <span class="text-xs font-bold text-slate-800 leading-snug">
+                      ☑️ 複数日一括抽選での重複当選を防止する
+                      <span class="block text-[10px] font-normal text-slate-500">他の日程に立候補・当選している人は、人数不足の緊急時以外は自動補充されません。</span>
+                    </span>
+                  </label>
+                  <label id="lottery-opt-require-senior-label" class="flex items-start gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 cursor-pointer select-none shadow-2xs">
+                    <input id="lottery-opt-require-senior" type="checkbox" checked onchange="handleLotteryRuleChange()"
+                      class="mt-0.5 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 shrink-0" />
+                    <span class="text-xs font-bold text-slate-800 leading-snug">
+                      ☑️ 各日程に上回生（2回生以上）を最低1名保証する
+                      <span id="lottery-opt-require-senior-hint" class="block text-[10px] font-normal text-slate-500">立候補者に上回生がいない日程では、対象学年の中の2回生以上から1名を優先して補充します。</span>
+                    </span>
+                  </label>
+                </div>
+
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                  ※卒業生・OB/OG・院生・その他・「抽選免除」「退部・音信不通」のメンバーは常に自動補充から除外されます。ただし、除外対象でも各日程の「立候補者」欄に明示的に名前を入力した場合は有効な立候補者として確定・抽選されます。
+                </p>
+              </div>
+            </details>
 
             <!-- 動的日程ブロック一覧コンテナ -->
             <div id="lottery-blocks-container" class="space-y-4">
               <!-- JS (initShiftLotteryBlocks / addShiftLotteryBlock) で日程ブロックを動的生成 -->
             </div>
 
-            <!-- 下部アクションエリア: Secondary追加ボタン & 自動保存チェック & Primary抽選実行ボタン -->
-            <div class="pt-2 space-y-4">
+            <!-- 下部アクションエリア: 日程追加 & 仮抽選実行ボタン（保存は結果プレビュー側の「確定」で実施） -->
+            <div class="pt-2 space-y-3">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <button type="button" onclick="addShiftLotteryBlock()"
                   class="self-start sm:self-auto px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition">
                   ＋ 日程ブロックを追加
                 </button>
-
-                <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs text-slate-600">
-                  <input id="lottery-register-planned" type="checkbox" checked
-                    class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300" />
-                  <span class="font-semibold text-slate-700">
-                    当選結果を <code>Planned_Shifts</code> と <code>Shift_Calendar</code> へ自動保存する
-                  </span>
-                </label>
+                <p class="text-[11px] text-slate-500 leading-snug">
+                  仮抽選は何度でもやり直せます。結果に問題がなければプレビュー上部の「確定」ボタンでシフト表へ保存します。
+                </p>
               </div>
 
               <button id="btn-run-lottery" type="submit"
                 class="w-full py-3.5 px-6 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition active:scale-[0.99]">
-                抽選を実行する
+                🎲 仮抽選を実行（やり直し可・まだ保存されません）
               </button>
             </div>
           </form>
 
           <!-- 抽選結果表示エリア (カレンダー横並びプレビュー + 日程別スコア内訳) -->
           <div id="lottery-result-box" class="hidden space-y-5 pt-5 border-t border-slate-100">
+            <!-- 仮抽選アクションバー（未確定時は目立つ表示 / 確定後は保存済みバッジ） -->
+            <div id="lottery-action-bar" class="rounded-2xl bg-amber-50 ring-2 ring-amber-300 p-3.5 space-y-2.5">
+              <div class="text-xs font-extrabold text-amber-900">⚠️ これは仮抽選の結果です（まだシフト表へ保存されていません）</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button id="btn-lottery-redraw" type="button" onclick="handleRedrawShiftLottery()"
+                  class="py-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-sm shadow-2xs transition active:scale-[0.99]">
+                  🔄 もう一度抽選し直す
+                </button>
+                <button id="btn-lottery-commit" type="button" onclick="handleCommitLotteryResults()"
+                  class="py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md transition active:scale-[0.99]">
+                  ✅ この結果で確定・シフト表へ保存する
+                </button>
+              </div>
+            </div>
+            <div id="lottery-committed-badge" class="hidden rounded-2xl bg-emerald-50 ring-1 ring-emerald-300 px-4 py-3 text-xs sm:text-sm font-extrabold text-emerald-800">
+              ✅ シフト表（Planned_Shifts / Shift_Calendar）へ保存済み
+            </div>
+
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h3 class="text-sm sm:text-base font-bold text-slate-900">🎉 抽選結果 &amp; Shift_Calendar プレビュー</h3>
@@ -1657,6 +1711,74 @@
               </div>
             </div>
 
+            <!-- ③.5 🎲 欠員分をシステム再抽選で補充する -->
+            <div class="bg-amber-50/60 ring-1 ring-amber-200/90 rounded-2xl p-4 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="text-xs font-extrabold text-slate-900">3.5 🎲 欠員分をシステム再抽選で補充する</div>
+                <span id="shift-edit-redraw-rule-badge" class="text-[10px] font-bold text-amber-800 bg-white/90 px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
+                  抽選タブ設定と連動
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                この枠の既存メンバーおよび今除外したメンバーを回避し、対象学年・未登録除外・上回生保証（抽選タブの設定と連動）を適用して欠員分をピンポイント再抽選します。
+              </p>
+
+              <div id="shift-edit-excluded-notice" class="hidden text-[11px] font-semibold text-rose-700 bg-rose-50/90 ring-1 ring-rose-200 rounded-xl px-3 py-2">
+              </div>
+
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div class="flex items-center gap-2 shrink-0">
+                  <label for="shift-edit-redraw-count" class="text-xs font-bold text-slate-700 whitespace-nowrap">補充人数:</label>
+                  <select id="shift-edit-redraw-count" onchange="updateShiftEditRedrawBtnLabel()"
+                    class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-bold text-slate-800 focus:border-brand-600 focus:outline-none">
+                    <option value="1" selected>1名</option>
+                    <option value="2">2名</option>
+                    <option value="3">3名</option>
+                    <option value="4">4名</option>
+                    <option value="5">5名</option>
+                  </select>
+                </div>
+                <button id="btn-shift-edit-redraw" type="button" onclick="handleShiftEditRedrawPreview()"
+                  class="flex-1 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-xs transition active:scale-[0.99]">
+                  🎲 候補を1名再抽選する
+                </button>
+              </div>
+
+              <!-- 再抽選候補プレビュー -->
+              <div id="shift-edit-redraw-preview" class="hidden bg-white ring-1 ring-amber-300 rounded-xl p-3.5 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div class="text-xs font-extrabold text-slate-900">🎯 再抽選の選出候補（まだ枠へ追加されていません）</div>
+                  <span id="shift-edit-redraw-pool-info" class="text-[10px] font-semibold text-slate-500"></span>
+                </div>
+                <div id="shift-edit-redraw-candidates-list" class="space-y-1.5">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  <button id="btn-shift-edit-redraw-again" type="button" onclick="handleShiftEditRedrawPreview()"
+                    class="py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-[0.99]">
+                    🔄 別の候補を再抽選
+                  </button>
+                  <button id="btn-shift-edit-redraw-commit" type="button" onclick="handleShiftEditRedrawCommit()"
+                    class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition active:scale-[0.99]">
+                    ✅ このメンバーを枠に追加して確定
+                  </button>
+                </div>
+              </div>
+
+              <!-- 確定後のLINEお知らせコピーエリア -->
+              <div id="shift-edit-redraw-committed-box" class="hidden bg-emerald-50 ring-1 ring-emerald-300 rounded-xl p-3.5 space-y-2.5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div id="shift-edit-redraw-committed-msg" class="text-xs font-extrabold text-emerald-800">
+                    ✅ シフト枠へ追加しました！
+                  </div>
+                  <button type="button" onclick="copyShiftEditRedrawNotice()"
+                    class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition active:scale-[0.99]">
+                    📋 再抽選のお知らせ文面をコピー
+                  </button>
+                </div>
+                <pre id="shift-edit-redraw-notice-preview" class="text-[11px] text-slate-700 bg-white/90 rounded-lg p-2.5 border border-emerald-200 whitespace-pre-wrap font-sans leading-relaxed"></pre>
+              </div>
+            </div>
+
             <!-- ④ メンバーの手動追加（200名サジェスト検索フィルタ付き） -->
             <div class="bg-white ring-1 ring-slate-200/80 rounded-2xl p-4 space-y-3">
               <div class="text-xs font-extrabold text-slate-800">4. 代打・追加メンバーをこのシフト枠に入れる</div>
@@ -1719,6 +1841,60 @@
             <button type="button" onclick="loadAdminMembersTab()" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50">
               ↻ 再読込
             </button>
+          </div>
+        </div>
+
+        <!-- カード0: 📊 アプリ登録状況 ＆ 活動ステータス管理 -->
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-5 shadow-xs space-y-4">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-slate-900">0. 📊 アプリ登録状況 ＆ 活動ステータス管理</h3>
+              <p class="text-xs text-slate-500 mt-0.5">学年別のアプリ登録率の確認、未登録者への督促リスト作成、活動状況（現役／抽選免除／退部・音信不通）の切り替えを行います。</p>
+            </div>
+            <span id="member-status-overall-badge" class="px-3 py-1 rounded-full bg-brand-50 text-brand-700 ring-1 ring-brand-200 text-xs font-extrabold">
+              登録率: -
+            </span>
+          </div>
+
+          <!-- 1. 学年別（1〜4回生）の登録率サマリーバー -->
+          <div id="member-status-grade-summary" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <!-- JS (renderMemberStatusPanel) で動的描画 -->
+          </div>
+
+          <!-- 2. 絞り込みタブ + 検索ボックス + 未登録者名簿コピー -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
+            <div id="member-status-filter-tabs" class="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 self-start">
+              <button type="button" data-filter="unregistered" onclick="setMemberStatusFilter('unregistered')"
+                class="px-3 py-1.5 rounded-lg text-xs font-extrabold bg-white text-brand-700 shadow-2xs transition">
+                未登録のみ
+              </button>
+              <button type="button" data-filter="inactive" onclick="setMemberStatusFilter('inactive')"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+                免除・退部
+              </button>
+              <button type="button" data-filter="all" onclick="setMemberStatusFilter('all')"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+                全員
+              </button>
+            </div>
+
+            <button type="button" onclick="copyUnregisteredMembersList()"
+              class="self-start sm:self-auto px-3.5 py-2 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-extrabold text-xs shadow-2xs transition active:scale-[0.99]">
+              📋 未登録者名簿をコピー
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <input id="member-status-search-input" type="search" autocomplete="off"
+              oninput="renderMemberStatusPanel()"
+              placeholder="🔍 氏名・ふりがな・LINE名・キャンプネーム・学年で絞り込み..."
+              class="flex-1 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-xs focus:bg-white focus:border-brand-500 focus:outline-none" />
+            <span id="member-status-list-count" class="shrink-0 text-xs font-bold text-slate-500">0 名</span>
+          </div>
+
+          <!-- 3. メンバーリスト（スクロール枠 max-h-72） -->
+          <div id="member-status-list" class="max-h-72 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl bg-white">
+            <div class="p-4 text-center text-xs text-slate-400">メンバーデータを読み込んでいます...</div>
           </div>
         </div>
 
@@ -4671,9 +4847,13 @@
       const email = String(u.email || '').trim().toLowerCase();
       const name = String(u.name || '').trim();
       const grade = String(u.grade || '').trim();
+      const status = String(u.status || '').trim();
       if (email === 'dwc.manager.2025@gmail.com') return true;
       if (name === 'DWC公式' || name === '初期管理者' || name === '管理者') return true;
       if (/管理者|卒業|OB|OG/i.test(grade)) return true;
+      // 活動状況が「退部・音信不通」のメンバーも各種検索・ランキング・人狼名簿から除外
+      // （管理タブの登録状況＆ステータス管理パネルと権限管理では、復元できるよう別途フィルタ無しで表示する）
+      if (status === '退部・音信不通') return true;
       return false;
     }
     window.isSystemOrNonActiveAccount = isSystemOrNonActiveAccount;
@@ -20034,6 +20214,7 @@
     // =========================================================================
 
     let LAST_LOTTERY_RESULT = null;
+    let LAST_LOTTERY_COMMITTED = false;
 
     /**
      * 幹部ログイン完了時に呼ばれる初期化フック
@@ -20860,6 +21041,7 @@
       });
 
       LOTTERY_TARGET_GRADES_INITIALIZED = true;
+      handleLotteryRuleChange();
     }
 
     /**
@@ -20873,6 +21055,7 @@
         chk.checked = targetSet.has(String(chk.value || '').trim());
       });
       LOTTERY_TARGET_GRADES_INITIALIZED = true;
+      handleLotteryRuleChange();
     }
 
     /**
@@ -20883,6 +21066,63 @@
       return Array.from(document.querySelectorAll('.lottery-target-grade-chk:checked'))
         .map(chk => String(chk.value || '').trim())
         .filter(Boolean);
+    }
+
+    /**
+     * 抽選ルール詳細設定（未登録者除外 / 重複防止 / 上回生保証）の現在値を取得する
+     * 上回生保証は、2回生・3回生・4回生がすべて未選択の場合は常に false
+     * @return {{ exclude_unregistered: boolean, prevent_duplicate_in_batch: boolean, require_senior: boolean }}
+     */
+    function getLotteryRuleOptions() {
+      const excl = document.getElementById('lottery-opt-exclude-unregistered');
+      const dup = document.getElementById('lottery-opt-prevent-dup');
+      const sen = document.getElementById('lottery-opt-require-senior');
+      const grades = getSelectedLotteryTargetGrades();
+      const hasSeniorGrade = grades.some(g => g === '2回生' || g === '3回生' || g === '4回生');
+      return {
+        exclude_unregistered: excl ? Boolean(excl.checked) : true,
+        prevent_duplicate_in_batch: dup ? Boolean(dup.checked) : true,
+        require_senior: Boolean(sen && sen.checked && hasSeniorGrade)
+      };
+    }
+
+    /**
+     * 抽選ルール設定の変更時に、矛盾防止（上回生保証の自動無効化）とサマリー表示を更新する
+     */
+    function handleLotteryRuleChange() {
+      const grades = getSelectedLotteryTargetGrades();
+      const hasSeniorGrade = grades.some(g => g === '2回生' || g === '3回生' || g === '4回生');
+      const sen = document.getElementById('lottery-opt-require-senior');
+      const senLabel = document.getElementById('lottery-opt-require-senior-label');
+      const senHint = document.getElementById('lottery-opt-require-senior-hint');
+
+      if (sen) {
+        if (!hasSeniorGrade) {
+          sen.checked = false;
+          sen.disabled = true;
+        } else {
+          if (sen.disabled) sen.checked = true;
+          sen.disabled = false;
+        }
+      }
+      if (senLabel) {
+        senLabel.classList.toggle('opacity-50', !hasSeniorGrade);
+        senLabel.classList.toggle('cursor-not-allowed', !hasSeniorGrade);
+      }
+      if (senHint) {
+        senHint.textContent = hasSeniorGrade
+          ? '立候補者に上回生がいない日程では、対象学年の中の2回生以上から1名を優先して補充します。'
+          : '対象学年に2回生・3回生・4回生が含まれていないため、この設定は無効です。';
+      }
+
+      const opts = getLotteryRuleOptions();
+      const summaryEl = document.getElementById('lottery-rules-summary');
+      if (summaryEl) {
+        const gradeNums = grades.map(g => g.replace('回生', ''));
+        const gradeText = gradeNums.length > 0 ? `${gradeNums.join('・')}回生` : '学年未選択';
+        summaryEl.textContent =
+          `${gradeText} / 未登録除外:${opts.exclude_unregistered ? 'ON' : 'OFF'} / 重複防止:${opts.prevent_duplicate_in_batch ? 'ON' : 'OFF'} / 上回生保証:${opts.require_senior ? 'ON' : 'OFF'}`;
+      }
     }
 
     /**
@@ -21246,8 +21486,22 @@
      * 日付（YYYY-MM-DD）と補足ラベルを結合して `YYYY-MM-DD 補足ラベル` として送信
      */
     async function handleRunShiftLottery(event) {
-      event.preventDefault();
+      if (event && typeof event.preventDefault === 'function') event.preventDefault();
+      await executeLotteryDraw();
+    }
 
+    /**
+     * 「🔄 もう一度抽選し直す」: 入力済みの日程・立候補者・ルール設定をそのまま使って即座に仮抽選をやり直す
+     */
+    async function handleRedrawShiftLottery() {
+      triggerHaptic(15);
+      await executeLotteryDraw();
+    }
+
+    /**
+     * 仮抽選の実行本体（常に register_to_sheets: false。保存は「確定」ボタンで commitLotteryResults を呼び出す）
+     */
+    async function executeLotteryDraw() {
       const targetGrades = getSelectedLotteryTargetGrades();
       if (targetGrades.length === 0) {
         showToast('自動補充抽選の対象学年を1つ以上選択してください。', 'error');
@@ -21289,38 +21543,86 @@
         });
       }
 
-      const registerToSheets = document.getElementById('lottery-register-planned').checked;
+      const ruleOpts = getLotteryRuleOptions();
       const btn = document.getElementById('btn-run-lottery');
-      btn.disabled = true;
-      showLoader(`全 ${shiftsPayload.length} 日程のシフト抽選・割当を実行しています...`);
+      const redrawBtn = document.getElementById('btn-lottery-redraw');
+      if (btn) btn.disabled = true;
+      if (redrawBtn) redrawBtn.disabled = true;
+      showLoader(`全 ${shiftsPayload.length} 日程の仮抽選を実行しています...`);
 
       try {
         const result = await callGasRpc('drawMultipleShiftsLottery', {
           shifts: shiftsPayload,
           target_grades: targetGrades,
-          register_to_sheets: registerToSheets
+          register_to_sheets: false,
+          exclude_unregistered: ruleOpts.exclude_unregistered,
+          prevent_duplicate_in_batch: ruleOpts.prevent_duplicate_in_batch,
+          require_senior: ruleOpts.require_senior
         });
 
         LAST_LOTTERY_RESULT = result;
+        LAST_LOTTERY_COMMITTED = false;
         renderLotteryResult(result);
-
-        if (result.registered_to_sheets) {
-          showToast(
-            `全 ${result.total_shifts} 日程の割当が完了し、Planned_Shifts と Shift_Calendar へ出力しました！`,
-            'success'
-          );
-          const latestSlotNames = await callGasRpc('getShiftSlotNames');
-          APP_STATE.shiftSlotNames = Array.isArray(latestSlotNames) ? latestSlotNames : [];
-          APP_STATE.calendarData = null;
-          populateShiftSlotSelector();
-          await handleShiftDateChange();
-        } else {
-          showToast(`全 ${result.total_shifts} 日程の割当シミュレーションが完了しました！`, 'success');
+        showToast(`全 ${result.total_shifts} 日程の仮抽選が完了しました！（まだ保存されていません）`, 'success');
+        const boxEl = document.getElementById('lottery-result-box');
+        if (boxEl && typeof boxEl.scrollIntoView === 'function') {
+          boxEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       } catch (err) {
-        showToast(err.message || '一括抽選処理に失敗しました。', 'error');
+        showToast(err.message || '仮抽選処理に失敗しました。', 'error');
       } finally {
-        btn.disabled = false;
+        if (btn) btn.disabled = false;
+        if (redrawBtn) redrawBtn.disabled = false;
+        hideLoader();
+      }
+    }
+
+    /**
+     * 「✅ この結果で確定・シフト表へ保存する」: プレビュー中の仮抽選結果を commitLotteryResults で Planned_Shifts / Shift_Calendar へ保存
+     */
+    async function handleCommitLotteryResults() {
+      if (!LAST_LOTTERY_RESULT || !Array.isArray(LAST_LOTTERY_RESULT.shifts) || LAST_LOTTERY_RESULT.shifts.length === 0) {
+        showToast('確定する抽選結果がありません。先に仮抽選を実行してください。', 'error');
+        return;
+      }
+      if (LAST_LOTTERY_COMMITTED) {
+        showToast('この抽選結果はすでにシフト表へ保存済みです。', 'info');
+        return;
+      }
+      const ok = window.confirm(
+        `この結果（全 ${LAST_LOTTERY_RESULT.shifts.length} 日程）でシフト表へ確定保存しますか？\n同じ日程名の既存メンバーは上書きされます。`
+      );
+      if (!ok) return;
+
+      const commitBtn = document.getElementById('btn-lottery-commit');
+      const redrawBtn = document.getElementById('btn-lottery-redraw');
+      if (commitBtn) commitBtn.disabled = true;
+      if (redrawBtn) redrawBtn.disabled = true;
+      showLoader('抽選結果をシフト表へ保存しています...');
+
+      try {
+        const payloadShifts = LAST_LOTTERY_RESULT.shifts.map(s => ({
+          shift_date: s.shift_date,
+          winners: (s.winners || []).map(w => ({ name: w.name }))
+        }));
+        const res = await callGasRpc('commitLotteryResults', { shifts: payloadShifts });
+        LAST_LOTTERY_COMMITTED = true;
+        renderLotteryResult(LAST_LOTTERY_RESULT);
+
+        const latestSlotNames = await callGasRpc('getShiftSlotNames').catch(() => null);
+        if (Array.isArray(latestSlotNames)) {
+          APP_STATE.shiftSlotNames = latestSlotNames;
+        }
+        APP_STATE.calendarData = null;
+        populateShiftSlotSelector();
+        await handleShiftDateChange();
+
+        showToast(`全 ${res && res.total_shifts ? res.total_shifts : payloadShifts.length} 日程を Planned_Shifts と Shift_Calendar へ保存しました！`, 'success');
+      } catch (err) {
+        showToast(err.message || '抽選結果の確定保存に失敗しました。', 'error');
+        if (commitBtn) commitBtn.disabled = false;
+        if (redrawBtn) redrawBtn.disabled = false;
+      } finally {
         hideLoader();
       }
     }
@@ -21337,9 +21639,19 @@
       box.classList.remove('hidden');
       const shifts = Array.isArray(result.shifts) ? result.shifts : [];
 
-      const regText = result.registered_to_sheets
-        ? ' / ✅ Planned_Shifts & Shift_Calendar へ出力済'
-        : ' / ※シート未保存（プレビューのみ）';
+      // 仮抽選（未確定）/ 保存済みの表示切り替え
+      const actionBar = document.getElementById('lottery-action-bar');
+      const committedBadge = document.getElementById('lottery-committed-badge');
+      if (actionBar) actionBar.classList.toggle('hidden', LAST_LOTTERY_COMMITTED);
+      if (committedBadge) committedBadge.classList.toggle('hidden', !LAST_LOTTERY_COMMITTED);
+      const commitBtnEl = document.getElementById('btn-lottery-commit');
+      const redrawBtnEl = document.getElementById('btn-lottery-redraw');
+      if (commitBtnEl) commitBtnEl.disabled = false;
+      if (redrawBtnEl) redrawBtnEl.disabled = false;
+
+      const regText = LAST_LOTTERY_COMMITTED
+        ? ' / ✅ Planned_Shifts & Shift_Calendar へ保存済'
+        : ' / ※仮抽選（まだシート未保存）';
       const targetGradesText =
         Array.isArray(result.target_grades) && result.target_grades.length > 0
           ? ` / 自動補充対象: ${result.target_grades.join('・')}`
@@ -21418,7 +21730,9 @@
               } else if (isVolunteerLottery) {
                 badge = '<span class="px-2 py-0.5 rounded-full bg-indigo-600 text-white font-extrabold text-[11px]">立候補(抽選当選)</span>';
               } else {
-                badge = '<span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[11px]">システム補充</span>';
+                badge = item.senior_guarantee
+                  ? '<span class="px-2 py-0.5 rounded-full bg-emerald-700 text-white font-extrabold text-[11px]">システム補充(上回生保証)</span>'
+                  : '<span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[11px]">システム補充</span>';
               }
             } else {
               badge = '<span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 font-bold text-[11px]">選外</span>';
@@ -21430,7 +21744,8 @@
               breakdownStr = sb.note || '立候補により無条件確定';
             } else {
               const inBatchDed = sb.in_batch_deduction ? ` / バッチ内当選${sb.in_batch_deduction}` : '';
-              breakdownStr = `基礎${sb.base || 100} / 次回優先カウント+${sb.penalty_bonus || 0} / 直近${sb.recent_2m_deduction || 0}${inBatchDed} / 累計${sb.cumulative_deduction || 0} / 乱数+${sb.random_tie_breaker || 0}`;
+              const dupDed = sb.duplicate_deduction ? ` / 重複防止${sb.duplicate_deduction}` : '';
+              breakdownStr = `基礎${sb.base || 100} / 次回優先カウント+${sb.penalty_bonus || 0} / 直近${sb.recent_2m_deduction || 0}${inBatchDed}${dupDed} / 累計${sb.cumulative_deduction || 0} / 乱数+${sb.random_tie_breaker || 0}`;
             }
 
             return `
@@ -21497,19 +21812,44 @@
     async function copyLotteryWinnersText() {
       if (!LAST_LOTTERY_RESULT || !Array.isArray(LAST_LOTTERY_RESULT.shifts)) return;
 
+      const gradeShort = g => {
+        const m = String(g || '').trim().match(/^(\d)回生$/);
+        return m ? m[1] : String(g || '').trim();
+      };
+      const fmtMember = w => `${w.name}(${gradeShort(w.grade)})`;
+
+      const assignedNotices = [];
       const blocksText = LAST_LOTTERY_RESULT.shifts.map(s => {
-        const winners = (s.winners || []).map(w => `・${w.name} (${w.grade})`);
-        const lines = [
-          `📅 【${s.shift_date}】 (確定 ${winners.length}名)`,
-          winners.join('\n') || '・該当なし'
-        ];
+        const winners = Array.isArray(s.winners) ? s.winners : [];
+        const assigned = winners.filter(w => w.selection_type === 'assigned');
+        const volunteers = winners.filter(w => w.selection_type === 'volunteer' || w.selection_type === 'volunteer_lottery');
+        const others = winners.filter(w => !assigned.includes(w) && !volunteers.includes(w));
+
+        assigned.forEach(w => {
+          const lineName = String(w.line_name || '').trim();
+          assignedNotices.push(
+            lineName
+              ? `・${w.name} [LINE: ${lineName}] (${s.shift_date})`
+              : `・${w.name} (${s.shift_date})`
+          );
+        });
+
+        const lines = [`📅 ${s.shift_date} (計${winners.length}名)`];
+        if (assigned.length > 0) lines.push(`🎯 抽選：${assigned.map(fmtMember).join(' / ')}`);
+        if (volunteers.length > 0) lines.push(`✋ 希望：${volunteers.map(fmtMember).join(' / ')}`);
+        if (others.length > 0) lines.push(`👤 その他：${others.map(fmtMember).join(' / ')}`);
+        if (winners.length === 0) lines.push('該当なし');
         return lines.join('\n');
       });
 
-      const fullText = `【DWC シフト割当結果】\n\n${blocksText.join('\n\n')}`;
+      let fullText = `【DWC シフト割当結果】\n\n${blocksText.join('\n\n')}`;
+      if (assignedNotices.length > 0) {
+        fullText += `\n\n━━━━━━━━━━━━━━\n⚠️ 抽選割当の方（行けるか確認・返信お願いします！）\n${assignedNotices.join('\n')}`;
+      }
+
       try {
         await navigator.clipboard.writeText(fullText);
-        showToast('全日程の確定メンバーリストをクリップボードにコピーしました！', 'success');
+        showToast('全日程の割当結果をクリップボードにコピーしました！', 'success');
       } catch (_) {
         showToast('コピーに失敗しました。', 'error');
       }
@@ -21520,9 +21860,14 @@
     // -------------------------------------------------------------------------
 
     let SHIFT_EDIT_CURRENT_MEMBERS = [];
+    let SHIFT_EDIT_ACTIVE_SLOT = '';
+    let SHIFT_EDIT_EXCLUDED_SESSION_NAMES = [];
+    let SHIFT_EDIT_REDRAW_PREVIEW = null;
+    let SHIFT_EDIT_LAST_REDRAW_NOTICE = '';
 
     window.loadAdminShiftEditTab = async function(preferredSlot) {
       if (!currentUserIsManagerOrAbove()) return;
+      initShiftLotteryTargetGrades(false);
       const selectEl = document.getElementById('shift-edit-slot-select');
       if (!selectEl) return;
 
@@ -21552,11 +21897,62 @@
       await handleShiftEditSlotChange();
     };
 
+    function resetShiftEditRedrawUI(clearExcludedSession = false) {
+      if (clearExcludedSession) {
+        SHIFT_EDIT_EXCLUDED_SESSION_NAMES = [];
+      }
+      SHIFT_EDIT_REDRAW_PREVIEW = null;
+      SHIFT_EDIT_LAST_REDRAW_NOTICE = '';
+      const previewEl = document.getElementById('shift-edit-redraw-preview');
+      const committedEl = document.getElementById('shift-edit-redraw-committed-box');
+      if (previewEl) previewEl.classList.add('hidden');
+      if (committedEl) committedEl.classList.add('hidden');
+      renderShiftEditExcludedNotice();
+      renderShiftEditRedrawRuleBadge();
+      updateShiftEditRedrawBtnLabel();
+    }
+
+    function updateShiftEditRedrawBtnLabel() {
+      const countEl = document.getElementById('shift-edit-redraw-count');
+      const btnEl = document.getElementById('btn-shift-edit-redraw');
+      const count = Math.max(1, Math.min(5, Number(countEl ? countEl.value : 1) || 1));
+      if (btnEl) {
+        btnEl.textContent = `🎲 候補を${count}名再抽選する`;
+      }
+    }
+
+    function renderShiftEditRedrawRuleBadge() {
+      const badgeEl = document.getElementById('shift-edit-redraw-rule-badge');
+      if (!badgeEl) return;
+      initShiftLotteryTargetGrades(false);
+      const grades = getSelectedLotteryTargetGrades();
+      const opts = getLotteryRuleOptions();
+      const gradeNums = grades.map(g => g.replace('回生', ''));
+      const gradeStr = gradeNums.length > 0 ? `${gradeNums.join('・')}回生` : '学年未選択';
+      badgeEl.textContent = `対象: ${gradeStr} / 未登録除外:${opts.exclude_unregistered ? 'ON' : 'OFF'} / 上回生保証:${opts.require_senior ? 'ON' : 'OFF'}`;
+    }
+
+    function renderShiftEditExcludedNotice() {
+      const noticeEl = document.getElementById('shift-edit-excluded-notice');
+      if (!noticeEl) return;
+      if (SHIFT_EDIT_EXCLUDED_SESSION_NAMES.length === 0) {
+        noticeEl.classList.add('hidden');
+        noticeEl.textContent = '';
+      } else {
+        noticeEl.classList.remove('hidden');
+        noticeEl.textContent = `🚫 今回除外したため再抽選から回避中: ${SHIFT_EDIT_EXCLUDED_SESSION_NAMES.join('、')}`;
+      }
+    }
+
     async function handleShiftEditSlotChange() {
       const selectEl = document.getElementById('shift-edit-slot-select');
       const workspaceEl = document.getElementById('shift-edit-workspace');
       const slotName = selectEl ? selectEl.value : '';
       if (!workspaceEl) return;
+
+      const slotChanged = slotName !== SHIFT_EDIT_ACTIVE_SLOT;
+      SHIFT_EDIT_ACTIVE_SLOT = slotName;
+      resetShiftEditRedrawUI(slotChanged);
 
       if (!slotName) {
         workspaceEl.classList.add('hidden');
@@ -21796,7 +22192,14 @@
           member_name: memberName,
           add_penalty: Boolean(addPenalty)
         });
-        SHIFT_EDIT_CURRENT_MEMBERS = Array.isArray(res.remaining_members) ? res.remaining_members : [];
+        SHIFT_EDIT_CURRENT_MEMBERS = Array.isArray(res.members)
+          ? res.members
+          : (Array.isArray(res.remaining_members) ? res.remaining_members : []);
+        const normRemoved = normalizeNameClient(memberName);
+        if (normRemoved && !SHIFT_EDIT_EXCLUDED_SESSION_NAMES.some(n => normalizeNameClient(n) === normRemoved)) {
+          SHIFT_EDIT_EXCLUDED_SESSION_NAMES.push(memberName);
+        }
+        renderShiftEditExcludedNotice();
         APP_STATE.calendarData = null;
         if (addPenalty) {
           const users = await callGasRpc('getUsers');
@@ -21814,6 +22217,194 @@
         showToast(err.message || 'メンバーの除外に失敗しました。', 'error');
       } finally {
         hideLoader();
+      }
+    }
+
+    /**
+     * 3.5 欠員分ピンポイント再抽選（プレビュー）: redrawShiftMembers(commit: false)
+     */
+    async function handleShiftEditRedrawPreview() {
+      const slotSelect = document.getElementById('shift-edit-slot-select');
+      const countSelect = document.getElementById('shift-edit-redraw-count');
+      const slotName = slotSelect ? slotSelect.value : '';
+      if (!slotName) {
+        showToast('再抽選するシフト枠を選択してください。', 'error');
+        return;
+      }
+
+      initShiftLotteryTargetGrades(false);
+      const targetGrades = getSelectedLotteryTargetGrades();
+      if (targetGrades.length === 0) {
+        showToast('抽選タブの対象学年が1つも選択されていません。', 'error');
+        return;
+      }
+      const opts = getLotteryRuleOptions();
+      const count = Math.max(1, Math.min(5, Number(countSelect ? countSelect.value : 1) || 1));
+
+      const btnMain = document.getElementById('btn-shift-edit-redraw');
+      const btnAgain = document.getElementById('btn-shift-edit-redraw-again');
+      if (btnMain) btnMain.disabled = true;
+      if (btnAgain) btnAgain.disabled = true;
+      showLoader(`欠員 ${count} 名分の再抽選候補を選出しています...`);
+
+      try {
+        const res = await callGasRpc('redrawShiftMembers', {
+          shift_date: slotName,
+          count: count,
+          target_grades: targetGrades,
+          exclude_unregistered: opts.exclude_unregistered,
+          require_senior: opts.require_senior,
+          excluded_names: SHIFT_EDIT_EXCLUDED_SESSION_NAMES,
+          commit: false
+        });
+
+        SHIFT_EDIT_REDRAW_PREVIEW = res;
+        const previewEl = document.getElementById('shift-edit-redraw-preview');
+        const listEl = document.getElementById('shift-edit-redraw-candidates-list');
+        const poolInfoEl = document.getElementById('shift-edit-redraw-pool-info');
+        const committedEl = document.getElementById('shift-edit-redraw-committed-box');
+        const commitBtn = document.getElementById('btn-shift-edit-redraw-commit');
+        if (committedEl) committedEl.classList.add('hidden');
+
+        const candidates = Array.isArray(res && res.candidates) ? res.candidates : [];
+        if (poolInfoEl) {
+          poolInfoEl.textContent = `候補プール: ${Number(res && res.pool_size || 0)} 名`;
+        }
+
+        if (candidates.length === 0) {
+          if (listEl) {
+            listEl.innerHTML = '<div class="p-3 text-center text-xs text-rose-600 bg-rose-50 rounded-lg">条件に一致する追加可能な候補メンバーが見つかりませんでした（対象学年や未登録除外設定を確認してください）。</div>';
+          }
+          if (commitBtn) commitBtn.disabled = true;
+        } else {
+          if (commitBtn) commitBtn.disabled = false;
+          if (listEl) {
+            listEl.innerHTML = candidates.map(c => {
+              const lineBadge = c.line_name
+                ? `<span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">💬 LINE: ${escapeHtml(c.line_name)}</span>`
+                : '';
+              const seniorBadge = c.senior_guarantee
+                ? `<span class="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 text-[10px] font-extrabold">上回生保証</span>`
+                : '';
+              const penBadge = Number(c.penalty_points || 0) > 0
+                ? `<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[10px] font-extrabold">次回優先 ${c.penalty_points}</span>`
+                : '';
+              return `
+                <div class="p-2.5 rounded-xl bg-amber-50/70 ring-1 ring-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <div class="min-w-0 flex flex-wrap items-center gap-1.5">
+                    <span class="text-xs sm:text-sm font-extrabold text-slate-900">🎯 ${escapeHtml(c.name)}</span>
+                    <span class="text-[11px] font-bold text-slate-600">(${escapeHtml(c.grade || '未設定')})</span>
+                    ${seniorBadge}
+                    ${lineBadge}
+                    ${penBadge}
+                  </div>
+                  <div class="shrink-0 text-[11px] text-slate-500 font-semibold">
+                    スコア <strong class="text-brand-700">${c.score} pt</strong>（直近:${c.recent_2m_count} / 累計:${c.reward_points}）
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+
+        if (previewEl) previewEl.classList.remove('hidden');
+        renderShiftEditRedrawRuleBadge();
+        showToast(
+          candidates.length > 0
+            ? `再抽選候補 ${candidates.length} 名を選出しました（まだ確定されていません）。`
+            : '条件に一致する候補が見つかりませんでした。',
+          candidates.length > 0 ? 'success' : 'error'
+        );
+      } catch (err) {
+        showToast(err.message || '再抽選に失敗しました。', 'error');
+      } finally {
+        if (btnMain) btnMain.disabled = false;
+        if (btnAgain) btnAgain.disabled = false;
+        hideLoader();
+      }
+    }
+
+    /**
+     * 3.5 再抽選候補を確定追加: redrawShiftMembers(commit: true)
+     */
+    async function handleShiftEditRedrawCommit() {
+      const slotSelect = document.getElementById('shift-edit-slot-select');
+      const slotName = slotSelect ? slotSelect.value : '';
+      const candidates = SHIFT_EDIT_REDRAW_PREVIEW && Array.isArray(SHIFT_EDIT_REDRAW_PREVIEW.candidates)
+        ? SHIFT_EDIT_REDRAW_PREVIEW.candidates
+        : [];
+      if (!slotName || candidates.length === 0) {
+        showToast('確定する候補メンバーがいません。', 'error');
+        return;
+      }
+
+      const selectedNames = candidates.map(c => c.name);
+      const ok = window.confirm(
+        `以下のメンバーを「${slotName}」へ追加して確定しますか？\n\n${selectedNames.map(n => `・${n}`).join('\n')}`
+      );
+      if (!ok) return;
+
+      const commitBtn = document.getElementById('btn-shift-edit-redraw-commit');
+      if (commitBtn) commitBtn.disabled = true;
+      showLoader('再抽選メンバーをシフト枠へ追加しています...');
+
+      try {
+        const res = await callGasRpc('redrawShiftMembers', {
+          shift_date: slotName,
+          commit: true,
+          selected_names: selectedNames
+        });
+
+        SHIFT_EDIT_CURRENT_MEMBERS = Array.isArray(res && res.members) ? res.members : SHIFT_EDIT_CURRENT_MEMBERS;
+        APP_STATE.calendarData = null;
+        renderShiftEditMembersList();
+        filterShiftEditMemberSelect();
+
+        const addedMembers = Array.isArray(res && res.added_members) && res.added_members.length > 0
+          ? res.added_members
+          : candidates;
+        const assignLines = addedMembers.map(m => {
+          const gradePart = m.grade ? ` (${m.grade})` : '';
+          const linePart = m.line_name ? ` [LINE: ${m.line_name}]` : '';
+          return `🎯 追加割当：${m.name}${gradePart}${linePart}`;
+        });
+        SHIFT_EDIT_LAST_REDRAW_NOTICE =
+          `【シフト再抽選のお知らせ】\n📅 ${slotName}\n${assignLines.join('\n')}\n行けるか確認・返信お願いします！`;
+
+        const previewEl = document.getElementById('shift-edit-redraw-preview');
+        const committedEl = document.getElementById('shift-edit-redraw-committed-box');
+        const committedMsgEl = document.getElementById('shift-edit-redraw-committed-msg');
+        const noticePreviewEl = document.getElementById('shift-edit-redraw-notice-preview');
+
+        if (previewEl) previewEl.classList.add('hidden');
+        if (committedMsgEl) {
+          committedMsgEl.textContent = `✅ ${addedMembers.map(m => m.name).join('、')} を「${slotName}」へ追加して確定しました！`;
+        }
+        if (noticePreviewEl) {
+          noticePreviewEl.textContent = SHIFT_EDIT_LAST_REDRAW_NOTICE;
+        }
+        if (committedEl) committedEl.classList.remove('hidden');
+
+        SHIFT_EDIT_REDRAW_PREVIEW = null;
+        showToast(`${addedMembers.length} 名をシフト枠へ追加して確定しました！`, 'success');
+      } catch (err) {
+        showToast(err.message || '再抽選メンバーの確定追加に失敗しました。', 'error');
+        if (commitBtn) commitBtn.disabled = false;
+      } finally {
+        hideLoader();
+      }
+    }
+
+    async function copyShiftEditRedrawNotice() {
+      if (!SHIFT_EDIT_LAST_REDRAW_NOTICE) {
+        showToast('コピーするお知らせ文面がありません。', 'error');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(SHIFT_EDIT_LAST_REDRAW_NOTICE);
+        showToast('再抽選のお知らせ文面をクリップボードにコピーしました！', 'success');
+      } catch (_) {
+        showToast('コピーに失敗しました。', 'error');
       }
     }
 
@@ -21876,6 +22467,245 @@
     // 7-4. メンバー・バッジ管理タブ（Manager以上） ＆ システム管理パネル（System Admin専用）
     // -------------------------------------------------------------------------
 
+    let MEMBER_STATUS_FILTER = 'unregistered';
+
+    function isSharedAdminRecordForStatusPanel(u) {
+      if (!u) return true;
+      const email = String(u.email || '').trim().toLowerCase();
+      const name = String(u.name || '').trim();
+      const grade = String(u.grade || '').trim();
+      if (email === 'dwc.manager.2025@gmail.com') return true;
+      if (name === 'DWC公式' || name === '初期管理者' || name === '管理者') return true;
+      if (/管理者/i.test(grade)) return true;
+      return false;
+    }
+
+    function setMemberStatusFilter(filterKey) {
+      MEMBER_STATUS_FILTER = (filterKey === 'inactive' || filterKey === 'all') ? filterKey : 'unregistered';
+      const tabsEl = document.getElementById('member-status-filter-tabs');
+      if (tabsEl) {
+        tabsEl.querySelectorAll('button[data-filter]').forEach(btn => {
+          const active = btn.getAttribute('data-filter') === MEMBER_STATUS_FILTER;
+          btn.className = active
+            ? 'px-3 py-1.5 rounded-lg text-xs font-extrabold bg-white text-brand-700 shadow-2xs transition'
+            : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+        });
+      }
+      renderMemberStatusPanel();
+    }
+
+    function renderMemberStatusPanel() {
+      const summaryEl = document.getElementById('member-status-grade-summary');
+      const overallEl = document.getElementById('member-status-overall-badge');
+      const listEl = document.getElementById('member-status-list');
+      const countEl = document.getElementById('member-status-list-count');
+      const searchEl = document.getElementById('member-status-search-input');
+      if (!summaryEl || !listEl) return;
+
+      const allUsers = (APP_STATE.usersList || []).filter(u => !isSharedAdminRecordForStatusPanel(u));
+
+      // 1. 学年別（1〜4回生）の登録率サマリー（退部・音信不通は除外）
+      const targetGrades = ['1回生', '2回生', '3回生', '4回生'];
+      let totalActiveAll = 0;
+      let totalRegisteredAll = 0;
+
+      summaryEl.innerHTML = targetGrades.map(g => {
+        const inGrade = allUsers.filter(u => {
+          const st = String(u.status || '現役').trim() || '現役';
+          return String(u.grade || '').trim() === g && st !== '退部・音信不通';
+        });
+        const regCount = inGrade.filter(u => Boolean(String(u.email || '').trim())).length;
+        const tot = inGrade.length;
+        const pct = tot > 0 ? Math.round((regCount / tot) * 100) : 0;
+        totalActiveAll += tot;
+        totalRegisteredAll += regCount;
+        const barColor = pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-brand-500' : 'bg-amber-500';
+
+        return `
+          <div class="rounded-xl bg-slate-50/90 ring-1 ring-slate-200/80 p-2.5 space-y-1.5">
+            <div class="flex items-center justify-between gap-1 text-[11px] font-extrabold text-slate-800">
+              <span>${escapeHtml(g)}</span>
+              <span class="text-slate-600">${regCount}/${tot}名 (${pct}%)</span>
+            </div>
+            <div class="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden">
+              <div class="h-full rounded-full ${barColor} transition-all" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (overallEl) {
+        const overallPct = totalActiveAll > 0 ? Math.round((totalRegisteredAll / totalActiveAll) * 100) : 0;
+        overallEl.textContent = `1〜4回生 登録率: ${totalRegisteredAll}/${totalActiveAll}名 (${overallPct}%)`;
+      }
+
+      // 2. タブ＋検索による絞り込み
+      const normQuery = normalizeSearchKey(searchEl ? searchEl.value : '');
+      const filtered = [];
+      allUsers.forEach((u, idx) => {
+        const st = String(u.status || '現役').trim() || '現役';
+        const isReg = Boolean(String(u.email || '').trim());
+        const isGrad = /卒業|OB|OG/i.test(String(u.grade || '').trim());
+
+        if (MEMBER_STATUS_FILTER === 'unregistered') {
+          if (isReg || st === '退部・音信不通' || isGrad) return;
+        } else if (MEMBER_STATUS_FILTER === 'inactive') {
+          if (st !== '抽選免除' && st !== '退部・音信不通') return;
+        }
+
+        const score = normQuery ? scoreMemberSearchMatch(u, normQuery) : 1;
+        if (normQuery && score <= 0) return;
+        filtered.push({ user: u, idx: idx, score: score });
+      });
+
+      filtered.sort((a, b) => {
+        if (normQuery && b.score !== a.score) return b.score - a.score;
+        const gDiff = getGradeSortOrder(a.user.grade) - getGradeSortOrder(b.user.grade);
+        if (gDiff !== 0) return gDiff;
+        return String(a.user.name || '').localeCompare(String(b.user.name || ''), 'ja');
+      });
+
+      if (countEl) {
+        countEl.textContent = `${filtered.length} 名`;
+      }
+
+      if (filtered.length === 0) {
+        const emptyMsg = MEMBER_STATUS_FILTER === 'unregistered'
+          ? '該当する未登録メンバーはいません！🎉'
+          : MEMBER_STATUS_FILTER === 'inactive'
+            ? '抽選免除・退部設定のメンバーはいません。'
+            : '条件に一致するメンバーが見つかりません。';
+        listEl.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">${emptyMsg}</div>`;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(({ user: u }) => {
+        const st = String(u.status || '現役').trim() || '現役';
+        const isReg = Boolean(String(u.email || '').trim());
+        const regBadge = isReg
+          ? '<span class="shrink-0 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">✅ 登録済</span>'
+          : '<span class="shrink-0 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold">⚠️ 未登録</span>';
+
+        const selectTint = st === '退部・音信不通'
+          ? 'border-rose-300 bg-rose-50 text-rose-800'
+          : st === '抽選免除'
+            ? 'border-amber-300 bg-amber-50 text-amber-900'
+            : 'border-slate-200 bg-white text-slate-800';
+        const rowDim = st === '退部・音信不通' ? 'bg-slate-50/90 opacity-80' : 'bg-white';
+        const lineSub = u.line_name
+          ? `<span class="text-[10px] text-emerald-700 font-semibold">💬 ${escapeHtml(u.line_name)}</span>`
+          : '';
+        const safeName = escapeHtml(String(u.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+
+        return `
+          <div class="px-3 py-2.5 flex items-center justify-between gap-2 ${rowDim}">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs sm:text-sm font-bold text-slate-900 truncate">${escapeHtml(u.name)}</span>
+                <span class="text-[11px] font-semibold text-slate-500">(${escapeHtml(u.grade || '未設定')})</span>
+                ${regBadge}
+              </div>
+              ${lineSub ? `<div class="mt-0.5">${lineSub}</div>` : ''}
+            </div>
+            <div class="shrink-0">
+              <select
+                data-prev-status="${escapeHtml(st)}"
+                onchange="handleChangeMemberStatus(${Number(u.row_index)}, '${safeName}', this.value, this)"
+                class="rounded-lg border px-2 py-1.5 text-[11px] font-bold focus:outline-none focus:border-brand-600 ${selectTint}">
+                <option value="現役" ${st === '現役' ? 'selected' : ''}>現役</option>
+                <option value="抽選免除" ${st === '抽選免除' ? 'selected' : ''}>抽選免除</option>
+                <option value="退部・音信不通" ${st === '退部・音信不通' ? 'selected' : ''}>退部・音信不通</option>
+              </select>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function handleChangeMemberStatus(rowIndex, memberName, newStatus, selectEl) {
+      const prevStatus = selectEl ? (selectEl.getAttribute('data-prev-status') || '現役') : '現役';
+      if (newStatus === prevStatus) return;
+
+      if (selectEl) selectEl.disabled = true;
+      showLoader(`「${memberName}」の活動状況を「${newStatus}」に変更しています...`);
+      try {
+        const res = await callGasRpc('updateUserStatus', {
+          row_index: rowIndex,
+          name: memberName,
+          new_status: newStatus
+        });
+        const savedStatus = (res && res.new_status) ? res.new_status : newStatus;
+
+        // APP_STATE.usersList を即時同期
+        const target = (APP_STATE.usersList || []).find(
+          u => Number(u.row_index) === Number(rowIndex) || normalizeNameClient(u.name) === normalizeNameClient(memberName)
+        );
+        if (target) {
+          target.status = savedStatus;
+        }
+        renderMemberStatusPanel();
+        filterControlPenaltyUserSelect();
+        filterControlBadgeUserSelect();
+        renderGradeAccordionParticipants();
+        syncGameUserData();
+        showToast(`「${memberName}」の活動状況を「${savedStatus}」に変更しました！`, 'success');
+      } catch (err) {
+        if (selectEl) {
+          selectEl.value = prevStatus;
+          selectEl.disabled = false;
+        }
+        showToast(err.message || '活動状況の変更に失敗しました。', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+
+    async function copyUnregisteredMembersList() {
+      const allUsers = (APP_STATE.usersList || []).filter(u => !isSharedAdminRecordForStatusPanel(u));
+      const unregistered = allUsers.filter(u => {
+        const st = String(u.status || '現役').trim() || '現役';
+        const isReg = Boolean(String(u.email || '').trim());
+        const isGrad = /卒業|OB|OG/i.test(String(u.grade || '').trim());
+        return !isReg && st !== '退部・音信不通' && !isGrad;
+      });
+
+      if (unregistered.length === 0) {
+        showToast('未登録の現役メンバーはいません！🎉', 'info');
+        return;
+      }
+
+      const gradesOrder = ['1回生', '2回生', '3回生', '4回生'];
+      const groups = new Map();
+      unregistered.forEach(u => {
+        const g = String(u.grade || 'その他').trim() || 'その他';
+        const key = gradesOrder.includes(g) ? g : 'その他';
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(u);
+      });
+
+      const sections = [];
+      gradesOrder.concat(['その他']).forEach(g => {
+        const list = groups.get(g);
+        if (!list || list.length === 0) return;
+        list.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ja'));
+        sections.push(`【${g}】(${list.length}名)\n${list.map(u => `・${u.name}`).join('\n')}`);
+      });
+
+      const text = [
+        `【DWC公式アプリ 未登録者リスト】(計${unregistered.length}名)`,
+        'まだログイン登録が完了していない方は、アプリを開いて初回登録をお願いします！',
+        '',
+        sections.join('\n\n')
+      ].join('\n');
+
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(`未登録者 ${unregistered.length} 名のリストをクリップボードにコピーしました！`, 'success');
+      } catch (_) {
+        showToast('コピーに失敗しました。', 'error');
+      }
+    }
+
     window.loadAdminMembersTab = async function() {
       if (!currentUserIsManagerOrAbove()) return;
       try {
@@ -21887,6 +22717,7 @@
         if (Array.isArray(badges) && badges.length > 0) {
           APP_STATE.badgesMaster = badges;
         }
+        renderMemberStatusPanel();
         filterControlPenaltyUserSelect();
         renderControlBadgesSection();
         filterControlBadgeUserSelect();
